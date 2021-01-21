@@ -1,0 +1,233 @@
+%===============================================================================
+% Authors: 2008 Michal Bidlo, 2019 Jaroslav Dytrych, 2021 Dominik Harmim
+% Contact for questions and comments: sablona@fit.vutbr.cz
+% Author contact: xharmi00@stud.fit.vutbr.cz
+%===============================================================================
+% encoding: UTF-8
+%-------------------------------------------------------------------------------
+% processing: make, make all, make pdf, make xharmi00.pdf make clean, make pack
+%             make xharmi00.tar.gz, make vlna, make normostrany
+%===============================================================================
+% Included files:
+%   xharmi00.bib - bibliography
+%   xharmi00-chapters.tex - the thesis content
+%   xharmi00-appendices.tex - appendices
+%===============================================================================
+
+
+\documentclass[british, zadani, odsaz]{fitthesis}
+
+
+% Basic packages are at the bottom of template file fitthesis.cls.
+\usepackage{wrapfig}
+\usepackage{amsthm}
+\usepackage[ruled, algochapter, linesnumbered]{algorithm2e}
+% \usepackage{tocloft}
+
+% Setting of a path to the pictures.
+\graphicspath{{img/}}
+
+\renewcommand{\rmdefault}{lmr} % set Latin Modern Roman as rm
+\renewcommand{\sfdefault}{qhv} % set TeX Gyre Heros as sf
+\renewcommand{\ttdefault}{lmtt} % set Latin Modern tt as tt
+
+% Definition theorem.
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+% Example theorem.
+\theoremstyle{definition}
+\newtheorem{example}{Example}[section]
+
+% Algorithm margin.
+\setlength{\algomargin}{2em}
+
+% Line spacing in the table of contents.
+% \renewcommand\cftchapafterpnum{\vskip .5em}
+% \renewcommand\cftsecafterpnum{\vskip .5em}
+
+% "hyperref" package create clickable links in pdf if you are using pdflatex.
+% Problem is that this package have to be introduced as the last one so it
+% cannot be placed in the template file.
+\ifWis
+    \ifx\pdfoutput\undefined\else
+        \usepackage[
+            unicode, colorlinks, hyperindex, plainpages=false, pdftex
+        ]{hyperref}
+        \definecolor{hrcolor-ref}{RGB}{223, 52, 30}
+        \definecolor{hrcolor-cite}{HTML}{2F8F00}
+        \definecolor{hrcolor-urls}{HTML}{092EAB}
+        \hypersetup{
+            linkcolor=hrcolor-ref, citecolor=hrcolor-cite, filecolor=magenta,
+            urlcolor=hrcolor-urls
+        }
+    \fi
+\else % for the print clickable links will be black
+    \ifx\pdfoutput\undefined\else
+        \usepackage[
+            unicode, colorlinks, hyperindex, plainpages=false, pdftex,
+            urlcolor=black, linkcolor=black, citecolor=black
+        ]{hyperref}
+        \definecolor{links}{rgb}{0, 0, 0}
+        \definecolor{anchors}{rgb}{0, 0, 0}
+        \def\AnchorColor{anchors}
+        \def\LinkColor{links}
+    \fi
+\fi
+
+% This solves the problems with links which leads after the picture.
+\usepackage[all]{hypcap}
+
+% Solves first/last row of the paragraph on the previous/next page.
+\clubpenalty=10000
+\widowpenalty=10000
+
+
+% Information about the thesis
+%-------------------------------------------------------------------------------
+\projectinfo{%
+    % Thesis
+    project={SP}, % thesis type
+    year={2021}, % year of a submission
+    date=\today, % submission date
+    faculty={FIT}, % name of the faculty
+    department={UITS}, % appropriate abbreviation of the department
+%
+    % Thesis title
+    % thesis title in english
+    title.en={%
+        Advanced Static Analysis of Atomicity in Concurrent Programs through
+        Facebook Infer%
+    },
+    % thesis title in czech language
+    title.cs={%
+        Pokročilá statická analýza atomičnosti v~paralelních programech
+        v~prostředí Facebook Infer%
+    },
+    % setting the length of a block with a thesis title
+    title.length={15cm},
+    % setting the length of a block with a second thesis title
+    sectitle.length={15cm},
+%
+    % Author
+    author.name={Dominik}, % author name
+    author.surname={Harmim}, % author surname
+    author.title.p={Bc.}, % title before the name
+%
+    % Supervisor
+    supervisor.name={Tomáš}, % supervisor name
+    supervisor.surname={Vojnar}, % supervisor surname
+    supervisor.title.p={prof. Ing.}, % title before the name
+    supervisor.title.a={Ph.D.}, % title after the name (optional)
+%
+    % Keywords
+    % keywords in english
+    keywords.en={%
+        Here, individual keywords separated by commas will be written in
+        English.%
+    },
+    % keywords in czech language
+    keywords.cs={%
+        Sem budou zapsána jednotlivá klíčová slova v~českém (slovenském)
+        jazyce, oddělená čárkami.%
+    },
+%
+    %Abstract
+    abstract.en={%
+        An abstract of the work in English will be written in this paragraph.%
+    },
+    abstract.cs={%
+        Do tohoto odstavce bude zapsán výtah (abstrakt) práce v~českém
+        (slovenském) jazyce.%
+    },
+%
+    % Extended abstract
+    extendedabstract={%
+        Do tohoto odstavce bude zapsán rozšířený výtah (abstrakt) práce
+        v~českém (slovenském) jazyce.%
+    },
+%
+    % Declaration
+    declaration={%
+        I~hereby declare that this Bachelor's thesis was prepared as an
+        original work by the author under the supervision of Mr. X.
+        The supplementary information was provided by Mr. Y.
+        I~have listed all the literary sources, publications and other sources,
+        which were used during the preparation of this thesis.%
+    },
+%
+    % Acknowledgement
+    acknowledgement={%
+        Here it is possible to express thanks to the supervisor and to the
+        people which provided professional help (external submitter,
+        consultant, etc.).%
+    }
+}
+
+
+% Additional hyperref settings.
+\ifx\pdfoutput\undefined\else
+    \def\pdfBorderAttrs{/Border [0 0 0]} % without margins around links
+    \pdfcompresslevel=9
+    \hypersetup{
+        pdfauthor=\pdfauthor,
+        pdftitle=\pdftitle,
+        pdfsubject=\pdfsubject,
+        pdfkeywords=\pdfkeywords
+    }
+\fi
+
+
+%===============================================================================
+\begin{document}
+    % Typesetting of the title pages
+    % --------------------------------------------------------------------------
+    \maketitle
+
+
+    % Table of contents
+    % --------------------------------------------------------------------------
+    \setlength{\parskip}{0pt}
+    \pagenumbering{roman}
+
+    {\hypersetup{hidelinks}\tableofcontents}
+
+    \ifODSAZ
+        \setlength{\parskip}{.5\bigskipamount}
+    \else
+        \setlength{\parskip}{0pt}
+    \fi
+
+
+    \iftwoside\cleardoublepage\else\clearpage\fi
+
+
+    % Thesis text
+    % --------------------------------------------------------------------------
+    \pagenumbering{arabic}
+    \setcounter{page}{1}
+
+    \input{xharmi00-chapters}
+
+
+    % Bibliography
+    % --------------------------------------------------------------------------
+    \makeatletter
+    \def\@openbib@code{\addcontentsline{toc}{chapter}{Bibliography}}
+    \makeatother
+    \bibliographystyle{enplain}
+
+    \clearpage
+    \begin{flushleft}
+        \bibliography{xharmi00}
+    \end{flushleft}
+
+
+    \iftwoside\cleardoublepage\else\clearpage\fi
+
+
+    % Appendices
+    % --------------------------------------------------------------------------
+    \appendix
+    \input{xharmi00-appendices}
+\end{document}
