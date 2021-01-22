@@ -2039,7 +2039,7 @@ FUNCTION {format.journal.issue}
   }
   if$
   number empty$
-  { "empty number in " cite$ * warning$ }
+  {  }
   { number is.ord
     { "no.~" number *
       s swap$ comma.connect 's :=
@@ -2174,7 +2174,7 @@ FUNCTION {format.vol}
 FUNCTION {conference.basics}
 { editor empty$
   { organization empty$
-    { "empty editor and organization in " cite$ * warning$
+    {
       ""
     }
     { organization capitalize
@@ -2541,7 +2541,7 @@ FUNCTION {article}
   format.journal "journal" output.check
   format.howpublished output
   new.block
-  format.edition "edition" output.check
+  format.edition output
   new.block %% edition (required)
   contributory capitalize output
   new.block %% contributory (optional)
@@ -2668,7 +2668,7 @@ FUNCTION {conference}
   new.block
   isbn empty$
     { issn empty$
-        { "empty isbn and issn in " cite$ * warning$ }
+        {  }
         { format.issn output }
       if$
     }
@@ -2787,24 +2787,14 @@ FUNCTION {misc}
     format.edition output
     new.block
     format.publish.info
-    edition empty$
-    address empty$
-    publisher empty$
-    and
-    and
-      {
-        output
-        day empty$
-        { format.date capitalize output }
-        { day ". " * format.date * comma.connect output }
-        if$
-      }
-      {
-        day empty$
-        { format.date comma.connect output }
-        { day ". " * format.date * comma.connect output }
-        if$
-      }
+    year empty$
+        { output }
+        {
+            day empty$
+                { format.date comma.connect output }
+                { day ".~" * format.date * comma.connect output }
+            if$
+        }
     if$
     time output
     revised empty$
@@ -2823,15 +2813,8 @@ FUNCTION {misc}
     note capitalize makesmall output
     new.block
     howpublished empty$
-    { format.url output }
-    { format.url "url" output.check
-      year empty$
-      revised empty$
-      and
-      { "empty year and revised in " cite$ * warning$ }
-      'skip$
-      if$
-    }
+        { format.url output }
+        { format.url "url" output.check }
     if$
     new.block
     format.path output
@@ -2881,7 +2864,8 @@ FUNCTION {techreport}
 FUNCTION {manual} { techreport }
 FUNCTION {unpublished} { techreport }
 
-% Processes @BachelorsThesis, @MastersThesis and @PhdThesis type records.
+% Processes @BachelorsThesis, @MastersThesis, @PhdThesis, and
+% @ProjectPractice type records.
 % Bibliographic citation of theses (bachelor's, master's and dissertation).
 %
 % Default version -- value #0 in choose.thesis.
@@ -2910,9 +2894,13 @@ FUNCTION {thesis}
   type$ "l" change.case$
   duplicate$ "bachelorsthesis" =
     { pop$ "Bachelor's thesis" }
-    { "mastersthesis" =
-        { "Master's thesis" }
-        { "Dissertation" }
+    { duplicate$ "mastersthesis" =
+        { pop$ "Master's thesis" }
+        { duplicate$ "projectpractice" =
+            { pop$ "Project practice" }
+            { "Dissertation" }
+          if$
+        }
       if$
     }
   if$
@@ -2927,7 +2915,7 @@ FUNCTION {thesis}
   new.block
   format.url output
   fin.entry %% standard number ISBN (optional)
-}%@BachelorsThesis, @MastersThesis a @PhdThesis
+}%@BachelorsThesis, @MastersThesis, @PhdThesis, and @ProjectPractice
 
 % @BachelorsThesis type records are processed by thesis function.
 FUNCTION {bachelorsthesis}{ thesis }
@@ -2937,6 +2925,9 @@ FUNCTION {mastersthesis} { thesis }
 
 % @PhdThesis type records are processed by thesis function.
 FUNCTION {phdthesis} { thesis }
+
+% @ProjectPractice type records are processed by thesis function.
+FUNCTION {projectpractice} { thesis }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%% SLIGHTLY EDITED FUNCTIONS TAKEN FROM plain.bst %%%%%%%%%%%%%%%%
