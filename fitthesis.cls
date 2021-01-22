@@ -1225,7 +1225,7 @@ Management}{\@fit@EN}%
   keepspaces=true
 }
 
-\lstdefinestyle{atomSeq}{
+\lstdefinestyle{atomSets}{
   basicstyle=\ttfamily,
   backgroundcolor=\color{white},
   columns=fullflexible,
