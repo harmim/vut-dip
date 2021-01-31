@@ -19,10 +19,13 @@
 
 
 % Basic packages are at the bottom of template file fitthesis.cls.
+\usepackage{subcaption}
 \usepackage{wrapfig}
 \usepackage{amsthm}
 \usepackage[ruled, algochapter, linesnumbered]{algorithm2e}
-% \usepackage{tocloft}
+\usepackage{tocloft}
+\usepackage[normalem]{ulem}
+\usepackage{mathtools}
 
 % Setting of a path to the pictures.
 \graphicspath{{img/}}
@@ -43,8 +46,9 @@
 \setlength{\algomargin}{2em}
 
 % Line spacing in the table of contents.
-% \renewcommand\cftchapafterpnum{\vskip .5em}
-% \renewcommand\cftsecafterpnum{\vskip .5em}
+\renewcommand\cftchapafterpnum{\vskip .1em}
+\renewcommand\cftsecafterpnum{\vskip .2em}
+\setlength{\cftbeforechapskip}{.4em}
 
 % "hyperref" package create clickable links in pdf if you are using pdflatex.
 % Problem is that this package have to be introduced as the last one so it
@@ -123,44 +127,91 @@
     % Keywords
     % keywords in english
     keywords.en={%
-        Here, individual keywords separated by commas will be written in
-        English.%
+        Facebook Infer, static analysis, abstract interpretation, contracts
+        for concurrency, atomicity violation, concurrent programs, programs
+        analysis, atomic sets, atomicity, incremental analysis, modular
+        analysis, compositional analysis, interprocedural analysis,
+        scalability, Atomer%
     },
     % keywords in czech language
     keywords.cs={%
-        Sem budou zapsána jednotlivá klíčová slova v~českém (slovenském)
-        jazyce, oddělená čárkami.%
+        Facebook Infer, statická analýza, abstraktní intepretace, kontrakty
+        pro paralelismus, po\-ru\-še\-ní atomicity, paralelní  programy,
+        analýza programů, atomické množiny, atomicita, inkrementální analýza,
+        modulární analýza, kompoziční analýza, interprocedurální analýza,
+        škálovatelnost, Atomer%
     },
 %
-    %Abstract
+    % Abstract
+    % abstract in english
     abstract.en={%
-        An abstract of the work in English will be written in this paragraph.%
+        This thesis aims to improve, extend, and perform new experiments with
+        \emph{Atomer}\,---\,a~\emph{static analyser} that detects
+        \emph{atomicity violations}. Atomer was created within a~bachelor's
+        thesis of the author as a~module of \emph{Facebook Infer}\,---\,an
+        open-source static analysis framework that promotes efficient analysis.
+        The original analysis assumes that \emph{sequences of function calls}
+        executed \emph{atomically once} should probably be executed
+        \emph{always atomically}, and it naturally works with. In the thesis,
+        to improve \emph{scalability}, the use of sequences was
+        \emph{approximated} by \emph{sets}. Further, two new features were
+        implemented: support for \emph{C++} and \emph{Java} languages; and
+        distinguishing \emph{multiple locks used}. The new features were
+        verified and evaluated on smaller programs created for testing
+        purposes. Furthermore, new experiments on \emph{real-life  programs}
+        were made, and \emph{real bugs} were found. Several other improvements
+        were proposed (\emph{parametrisation} of the analysis, support for
+        \emph{interprocedural locks}, or combination with a~\emph{dynamic
+        analysis}) and their implementation and evaluation is the work in
+        progress.%
     },
+    % abstract in czech language
     abstract.cs={%
-        Do tohoto odstavce bude zapsán výtah (abstrakt) práce v~českém
-        (slovenském) jazyce.%
+        Tato práce si klade za cíl vylepšit, rozšířit a~provést nové
+        experimenty s~nástrojem \emph{Atomer}\,---\,\emph{statickým
+        analyzátorem}, který detekuje \emph{porušení atomicity}. Atomer byl
+        vytvořen v~rámci bakalářské práce autora jako modul pro \emph{Facebook
+        Infer}\,---\,volně šířený aplikační rámec pro statickou analýzu, který
+        umožňuje efektivní analýzu. Původní analýza předpokládá, že
+        \emph{sekvence volání funkcí}, které byly zavolány \emph{atomicky
+        jednou}, by pravděpodobně měly být volány \emph{atomicky vždy},
+        a~analýza s~nimi přirozeně pracuje. V~této práci bylo pro zlepšení
+        \emph{škálovatelnosti} použití sekvencí \emph{aproximováno}
+        \emph{množinami}. Dále byly implementovány dvě nové funkce: podpora
+        jazyků \emph{C++} a~\emph{Java}; a~rozlišování \emph{více
+        použitých zámků}. Nové funkce byly ověřeny a~vyhodnoceny na
+        menších programech vytvořených pro testovací účely. Dále byly
+        provedeny experimenty na \emph{reálných programech} a~byly
+        nalezeny \emph{skutečné chyby}. Bylo navrženo několik dalších
+        vylepšení (\emph{parametrizace} analýzy, podpora
+        \emph{interprocedurálních zámků} nebo kombinace s~\emph{dynamickou
+        analýzou}) a~na jejich implementaci a~vyhodnocení se aktuálně
+        pracuje.%
     },
 %
     % Extended abstract
-    extendedabstract={%
-        Do tohoto odstavce bude zapsán rozšířený výtah (abstrakt) práce
-        v~českém (slovenském) jazyce.%
-    },
+    % extendedabstract={%
+    %     \todo{Tady nějak zkombinovat a~zkrátit úvod + závěr a~přeložit
+    %     do češtiny.}%
+    % },
 %
     % Declaration
     declaration={%
-        I~hereby declare that this Bachelor's thesis was prepared as an
-        original work by the author under the supervision of Mr. X.
-        The supplementary information was provided by Mr. Y.
-        I~have listed all the literary sources, publications and other sources,
-        which were used during the preparation of this thesis.%
+        Hereby I~declare that this master's thesis was prepared as an
+        original author's work under the supervision of professor Tomáš
+        Vojnar. All the relevant information sources used during this
+        thesis's preparation are appropriately cited and included in the
+        references list.%
     },
 %
     % Acknowledgement
     acknowledgement={%
-        Here it is possible to express thanks to the supervisor and to the
-        people which provided professional help (external submitter,
-        consultant, etc.).%
+        I~want to thank my supervisor Tomáš Vojnar for his assistance.
+        Further, I~would like to thank other colleagues from VeriFIT.
+        I~would also like to thank Nikos Gorogiannis from the Infer team
+        at Facebook for useful discussions about the analyser's development.
+        Lastly, I~thank for the support received from the H2020 ECSEL
+        project Arrowhead Tools.%
     }
 }
 

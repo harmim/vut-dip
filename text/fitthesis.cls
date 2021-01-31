@@ -18,6 +18,7 @@
 \newif\ifCOPEN \let\ifCOPEN\iffalse
 \newif\ifCBOPEN \let\ifCBOPEN\iffalse
 \newif\ifODSAZ \let\ifODSAZ\iffalse
+\newif\iftodo \let\iftodo\iffalse
 
 \newif\ifPrint \let\ifPrint\iffalse
 \newif\ifBarLogo \let\ifBarLogo\iffalse
@@ -51,6 +52,7 @@
 %\DeclareOption{COPEN}{\let\ifCOPEN\iftrue}
 %\DeclareOption{CBOPEN}{\let\ifCBOPEN\iftrue}
 \DeclareOption{odsaz}{\let\ifODSAZ\iftrue}
+\DeclareOption{todo}{\let\iftodo\iftrue}
 
 \DeclareOption*{}
 \ProcessOptions\relax
@@ -1216,7 +1218,7 @@ Management}{\@fit@EN}%
 
 \lstset{
   basicstyle=\ttfamily,
-  backgroundcolor=\color{white},
+  backgroundcolor=\color{yellow!10},
   columns=fullflexible,
   showstringspaces=false,
   commentstyle=\color{gray}\upshape,
@@ -1285,7 +1287,7 @@ Management}{\@fit@EN}%
   showspaces=false,
   showtabs=false,
   breaklines=true,
-  showstringspaces=false,
+  showstringspaces=true,
   breakatwhitespace=true,
   escapeinside={<@}{@>},
   commentstyle=\color{greencomments},
@@ -1294,7 +1296,7 @@ Management}{\@fit@EN}%
   basicstyle=\ttfamily,
   captionpos=b,
   numbers=left,
-  frame=single
+  frame=trBL
 }
 
 \lstdefinestyle{c++}{
@@ -1337,9 +1339,9 @@ Management}{\@fit@EN}%
 
 
 % TODO helpers.
-\newcommand{\todo}[1]{\textcolor{red}{\textbf{[[#1]]}}}
+\newcommand{\todo}[1]{\iftodo\textcolor{red}{\textbf{[[#1]]}}\fi}
 \newcommand{\phony}[1]{\textcolor{gray}{#1}}
-\newcommand{\blind}[1]{\textcolor{gray}{\Blindtext[#1]}}
+\newcommand{\blind}[1]{\iftodo\textcolor{gray}{\Blindtext[#1]}\fi}
 
 
 % Left aligned column with a fixed width
