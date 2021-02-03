@@ -1,33 +1,33 @@
 1:
-	* Dobré dopoledne. Já jsem Dominik Harmim. *
+    * Dobré dopoledne. Já jsem Dominik Harmim. *
 
     V mé diplomové práci rozšiřuji a vylepšuji Atomer - nástroj pro statickou
     detekci porušení atomicity v paralelních programech, který byl vytvořen v
-    rámci má bakalářské práce jako zásovný modul pro aplikační rámec Facebook
+    rámci má bakalářské práce jako zásuvný modul pro aplikační rámec Facebook
     Infer.
 
 2:
-    Atomer provádí ověřování atomicity určitých sekvení volání funkcí.
+    Atomer provádí ověřování atomicity určitých sekvencí volání funkcí.
     Tohle je často vyžadováno v paralelních programech. Porušení
-	atomicity může způsobit neočekávané chování a může mít vážné následky.
-    Máme tady uvedený motivačný příklad, kde lze analyzátor porušení atomicity
+    atomicity může způsobit neočekávané chování a může mít vážné následky.
+    Máme tady uvedený motivační příklad, kde lze analyzátor porušení atomicity
     použít. Máme tady příklad funkce `invoke`, která zjišťuje, jestli
     je daná metoda zaregistrovaná na určitém serveru funkcí `is_registered`.
     Pokud ano, tak ji zavolá funkcí `invoke`. Tyto dvě funkce by měly být
     volány atomicky. V opačném případě, teda jestli tato sekvence volání
     nebude volána pod nějakým zámkem, může dojít k tomu, že například nějaké
-    paralelní vlánko danou metodu ze serveru odregistruje ve chvíli, kdy už
-    byla splěna podmínky uvedená v tomto kódu. Potom bude zavolána na serveru
+    paralelní vlákno danou metodu ze serveru odregistruje ve chvíli, kdy už
+    byla splněna podmínky uvedená v tomto kódu. Potom bude zavolána na serveru
     neregistrovaná funkce, což může způsobit neočekávané chování.
 
 3:
-	Na úvod ještě řeknu něco o samotném nástroji Facebook Infer.
-	Jedná se o volně šířený aplikační rámec pro interprocedurální statickou
-	analýzu programů. Je založený na abstraktní interpretaci.
-	Klade důraz na škálovatelnost, která je způsobená analýzou samostatných
-	funkcí směrem od listů stromů ke kořenům. Infer provádí kompoziční analýzu
-	tím, že pro každou funkci je spočítán její souhrn (tzv. `summary`)
-	nezávisle na kontextu, ve kterém se funkce nachází. Tzn., že pro každou
+    Na úvod ještě řeknu něco o samotném nástroji Facebook Infer.
+    Jedná se o volně šířený aplikační rámec pro interprocedurální statickou
+    analýzu programů. Je založený na abstraktní interpretaci.
+    Klade důraz na škálovatelnost, která je způsobená analýzou samostatných
+    funkcí směrem od listů stromů ke kořenům. Infer provádí kompoziční analýzu
+    tím, že pro každou funkci je spočítán její souhrn (tzv. `summary`)
+    nezávisle na kontextu, ve kterém se funkce nachází. Tzn., že pro každou
     funkci je spočítáno, za jakých předpokladů lze po provedení funkce
     vyvodit jaké důsledky. Na obrázku můžeme vidět graf volání funkcí, kde z
     funkce `main` jsou volány funkce `f` a `g`. Infer nejdříve analyzuje funkce
@@ -38,15 +38,15 @@
 
 4:
     Teď o analyzátoru Atomer, který rozšiřuji. Jak už jsem zmiňoval, jedná se
-    o analyzátor, který detekuje porušení atomcity pro sekvence volání funkcí.
+    o analyzátor, který detekuje porušení atomicity pro sekvence volání funkcí.
     Byl vytvořený jako zásuvný modul aplikačního rámce Facebook Infer v rámci
     mé bakalářské práce. Vychází z předpokladu, že sekvence, které jsou v
     programu jednou volány atomicky, by měly být pravděpodobně volány atomicky
     vždy. Tento analyzátor je implementovaný pro analýzu programů napsaných v
-    jazyce C s použitím zámků typu `PThread`. I přesto, že jeden z halvních
+    jazyce C s použitím zámků typu `PThread`. I přesto, že jeden z hlavních
     cílů při návrhu Atomeru byla škálovatelnost, tak je škálovatelnost stále
     omezena při analýze rozsáhlých programů. Navíc je problém v tom, že při
-    analýze reálných programů vytvářených v praxi, Atomer často hlásí mnoho
+    analýze reálných programů vytvářených v praxi Atomer často hlásí mnoho
     falešných chyb (dále budu používat výraz false alarm).
 
 5:
@@ -55,7 +55,7 @@
     analyzovat programy napsané v jazyce C. Na tomto obrázku je vidět, že
     v rámci této práce byl rozšířen tak, že už dokáže analyzovat i C++
     a Javu, k tomu se ještě dostanu. Další věc, kterou tady můžeme vidět je ta,
-    že se tady pracuje s nějakými atomickými množinami, které byly v témto
+    že se tady pracuje s nějakými atomickými množinami, které byly v této
     práci zavedeny kvůli optimalizaci škálovatelnosti. Dříve se pracovalo se
     sekvencemi. K tomu se ale dostanu na dalším slajdu. Analýza funguje ve
     dvou fázích. V první fázi jsou detekovány množiny funkcí, které se
@@ -66,25 +66,25 @@
 
 6:
     Teď jsme se dostali k mému asi nejbarevnějšímu slajdu. Tady podrobněji
-    ukážu, jak fungují obě fáze analýzy Atomeru. Zaroveň budu tímto demenstrovat,
-    jak jsem v rámci této práce optimalizoval škálovatelnost analýzy. V
-    první fázi se dříve detekovaly sekvence funckí, které se volají atomicky.
-    Teď se tam detekují množiny takových funkcí, což je nadaproximace, takže
-    to může způsobovat nějaké false alarmy, ale zlepší to škálovatelnost,
-    protože při práci se sekvencemi se ve složitějších programech generovalo
-    velké množství různých sekvencí. A v některých případech na pořadí volání
-    funkcí nemusí tolik záležet. Takže to bylo aproximováno množinami.
-    Při analýze se do souhrnů funkcí ukládají dvojice množiny všech volaných
-    funkcí v rámci dané funkce (což je použito pro analýzu zanořených volání)
-    a dále se ukládají právě množiny atomických volání. Na levé straně slajdu
-    vidíme funkci `f`, kde se v první atomické sekci volají funkce `x`, `y`,
-    `z`. Mezi tím se volá funkce `a`, která není v kritické sekci. A dále
-    se atomicky volají znovu funkce `x`, `y`, `z`, ale tentokrát v opačném
-    pořadí. V souhrnu této funkce (červené `Summaryf`) bude množina všech
-    funkcí `a`, `x`, `y`, `z` a také množiny funkcí, které jsou volány v
-    kritických sekcích. Ale pro obě kritické sekce to bude stejná množina `x`,
-    `y`, `z`. To šedé `Summaryf'` je potom to, jak vypadal souhrn této
-    funkce dřív, než byla provedena aproximace množinami. Vidíme, že jsou
+    ukážu, jak fungují obě fáze analýzy Atomeru. Zároveň budu tímto 
+    demonstrovat, jak jsem v rámci této práce optimalizoval škálovatelnost
+    analýzy. V první fázi se dříve detekovaly sekvence funckí, které se volají
+    atomicky. Teď se tam detekují množiny takových funkcí, což je
+    nad aproximace, takže to může způsobovat nějaké false alarmy, ale zlepší to
+    škálovatelnost, protože při práci se sekvencemi se ve složitějších
+    programech generovalo velké množství různých sekvencí. A v některých
+    případech na pořadí volání funkcí nemusí tolik záležet. Takže to bylo
+    aproximováno množinami. Při analýze se do souhrnů funkcí ukládají dvojice
+    množiny všech volaných funkcí v rámci dané funkce (což je použito pro
+    analýzu zanořených volání) a dále se ukládají právě množiny atomických
+    volání. Na levé straně slajdu vidíme funkci `f`, kde se v první atomické
+    sekci volají funkce `x`, `y`, `z`. Mezi tím se volá funkce `a`, která není
+    v kritické sekci. A dále se atomicky volají znovu funkce `x`, `y`, `z`, ale
+    tentokrát v opačném pořadí. V souhrnu této funkce (červené `Summaryf`) bude
+    množina všech funkcí `a`, `x`, `y`, `z` a také množiny funkcí, které jsou
+    volány v kritických sekcích. Ale pro obě kritické sekce to bude stejná
+    množina `x`, `y`, `z`. To šedé `Summaryf'` je potom to, jak vypadal souhrn
+    této funkce dřív, než byla provedena aproximace množinami. Vidíme, že jsou
     tam uloženy dvě různé sekvence atomických volání, protože je různé pořadí.
     Použitím množin ztratíme tuto informaci o pořadí. Ale ušetříme čas a paměť.
     Ve druhé fázi potom je detekce dvojic funkcí, které se nevolají atomicky,
@@ -97,32 +97,32 @@
     jako první volání, `b` jako poslední volání a dvojice `x`, `y` bude
     uložena jako porušení atomicity, protože tato dvojice by se podle první
     fáze měla volat atomicky. Dvojice, které by se podle první fáze měly
-    volat atomicky jsou označeny jako `AtomPairsf`. Jsou to všechy dvouprvkové
+    volat atomicky jsou označeny jako `AtomPairsf`. Jsou to všechny dvouprvkové
     variace atomických množin z první fáze. Ještě si můžeme všimnout, že
     před aproximací, kdy se používaly sekvence, by se kontrolovaly pouze
     dvojice označené šedě `AtomPairsf'`, což jsou všechny dvojice obsažené
     v atomických sekvencích v první fázi. Je vidět, že v tom černém `AtomPairsf`
-    je více prvků, protože byla provedena nadaproximace.
+    je více prvků, protože byla provedena nad aproximace.
 
 7:
     Dále byly navrženy a implementovány nějaké další rozšíření a vylepšení
     přesnosti. Byla přidána podpora o analýzu programů napsaných v jazycích
     C++ a Java. Je implementována většina klasických typů zámků pro
-    synchronizaci vláken. Pro C++ std::mutex, std::lock_guard a další.
-    Pro Javu byly kromě standardních zámků typu Lock ReentrantLock a
-    dalších implementovány také monitory, tzn. klíčové slovo synchronized.
-    Dále bylo pro zpřesnění analýzy implementováno rozližování různých
+    synchronizaci vláken. Pro C++ `std::mutex`, `std::lock_guard` a další.
+    Pro Javu byly kromě standardních zámků typu `Lock`, `ReentrantLock` a
+    dalších implementovány také monitory, tzn. klíčové slovo `synchronized`.
+    Dále bylo pro zpřesnění analýzy implementováno rozlišování různých
     zámků pomocí tzv. syntaktických access paths, což je abstraktní
     reprezentace lokace zámku na haldě. Dříve se vůbec nerozlišovaly
     různé zámky, uvažoval se jen jeden. Takže při použití více různých
-    zámků to nefungovalo. Nopravádí se žádná obecná ukazatelová analýza,
+    zámků to nefungovalo. Neprovádí se žádná obecná ukazatelová analýza,
     protože by to jinak tolik neškálovalo. Access paths jsou použity i
     v jiných analyzátorech implementovaných v Inferu a fungují poměrně dobře.
     V neposlední řade bylo provedeno rozšíření o možnost parametrizace
-    analýzi uživatelem. V praxi totiž v kritických sekcích někdy bývá mnoho
-    volání funkcí, což způsobuje false alarmy. Teď je možná ručně nastavit,
+    analýzy uživatelem. V praxi totiž v kritických sekcích někdy bývá mnoho
+    volání funkcí, což způsobuje false alarmy. Teď je možné ručně nastavit,
     které funkce se mají ignorovat nebo naopak, na které funkce se zaměřit.
-    Je také možné omezit počet funkcí v kritických sekcích a omezit hloubu,
+    Je také možné omezit počet funkcí v kritických sekcích a omezit hloubku,
     do jaké se analyzují volání zanořených funkcí v kritických sekcích.
 
 8:
@@ -130,16 +130,16 @@
     ověřena na vhodně vytvořených příkladech. Dále byly experimentálně
     analyzovány částí Java programů Apache Cassandra a Tomcat, které jsou
     poměrně rozsáhlé. Byly tam úspěšně nalezeny již nahlášené opravdové
-    porušení atomicity. Neneštěstí ale je u těchto programů stále hlášeno
+    porušení atomicity. Ne neštěstí ale je u těchto programů stále hlášeno
     příliš false alarmů, takže je potřeba dalšího zpřesňování.
 
 9:
     Abych to shrnul. V rámci této práce byl doposud Atomer rozšířen o
     několik rozšíření a byly provedeny různé optimalizace. Konkrétně:
     aproximace sekvencí množinami, podpora C++ a Java, rozlišování různých
-    zámků a parametrizace analýzi. Všechno to bylo otestováno a experimentálně
+    zámků a parametrizace analýzy. Všechno to bylo otestováno a experimentálně
     vyhodnoceno. A byly provedeny i další experimenty na programech z praxe.
-    Dálším cílem je provést ještě více experimentů na nějakých programech
+    Dalším cílem je provést ještě více experimentů na nějakých programech
     z praxe a nalézt nové chyby. Bude snaha analýzu nadále zpřesňovat.
     Pracuji s myšlenkou podpory interprocedurálních zámků, kombinací s
     dynamickou analýzou a statistickým vylučováním atomických volání a
@@ -147,4 +147,4 @@
 
     Ještě úplně na závěr bych chtěl zmínit, že tato práce je řešena ve
     spolupráci se skupinou VeriFIT, byla součástí projektu Aquas a je a taky
-    bude dále vyvíjena v rámci projektu Arrowhead tools.
+    bude dále vyvíjena v rámci projektu Arrowhead Tools.
