@@ -75,17 +75,14 @@
 \begin{frame}[fragile]{Motivation}
     \begin{itemize}
         \item
-            Detecting and checking desired \alert{atomicity of call
-            sequences}.
-
+            Detecting and checking desired \alert{atomicity of call sequences}:
             \smallskip
-
             \begin{itemize}\setlength\itemsep{1em}
                 \item
                     Often required in \emph{concurrent programs}.
 
                 \item
-                    Violation may cause \emph{nasty errors}.
+                    \alert{Violation} may cause \emph{nasty errors}.
             \end{itemize}
     \end{itemize}
 
@@ -94,8 +91,7 @@
     \begin{columns}
         \begin{column}{.6 \linewidth}
             \centering
-
-            \begin{lstlisting}
+\begin{lstlisting}
 void invoke(char *method) {
     <@\texttt{\ldots}@>
     if (server.<@\textbf{is\_registered}@>(method)) {
@@ -103,21 +99,20 @@ void invoke(char *method) {
     }
     <@\texttt{\ldots}@>
 }
-            \end{lstlisting}
+\end{lstlisting}
         \end{column}
 
         \begin{column}{.4 \linewidth}
             \centering
 
-            The sequence of \texttt{\textbf{is\_registered}} and
-            \texttt{\textbf{invoke}} should be \alert{executed
-            atomically}.
+            The \emph{sequence} of \texttt{\textbf{is\_registered}} and
+            \texttt{\textbf{invoke}} should be \alert{executed atomically}.
 
             \medskip
 
-            {\footnotesize
+            {\footnotesize%
                 If \emph{not locked}, the method can be
-                unregistered by a~\emph{concurrent thread}.
+                unregistered by a~\emph{concurrent thread}.%
             }
         \end{column}
     \end{columns}
@@ -133,9 +128,7 @@ void invoke(char *method) {
                 \item
                     An open-source \alert{static analysis framework}
                     for \emph{interprocedural analyses}.
-
                     \smallskip
-
                     \begin{itemize}\setlength\itemsep{1em}
                         \item
                             Based on \alert{abstract interpretation}.
@@ -150,28 +143,25 @@ void invoke(char *method) {
         \begin{column}{.55 \linewidth}
             \begin{itemize}\setlength\itemsep{2em}
                 \item
-                    \alert{Highly scalable}.
-
+                    Highly \alert{scalable}:
                     \smallskip
-
                     \begin{itemize}\setlength\itemsep{1em}
                         \item
                             Follows principles of \emph{compositionality}.
 
                         \item
-                            Computes function \emph{summaries} bottom-up
-                            on call trees.
+                            Computes function \emph{summaries}
+                            \alert{bottom-up} on call trees.
                     \end{itemize}
 
                 \item
-                    Supports Java, C, C++, and Objective-C.
+                    Supports C, C++, Java, Obj-C (and C\#).
             \end{itemize}
         \end{column}
 
         \begin{column}{.45 \linewidth}
-            \begin{center}
-                \includegraphics[width=1 \linewidth]{img/infer.pdf}
-            \end{center}
+            \centering
+            \includegraphics[width=1 \linewidth]{img/infer.pdf}
         \end{column}
     \end{columns}
 \end{frame}
@@ -180,30 +170,50 @@ void invoke(char *method) {
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Atomer: Atomicity Violations Analyser}
 \begin{frame}{Atomer: Atomicity Violations Analyser}
-    \begin{itemize}\setlength\itemsep{3em}
+    \begin{itemize}\setlength\itemsep{2em}
         \item
-            A~\emph{Facebook Infer plugin} created within
-            a~bachelor's thesis.
+            A~\alert{Facebook Infer plugin} created within
+            the bachelor's thesis:
+            \medskip
+            \begin{thebibliography}{1}
+                \bibitem[harmimBP]{harmimBP}
+                \textsc{Harmim, D.} \textit{Static Analysis Using Facebook
+                Infer to Find Atomicity Violations}. Brno, 2019. Bachelor's
+                thesis. Brno University of Technology, Faculty of Information
+                Technology. Supervisor \textsc{Vojnar, T.}
+            \end{thebibliography}
 
         \item
             \textbf{Assumption}: \alert{Call sequences} executed
-            \emph{atomically once} should be executed
+            \emph{atomically once} should (probably) be executed
             \emph{always atomically}.
 
         \item
-            Implemented for \emph{C/C++/Java} programs
-            that use classical \emph{mutual exclusion mechanisms}.
+            Implemented for \emph{C}~programs that use \emph{PThread locks}.
+            
+        \item
+            Limited \alert{scalability} on extensive codebases.
+            
+        \item
+            Reports many \alert{false alarms} when analysing \emph{real-life}
+            code.
     \end{itemize}
 \end{frame}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Atomer: Two Phases of the Analysis}
-\begin{frame}[fragile]{Atomer: Two Phases of the Analysis}
-    \begin{columns}
-        \begin{column}[T]{.5 \linewidth}
-            \centering
+\section{High-Level Analysis Process (with Extensions)}
+\begin{frame}{High-Level Analysis Process (with Extensions)}
+    \centering
+    \includegraphics[width=.8 \linewidth]{img/analyser-proposal-sets.pdf}
+\end{frame}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Two Phases of the Analysis (Improved Scalability)}
+\begin{frame}[fragile]{Two Phases of the Analysis (Improved Scalability)}
+    \begin{columns}
+        \begin{column}[T]{.55 \linewidth}
             \begin{enumerate}
                 \item
                     Detection of \alert{atomic call sets}.
@@ -211,35 +221,39 @@ void invoke(char *method) {
 
             \begin{itemize}
                 \item
-                    Approximates \emph{sequences} by \emph{sets}.
+                    \emph{Approximates} \alert{sequences by sets}.
 
                 \item
                     \textbf{Summaries}: (\textcolor{brown}{set of all
                     calls}, \textcolor{magenta}{set of atomic call sets})
             \end{itemize}
 
-            \begin{lstlisting}
+\begin{lstlisting}
 void f() {
-    <@\texttt{\textcolor{red}{\textbf{lock}}}@>(L);
-    f1(); f1(); f2();
+    <@\texttt{\textcolor{red}{\textbf{lock}}}@>(L); 
+    x(); y(); z();
     <@\texttt{\textcolor{red}{\textbf{unlock}}}@>(L);
     a();
-    <@\texttt{\textcolor{red}{\textbf{lock}}}@>(L);
-    b(); c();
+    <@\texttt{\textcolor{red}{\textbf{lock}}}@>(L); 
+    z(); y(); x(); 
     <@\texttt{\textcolor{red}{\textbf{unlock}}}@>(L);
 }
-            \end{lstlisting}
+\end{lstlisting}
 
             \textbf{\texttt{\footnotesize
-                \alert{summary\textsubscript{f}}: \\
-                (\textcolor{brown}{\{f1, f2, a, b, c\}},
-                \textcolor{magenta}{\{\{f1, f2\}, \{b, c\}\}})
+                \alert{$ Summary_\mathtt{f} $}:\,%
+                (\textcolor{brown}{\{a,~x,~y,~z\}},
+                \textcolor{magenta}{\{\{x,~y,~z\}\}})
+            }}
+            
+            \textcolor{gray}{\texttt{\scriptsize
+                $ Summary_\mathtt{f}^\prime $:\,%
+                (\textcolor{brown}{(x,~y,~z,~a)},
+                \textcolor{magenta}{\{(x,~y,~z), (z,~y,~x)\}})
             }}
         \end{column}
 
-        \begin{column}[T]{.5 \linewidth}
-            \centering
-
+        \begin{column}[T]{.45 \linewidth}
             \begin{enumerate}\setcounter{enumi}{1}
                 \item
                     Detection of \alert{atomicity violations}.
@@ -248,7 +262,7 @@ void f() {
             \begin{itemize}
                 \item
                     Looks for \emph{non-atomic pairs of calls}
-                    assumed to run atomically.
+                    assumed to \alert{run atomically}.
 
                 \item
                     \textbf{Summaries}: (\textcolor{orange}{set of
@@ -257,19 +271,29 @@ void f() {
                     violations})
             \end{itemize}
 
-            \begin{lstlisting}
+\begin{lstlisting}
 void g() {
     a();
-    <@\texttt{\textcolor{red}{\textbf{f1}}}@>(); <@\texttt{\textcolor{red}{\textbf{f2}}}@>();
+    <@\texttt{\textcolor{red}{\textbf{x}}}@>(); <@\texttt{\textcolor{red}{\textbf{y}}}@>();
     b();
 }
-            \end{lstlisting}
+\end{lstlisting}
 
+            \textbf{\texttt{\scriptsize
+                $ AtomPairs_\mathtt{f} $:\,%
+                \{(x,~y), (x,~z), (y,~x), (y,~z), \\ \hspace{6em}
+                (z,~x), (z,~y)\}
+            }}
+            
+            \textcolor{gray}{\texttt{\scriptsize
+                $ AtomPairs_\mathtt{f}^\prime $:\,%
+                \{(x,~y), (y,~z), (z,~y), (y,~x)\}
+            }}
             \textbf{\texttt{\footnotesize
-                \alert{summary\textsubscript{g}}: \\
+                \alert{$ Summary_\mathtt{g} $}:\,%
                 (\textcolor{orange}{\{a\}},
                 \textcolor{violet}{\{b\}},
-                \textcolor{red}{\{(f1, f2)\}})
+                \textcolor{red}{\{(x,~y)\}})
             }}
         \end{column}
     \end{columns}
@@ -277,35 +301,44 @@ void g() {
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Atomer: New Main Features}
-\begin{frame}{Atomer: New Main Features}
-    \begin{itemize}\setlength\itemsep{3em}
+\section{Precision Enhancements and Other Extensions}
+\begin{frame}{Precision Enhancements and Other Extensions}
+    \begin{itemize}\setlength\itemsep{2.5em}
         \item
-            \alert{Approximation} \emph{atomic calls sequences} by
-            \emph{sets}.
-
-        \item
-            Support for \alert{C++ and Java locks} (earlier supported
-            only \emph{Pthreads}).
-
+            Support for \alert{C++ and Java}:
             \smallskip
-
             \begin{itemize}\setlength\itemsep{1em}
                 \item
                     \textbf{C++}: \texttt{std::mutex, std::lock,
-                    std::lock\_guard, std::shared\_mutex,
-                    std::timed\_mutex, std::recursive\_mutex,
-                    std::unique\_lock, \ldots}
+                    std::lock\_guard, \ldots}
 
                 \item
-                    \textbf{Java}: monitors (\texttt{synchronized}),
-                    \texttt{java.util.concurrent.locks.Lock,
-                    java.util.concurrent.locks.ReentrantLock, \ldots}
+                    \textbf{Java}: \emph{monitors} (\texttt{synchronized})%
+                    \texttt{, Lock, ReentrantLock, \ldots}
             \end{itemize}
 
         \item
-            Distinguishes \alert{multiple (nested) locks} using
-            \emph{syntactic access paths}.
+            Distinguishing \alert{multiple (nested) locks} used:
+            \smallskip
+            \begin{itemize}\setlength\itemsep{1em}
+                \item
+                    \emph{Approximates lock objects} using \alert{syntactic
+                    access paths}\,---\,a~representation of \emph{heap
+                    locations} via the paths used to access them.
+            \end{itemize}
+            
+        \item
+            \alert{Parametrisation} of the analysis by a~user:
+            \smallskip
+            \begin{itemize}\setlength\itemsep{1em}
+                \item
+                    ignore \emph{generic functions}/concentrate on
+                    \emph{critical functions},
+                    
+                \item
+                    limit \emph{the number of calls} or \emph{the depth of
+                    analysing nested calls} in \alert{critical sections}.
+            \end{itemize}
     \end{itemize}
 \end{frame}
 
@@ -313,86 +346,74 @@ void g() {
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Experimental Evaluation}
 \begin{frame}{Experimental Evaluation}
-    \textbf{Earlier Evaluation:}
-    \medskip
-    \begin{itemize}\setlength\itemsep{1em}
+    \begin{itemize}\setlength\itemsep{3em}
         \item
-            The \alert{correctness} was first verified on
+            The \alert{correctness} of the extensions was verified on
             \emph{hand-crafted} programs.
 
         \item
-            \alert{Real-life low-level concurrent~C} programs from
-            a~Debian-based benchmark suite.
-
-            \smallskip
-
-            \begin{itemize}\setlength\itemsep{1em}
+            \alert{Real-life Java} programs\,---\,\emph{Apache Cassandra}
+            and \emph{Tomcat} ($ \sim $200k LOC).
+            \bigskip
+            \begin{itemize}\setlength\itemsep{2em}
                 \item
-                    Several \emph{potential atomicity violations} have
-                    been found.
-            \end{itemize}
-    \end{itemize}
-
-    \bigskip
-
-    \textbf{New Evaluation:}
-    \medskip
-    \begin{itemize}\setlength\itemsep{1em}
-        \item
-            More had-crafted programs to verify the correctness of
-            the new features.
-
-        \item
-            \alert{Real-life Java} programs\,--\,\alert{Apache Cassandra}
-            and \alert{Tomcat} ($ \sim $200k LOC).
-
-            \smallskip
-
-            \begin{itemize}\setlength\itemsep{1em}
-                \item
-                    Successfully rediscovered \emph{already fixed
+                    Successfully \alert{rediscovered} \emph{already fixed
                     reported real bugs}.
 
                 \item
-                    So far quite some \alert{false alarms}\,--\,need
-                    to increase accuracy.
+                    So far quite some \alert{false alarms}\,---\,need
+                    to further increase \emph{accuracy}.
             \end{itemize}
     \end{itemize}
 \end{frame}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Future Goals}
-\begin{frame}{Future Goals}
-    \begin{itemize}\setlength\itemsep{3em}
+\section{Summary}
+\begin{frame}{Summary}
+    \textbf{\alert{Extensions} for \emph{Atomer}:}
+    \medskip
+    \begin{itemize}\setlength\itemsep{.5em}
         \item
-            Further analysis of \alert{real-life programs} with
+            \emph{Proposed} and \emph{implemented} extensions for Atomer:
+            
+            \begin{itemize}
+                \item
+                    approximation of sequences by sets, support for C++ and
+                    Java, distinguishing multiple locks, parametrisation of
+                    the analysis.
+            \end{itemize}
+            
+        \item
+            Successfully \emph{tested} and \emph{experimentally evaluated}.
+            
+        \item
+            Experiments with \emph{real-life programs}.
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{Future goals:}
+    \medskip
+    \begin{itemize}\setlength\itemsep{.5em}
+        \item
+            Further analysis of \emph{real-life programs} with
             an effort to find and report \alert{new bugs}.
 
-            \smallskip
-
-            \begin{itemize}\setlength\itemsep{1em}
-                \item
-                    GNU Coreutils/Binutils, Mozilla, MariaDB, \ldots
-
-                \item
-                    Focus on \emph{library containers concurrency
-                    restrictions} related to method calls.
-            \end{itemize}
-
         \item
-            Increase \alert{accuracy}.
+            Increase \alert{accuracy}/reduce the number of \alert{false
+            alarms}:
 
-            \smallskip
-
-            \begin{itemize}\setlength\itemsep{1em}
+            \begin{itemize}\setlength\itemsep{.5em}
                 \item
-                    Distinguishing the \emph{context of called
-                    functions} by considering \emph{formal parameters}
-                    (using \emph{syntactic access paths}).
+                    Support for \emph{interprocedural locks}.
 
                 \item
-                    \alert{Ranking} of atomic functions.
+                    Combination with \emph{dynamic analysis}.
+
+                \item
+                    \emph{Statistic ranking} of atomic functions/reported
+                    errors.
             \end{itemize}
     \end{itemize}
 \end{frame}
