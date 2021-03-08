@@ -5,7 +5,7 @@ NC='\033[0m'
 
 function clean
 {
-	rm -rf infer-out/ *.o *.class
+	rm -rf infer-out/ *.o *.class *.ast.sh
 	echo
 }
 
