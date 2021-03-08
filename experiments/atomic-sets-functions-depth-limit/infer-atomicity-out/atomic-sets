@@ -1,0 +1,4 @@
+test1: {f1, f2}
+test2: {f1, f2, f3, f4, x, y, z}
+
+# Number of (analysed functions; atomic sets; atomic functions): (2; 2; 9)
