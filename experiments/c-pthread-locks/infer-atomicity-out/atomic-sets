@@ -1,0 +1,6 @@
+test_mutex: {f1, f2}
+test_spin: {f1, f2}
+test_rwlock_wr: {f1, f2}
+test_rwlock_rd: {f1, f2}
+
+# Number of (analysed functions; atomic sets; atomic functions): (4; 4; 8)
