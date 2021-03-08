@@ -1,0 +1,13 @@
+#0
+main.c:31: error: Atomicity Violation
+  Atomicity Violation! - Functions 'f1' and 'f4' should be called atomically.
+  29. void test_violations(void)
+  30. {
+  31. 	f1(); f4(); f5(); // (f1, f4)
+             ^
+  32. }
+  33. 
+
+Found 1 issue
+                Issue Type(ISSUED_TYPE_ID): #
+  Atomicity Violation(ATOMICITY_VIOLATION): 1

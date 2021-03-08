@@ -1,0 +1,3 @@
+test: {f1, f4, f5}
+
+# Number of (analysed functions; atomic sets; atomic functions): (1; 1; 3)
