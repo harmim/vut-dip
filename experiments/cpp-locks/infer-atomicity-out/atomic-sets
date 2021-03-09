@@ -1,0 +1,10 @@
+Test::test_recursive_timed_mutex: {Test::f1, Test::f2}
+Test::test_recursive_mutex: {Test::f1, Test::f2}
+Test::test_shared_timed_mutex: {Test::f1, Test::f2}
+Test::test_shared_mutex_shared_lock: {Test::f1, Test::f2}
+Test::test_shared_mutex: {Test::f1, Test::f2}
+Test::test_shared_mutex_timed_shared_lock: {Test::f1, Test::f2}
+Test::test_mutex: {Test::f1, Test::f2}
+Test::test_timed_mutex: {Test::f1, Test::f2}
+
+# Number of (analysed functions; atomic sets; atomic functions): (8; 8; 16)

@@ -21,8 +21,10 @@ for dir in */; do
 	cd "${base_dir}/${dir}"
 
 	file=$(find . -type f \( -name "*.c" -o -name "*.cpp" -o -name "*.java" \) -maxdepth 1 | head -n 1)
-	if [[ "${file}" ]]; then
-		if [[ "${file}" == *.c || "${file}" == *.cpp ]]; then
+	if [[ "${file}" || -f "Makefile" ]]; then
+		if [[ -f "Makefile" ]]; then
+			infer capture -- make
+		elif [[ "${file}" == *.c || "${file}" == *.cpp ]]; then
 			infer capture -- gcc -c "${file}"
 		elif [[ "${file}" == *.java ]]; then
 			infer capture -- javac "${file}"
