@@ -1,0 +1,18 @@
+void Test$Locks.testReadLock(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testReadLockInterruptibly(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testStampLockRead(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testLock(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testStampLockReadInterruptibly(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testWriteLockInterruptibly(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testStampLockWrite(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testStampLockWriteInterruptibly(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testSynchronizedBlock1(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testSynchronizedBlock2(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testSynchronizedMethod(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testReentrantLockInterruptibly(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testStampLockGeneralUnlock(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testLockInterruptibly(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testReentrantLock(): {void Test$Locks.f1(), void Test$Locks.f2()}
+void Test$Locks.testWriteLock(): {void Test$Locks.f1(), void Test$Locks.f2()}
+
+# Number of (analysed functions; atomic sets; atomic functions): (16; 16; 32)
