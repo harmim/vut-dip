@@ -1,0 +1,24 @@
+Test::test_unique_lock_multiple_guards: {Test::f2, Test::f3}
+Test::test_unique_lock_lock_unlock_mutex: {Test::f2, Test::f3}
+Test::test_shared_lock_adopt_lock: {Test::f1, Test::f2, Test::f3}
+Test::test_unique_lock: {Test::f1, Test::f2}
+Test::test_lock_guard_reentrant_3: {Test::f1, Test::f2, Test::f3}
+Test::test_unique_lock_release: {Test::f1, Test::f2, Test::f3}
+Test::test_lock_guard_reentrant_1: {Test::f1, Test::f2, Test::f3}
+Test::test_unique_lock_defer_lock: {Test::f2, Test::f3}
+Test::test_unique_lock_adopt_lock: {Test::f1, Test::f2, Test::f3}
+Test::test_lock_guard: {Test::f1, Test::f2}
+Test::test_std_lock_with_guards: {Test::f1, Test::f2} {Test::f1, Test::f2, Test::f3}
+Test::test_scoped_lock_adopt_lock: {Test::f1, Test::f2, Test::f3}
+Test::test_lock_guard_reentrant_2: {Test::f1, Test::f2, Test::f3}
+Test::test_shared_lock_release: {Test::f1, Test::f2, Test::f3}
+Test::test_shared_lock: {Test::f1, Test::f2}
+Test::test_lock_guard_adopt_lock: {Test::f1, Test::f2, Test::f3}
+Test::test_scoped_lock: {Test::f1, Test::f2}
+Test::test_unique_lock_lock_unlock: {Test::f2, Test::f3}
+Test::test_shared_lock_defer_lock: {Test::f2, Test::f3}
+Test::test_shared_lock_lock_unlock: {Test::f2, Test::f3}
+Test::test_std_lock_with_mutexs: {Test::f1, Test::f2} {Test::f1, Test::f2, Test::f3}
+Test::test_scoped_lock_multiple_locks: {Test::f1, Test::f2} {Test::f1, Test::f2, Test::f3}
+
+# Number of (analysed functions; atomic sets; atomic functions): (22; 25; 62)
