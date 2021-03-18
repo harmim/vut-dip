@@ -9,16 +9,6 @@ main.cpp:53: error: Atomicity Violation
   55. 		f3(); // (f2, f3)
 
 #1
-main.cpp:55: error: Atomicity Violation
-  Atomicity Violation! - Functions 'Test::f2' and 'Test::f3' should be called atomically.
-  53. 		f1(); f2(); // (f1, f2)
-  54. 		while (a) mutex.unlock();
-  55. 		f3(); // (f2, f3)
-        ^
-  56. 	}
-  57. 
-
-#2
 main.cpp:77: error: Atomicity Violation
   Atomicity Violation! - Functions 'Test::f1' and 'Test::f2' should be called atomically.
   75. 		while (a) mutex.unlock();
@@ -28,7 +18,7 @@ main.cpp:77: error: Atomicity Violation
   78. 	}
   79. };
 
-#3
+#2
 main.cpp:69: error: Atomicity Violation
   Atomicity Violation! - Functions 'Test::f1' and 'Test::f3' should be called atomically.
   67. 		x();
@@ -37,6 +27,16 @@ main.cpp:69: error: Atomicity Violation
               ^
   70. 
   71. 		y();
+
+#3
+main.cpp:55: error: Atomicity Violation
+  Atomicity Violation! - Functions 'Test::f2' and 'Test::f3' should be called atomically.
+  53. 		f1(); f2(); // (f1, f2)
+  54. 		while (a) mutex.unlock();
+  55. 		f3(); // (f2, f3)
+        ^
+  56. 	}
+  57. 
 
 #4
 main.cpp:74: error: Atomicity Violation
@@ -59,5 +59,5 @@ main.cpp:77: error: Atomicity Violation
   79. };
 
 Found 6 issues
-                Issue Type(ISSUED_TYPE_ID): #
-  Atomicity Violation(ATOMICITY_VIOLATION): 6
+                      Issue Type(ISSUED_TYPE_ID): #
+  Atomicity Violation(ATOMICITY_VIOLATION_ERROR): 6

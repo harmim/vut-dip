@@ -9,5 +9,5 @@ main.c:43: error: Atomicity Violation
   45. 
 
 Found 1 issue
-                Issue Type(ISSUED_TYPE_ID): #
-  Atomicity Violation(ATOMICITY_VIOLATION): 1
+                      Issue Type(ISSUED_TYPE_ID): #
+  Atomicity Violation(ATOMICITY_VIOLATION_ERROR): 1
