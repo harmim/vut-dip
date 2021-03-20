@@ -1,0 +1,134 @@
+#0
+main.c:106: warning: Atomicity Violation within a Function
+  Atomicity Violation within a Current Function! - Functions 'test_warning_4' and 'f1' should be called atomically.
+  104. void test_warning_deeper_1(void)
+  105. {
+  106. 	test_warning_4(); // warning (test_warning_4, f1)
+        ^
+  107. }
+  108. 
+
+#1
+main.c:114: warning: Atomicity Violation within a Function
+  Atomicity Violation within a Current Function! - Functions 'test_warning_deeper_1' and 'test_warning_4' should be called atomically.
+  112. 	f1(); f2(); // warning (f1, f2)
+  113. 
+  114. 	test_warning_deeper_1(); // warning (f2, test_warning_deeper_1); warning (test_warning_deeper_1, test_warning_4)
+        ^
+  115. }
+  116. 
+
+#2
+main.c:114: warning: Atomicity Violation within a Function
+  Atomicity Violation within a Current Function! - Functions 'f2' and 'test_warning_deeper_1' should be called atomically.
+  112. 	f1(); f2(); // warning (f1, f2)
+  113. 
+  114. 	test_warning_deeper_1(); // warning (f2, test_warning_deeper_1); warning (test_warning_deeper_1, test_warning_4)
+        ^
+  115. }
+  116. 
+
+#3
+main.c:42: warning: Atomicity Violation within a Function
+  Atomicity Violation within a Current Function! - Functions 'f1' and 'f2' should be called atomically.
+  40. void test_warning_1(void)
+  41. {
+  42. 	f1(); f2(); // warning (f1, f2)
+             ^
+  43. }
+  44. 
+
+#4
+main.c:74: warning: Atomicity Violation within a Function
+  Atomicity Violation within a Current Function! - Functions 'f1' and 'f2' should be called atomically.
+  72. void test_warning_3(void)
+  73. {
+  74. 	f1(); f2(); // warning (f1, f2)
+             ^
+  75. }
+  76. 
+
+#5
+main.c:100: warning: Atomicity Violation within a Function
+  Atomicity Violation within a Current Function! - Functions 'f1' and 'f2' should be called atomically.
+   98. void test_warning_4(void)
+   99. {
+  100. 	f1(); f2(); // warning (f1, f2)
+              ^
+  101. }
+  102. 
+
+#6
+main.c:112: warning: Atomicity Violation within a Function
+  Atomicity Violation within a Current Function! - Functions 'f1' and 'f2' should be called atomically.
+  110. void test_warning_deeper_2(void)
+  111. {
+  112. 	f1(); f2(); // warning (f1, f2)
+              ^
+  113. 
+  114. 	test_warning_deeper_1(); // warning (f2, test_warning_deeper_1); warning (test_warning_deeper_1, test_warning_4)
+
+#7
+main.c:140: warning: Atomicity Violation within a Function
+  Atomicity Violation within a Current Function! - Functions 'f1' and 'f2' should be called atomically.
+  138. void test_warning_violation(void)
+  139. {
+  140. 	f1(); f2(); // (f1, f2); warning (f1, f2)
+              ^
+  141. }
+  142. 
+
+#8
+main.c:30: error: Atomicity Violation
+  Atomicity Violation! - Functions 'f1' and 'f2' should be called atomically.
+  28. void test_violation(void)
+  29. {
+  30. 	f1(); f2(); // (f1, f2)
+             ^
+  31. }
+  32. 
+
+#9
+main.c:140: error: Atomicity Violation
+  Atomicity Violation! - Functions 'f1' and 'f2' should be called atomically.
+  138. void test_warning_violation(void)
+  139. {
+  140. 	f1(); f2(); // (f1, f2); warning (f1, f2)
+              ^
+  141. }
+  142. 
+
+#10
+main.c:156: error: Atomicity Violation
+  Atomicity Violation! - Functions 'test_warning_violation' and 'f1' should be called atomically.
+  154. void test_warning_violation_2(void)
+  155. {
+  156. 	test_warning_violation(); // (test_warning_violation, f1)
+        ^
+  157. }
+  158. 
+
+#11
+main.c:36: error: Atomicity Violation
+  Atomicity Violation! - Functions 'f1' and 'f2' should be called atomically.
+  34. void test_violation_not_called_from_main(void)
+  35. {
+  36. 	f1(); f2(); // (f1, f2)
+             ^
+  37. }
+  38. 
+
+#12
+main.c:58: warning: Atomicity Violation within a Function
+  Atomicity Violation within a Current Function! - Functions 'f1' and 'f2' should be called atomically.
+  56. void test_warning_2(void)
+  57. {
+  58. 	f1(); f2(); // warning (f1, f2)
+             ^
+  59. }
+  60. 
+
+Found 13 issues
+                                          Issue Type(ISSUED_TYPE_ID): #
+  Atomicity Violation within a Function(ATOMICITY_VIOLATION_WARNING): 9
+                      Atomicity Violation(ATOMICITY_VIOLATION_ERROR): 4

@@ -1,0 +1,9 @@
+test_warning_multiple_calls_1: {f1, f2, test_warning_3}
+test_warning_multiple_calls_2: {f1, f2, test_warning_3}
+test_warning_deeper_3: {f1, f2} {f1, f2, test_warning_4, test_warning_deeper_1, test_warning_deeper_2}
+atomic_sequences: {f1, f2}
+test_warning_violation_1: {f1, f2, test_warning_violation}
+test_warning_not_called_from_main: {f1, f2, test_warning_2}
+test_warning_called_from_main: {f1, f2, test_warning_1}
+
+# Number of (analysed functions; atomic sets; atomic functions): (7; 8; 24)
