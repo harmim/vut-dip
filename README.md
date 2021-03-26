@@ -31,8 +31,7 @@
 
 ##### Category: Software analysis and testing
 
-##### Implementation language: [OCaml](
-s://ocaml.org)
+##### Implementation language: [OCaml](https://ocaml.org)
 
 ##### Free software: [Facebook Infer](https://fbinfer.com)
 
