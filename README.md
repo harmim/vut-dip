@@ -10,9 +10,9 @@
 
 ##### Author: Harmim Dominik, Bc. <xharmi00@stud.fit.vutbr.cz>
 
-##### Supervisor: [Vojnar Tomáš, prof. Ing. Ph.D.](http://www.fit.vutbr.cz/~vojnar) (UITS FIT VUT) <vojnar@fit.vutbr.cz>
+##### Supervisor: [Vojnar Tomáš, prof. Ing. Ph.D.](https://www.fit.vutbr.cz/~vojnar) (UITS FIT VUT) <vojnar@fit.vutbr.cz>
 
-##### Reviewer: ...
+##### Reviewer: [Rogalewicz Adam, doc. Mgr., Ph.D.](https://www.fit.vutbr.cz/~rogalew) (UITS FIT VUT) <rogalew@fit.vut.cz>
 
 ##### Specification:
 1. Study limitations of the atomicity analyser Atomer developed in your bachelor
@@ -31,7 +31,8 @@
 
 ##### Category: Software analysis and testing
 
-##### Implementation language: [OCaml](https://ocaml.org)
+##### Implementation language: [OCaml](
+s://ocaml.org)
 
 ##### Free software: [Facebook Infer](https://fbinfer.com)
 
