@@ -5,103 +5,19 @@
 %===============================================================================
 \chapter{Introduction}
 
-Bugs are an integral part of computer programs ever since the inception of
-the programming discipline. Unfortunately, they are often hidden in unexpected
-places, and they can lead to unexpected behaviour, which may cause significant
-damage. Nowadays, developers have many possibilities of catching bugs in the
-early development process. \emph{Dynamic analysers} or tools for
-\emph{automated testing} are often used, and they are satisfactory in many
-cases. Nevertheless, they can still leave too many bugs undetected, because
-they can analyse only \emph{particular program flows} dependent on the input
-data. An alternative solution is \emph{static analysis} that has its
-shortcomings as well, such as the \emph{scalability} on large codebases or
-a~considerably high rate of incorrectly reported errors (so-called \emph{false
-positives} or \emph{false alarms}). Several efficient tools for static analysis
-were implemented, e.g., Coverity or CodeSonar. However, they are often
-proprietary and difficult to openly evaluate and extend.
+Bugs are an integral part of computer programs ever since the inception of the programming discipline. Unfortunately, they are often hidden in unexpected places, and they can lead to unexpected behaviour, which may cause significant damage. Nowadays, developers have many possibilities of catching bugs in the early development process. \emph{Dynamic analysers} or tools for \emph{automated testing} are often used, and they are satisfactory in many cases. Nevertheless, they can still leave too many bugs undetected, because they can analyse only \emph{particular program flows} dependent on the input data. An alternative solution is \emph{static analysis} that has its shortcomings as well, such as the \emph{scalability} on large codebases or a~considerably high rate of incorrectly reported errors (so-called \emph{false positives} or \emph{false alarms}). Several efficient tools for static analysis were implemented, e.g., Coverity or CodeSonar. However, they are often proprietary and difficult to openly evaluate and extend.
 
-Recently, Facebook introduced \emph{Facebook Infer}: an \emph{open-source}
-tool for creating \emph{highly scalable}, \emph{compositional},
-\emph{incremental}, and \emph{interprocedural} static analysers. Facebook
-Infer has grown considerably, but it is still under active development by many
-teams across the globe. It is employed every day not only in Facebook itself,
-but also in other companies, such as Spotify, Uber, Mozilla, or Amazon.
-Currently, Facebook Infer provides several analysers that check for various
-types of bugs, such as buffer overflows, data races and some forms of deadlocks
-and starvation, null-dereferencing, or memory leaks. However, most importantly,
-Facebook Infer is a~\emph{framework} for building new analysers quickly and
-easily. Unfortunately, the current version of Facebook Infer still lacks better
-support for \emph{concurrency bugs}. While it provides a~reasonably advanced
-data race analyser, it is limited to Java and C++ programs only and fails for
-C~programs, which use a~\emph{lower-level lock manipulation}.
+Recently, Facebook introduced \emph{Facebook Infer}: an \emph{open-source} tool for creating \emph{highly scalable}, \emph{compositional}, \emph{incremental}, and \emph{interprocedural} static analysers. Facebook Infer has grown considerably, but it is still under active development by many teams across the globe. It is employed every day not only in Facebook itself, but also in other companies, such as Spotify, Uber, Mozilla, or Amazon. Currently, Facebook Infer provides several analysers that check for various types of bugs, such as buffer overflows, data races and some forms of deadlocks and starvation, null-dereferencing, or memory leaks. However, most importantly, Facebook Infer is a~\emph{framework} for building new analysers quickly and easily. Unfortunately, the current version of Facebook Infer still lacks better support for \emph{concurrency bugs}. While it provides a~reasonably advanced data race analyser, it is limited to Java and C++ programs only and fails for C~programs, which use a~\emph{lower-level lock manipulation}.
 
-In \emph{concurrent programs}, there are often \emph{atomicity requirements}
-for execution of specific sequences of instructions. Violating these
-requirements may cause many kinds of problems, such as unexpected behaviour,
-exceptions, segmentation faults, or other failures. \emph{Atomicity violations}
-are usually not verified by compilers, unlike syntactic or some sorts of
-semantic rules. Moreover, atomicity requirements, in most cases, are not even
-documented at all. So in the end, programmers themselves must abide by these
-requirements and usually lack any tool support. Furthermore, in general, it
-is difficult to avoid errors in \emph{atomicity-dependent programs},
-especially in large projects, and even more laborious and time-consuming
-is finding and fixing them.
+In \emph{concurrent programs}, there are often \emph{atomicity requirements} for execution of specific sequences of instructions. Violating these requirements may cause many kinds of problems, such as unexpected behaviour, exceptions, segmentation faults, or other failures. \emph{Atomicity violations} are usually not verified by compilers, unlike syntactic or some sorts of semantic rules. Moreover, atomicity requirements, in most cases, are not even documented at all. So in the end, programmers themselves must abide by these requirements and usually lack any tool support. Furthermore, in general, it is difficult to avoid errors in \emph{atomicity-dependent programs}, especially in large projects, and even more laborious and time-consuming is finding and fixing them.
 
-Within the author's bachelor's thesis~\cite{harmimBP},
-\emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available on
-GitHub as an \emph{open-source} repository (in a~branch
-\texttt{atomicity-sets}):
-\url{https://github.com/harmim/infer}.} was proposed\,---\,a~\emph{static
-analyser} for finding some forms of \emph{atomicity violations} implemented
-as a~Facebook Infer's module. In particular, the stress is put on the
-\emph{atomic execution of sequences of function calls}, which is often
-required, e.g., when using specific library calls. It is based on the
-assumption that sequences of function calls executed \emph{atomically once}
-should probably be executed \emph{always atomically}, and it naturally works
-with sequences. In fact, the idea of checking atomicity of certain sequences
-of function calls is inspired by the works of \emph{contracts for
-concurrency}~\cite{contracts2017, contracts2015}. In the terminology
-of~\cite{contracts2017, contracts2015}, atomicity of specific sequences of
-calls is the most straightforward (yet very useful in practice) kind of
-contracts for concurrency. The implementation of the first version of Atomer
-mainly targets \emph{C~programs} that use \emph{POSIX thread}, i.e.,
-\emph{PThread locks}.
+Within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available on GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}.} was proposed\,---\,a~\emph{static analyser} for finding some forms of \emph{atomicity violations} implemented as a~Facebook Infer's module. In particular, the stress is put on the \emph{atomic execution of sequences of function calls}, which is often required, e.g., when using specific library calls. It is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}, and it naturally works with sequences. In fact, the idea of checking atomicity of certain sequences of function calls is inspired by the works of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. In the terminology of~\cite{contracts2017, contracts2015}, atomicity of specific sequences of calls is the most straightforward (yet very useful in practice) kind of contracts for concurrency. The implementation of the first version of Atomer mainly targets \emph{C~programs} that use \emph{POSIX thread}, i.e., \emph{PThread locks}.
 
-Within this thesis, Atomer was improved and extended. Further, other
-experiments were performed. In particular, to improve \emph{scalability},
-working with sequences of function calls was \emph{approximated} by working
-with \emph{sets of function calls}. Furthermore, two new features were
-implemented: support for \emph{C++} and \emph{Java} languages; and a~way to
-distinguish \emph{multiple locks used}. Moreover, several other improvements
-were proposed to reduce the number of false alarms, namely,
-\emph{parametrisation of the analysis}, support for \emph{interprocedural
-locks}, or combinations with a~\emph{dynamic analysis}. Their implementation
-and evaluation is currently the work in progress.
+Within this thesis, Atomer was improved and extended. Further, other experiments were performed. In particular, to improve \emph{scalability}, working with sequences of function calls was \emph{approximated} by working with \emph{sets of function calls}. Furthermore, two new features were implemented: support for \emph{C++} and \emph{Java} languages; and a~way to distinguish \emph{multiple locks used}. Moreover, several other improvements were proposed to reduce the number of false alarms, namely, \emph{parametrisation of the analysis}, support for \emph{interprocedural locks}, or combinations with a~\emph{dynamic analysis}. Their implementation and evaluation is currently the work in progress.
 
-The development of Atomer and its extensions have been discussed with
-developers of Facebook Infer, and it is a~part of the H2020 ECSEL project
-Arrowhead Tools. Parts of this thesis are taken from the
-thesis~\cite{harmimBP}, project practice~\cite{ppHarmim2020}, and the
-paper~\cite{excel2019FBInfer} written by the author.
+The development of Atomer and its extensions have been discussed with developers of Facebook Infer, and it is a~part of the H2020 ECSEL project Arrowhead Tools. Parts of this thesis are taken from the thesis~\cite{harmimBP}, project practice~\cite{ppHarmim2020}, and the paper~\cite{excel2019FBInfer} written by the author.
 
-The rest of the thesis is organised as follows. In Chapter~\ref{chap:prelim},
-there are described all the topics related to and essential to this thesis.
-In particular, Section~\ref{sec:statAnalysisAI} deals with \emph{static
-analysis} based on \emph{abstract interpretation}. The \emph{Facebook Infer}
-framework, which uses abstract interpretation, is described in
-Section~\ref{sec:fbinfer}. Finally, in Section~\ref{sec:contracts}, there
-is described the concept of \emph{contracts for concurrency}. \emph{Atomer}
-is described in Chapter~\ref{chap:atomer}, together with its limitations.
-All the extensions and improvements proposed within the thesis are described
-in Chapter~\ref{chap:proposal}. The implementation of these extensions is
-then presented in Chapter~\ref{chap:implement}. Subsequently,
-Chapter~\ref{chap:exp} discusses the experimental evaluation of the new
-Atomer's features and other experiments performed within this thesis. Finally,
-the thesis is concluded in Chapter~\ref{chap:conc}. Besides, there are
-included the following appendices. Appendix~\ref{app:expValid} provides more
-details of the experimental validation results. The content of the attached
-memory media is listed in Appendix~\ref{app:memMedia}. In the end,
-Appendix~\ref{app:man} serves as an installation and user manual.
+The rest of the thesis is organised as follows. In Chapter~\ref{chap:prelim}, there are described all the topics related to and essential to this thesis. In particular, Section~\ref{sec:statAnalysisAI} deals with \emph{static analysis} based on \emph{abstract interpretation}. The \emph{Facebook Infer} framework, which uses abstract interpretation, is described in Section~\ref{sec:fbinfer}. Finally, in Section~\ref{sec:contracts}, there is described the concept of \emph{contracts for concurrency}. \emph{Atomer} is described in Chapter~\ref{chap:atomer}, together with its limitations. All the extensions and improvements proposed within the thesis are described in Chapter~\ref{chap:proposal}. The implementation of these extensions is then presented in Chapter~\ref{chap:implement}. Subsequently, Chapter~\ref{chap:exp} discusses the experimental evaluation of the new Atomer's features and other experiments performed within this thesis. Finally, the thesis is concluded in Chapter~\ref{chap:conc}. Besides, there are included the following appendices. Appendix~\ref{app:expValid} provides more details of the experimental validation results. The content of the attached memory media is listed in Appendix~\ref{app:memMedia}. In the end, Appendix~\ref{app:man} serves as an installation and user manual.
 
 
 
