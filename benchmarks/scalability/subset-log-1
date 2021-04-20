@@ -1,0 +1,58 @@
+apf-0.8.4_src_afserver.c: 20933   PHASE 1 TIMEOUT
+apr-1.5.2_debian_build_test_testlockperf.c: 30634   12.458158000   1.005256700
+apr-1.5.2_debian_build_test_testmutexscope.c: 30581   CAPTURE FAILED
+augeas-1.2.0_gnulib_tests_test-lock.c: 4740   .375092900   PHASE 2 FAILED
+avahi-0.6.32~rc+dfsg_avahi-ui_.libs_bssh.c: 24483   1.006664700   28.019824400
+boolector-1.5.118.6b56be4.121013_lingeling_ilingeling.c: 52183   PHASE 1 TIMEOUT
+btscanner-2.1_btscanner.c: 9142   PHASE 1 TIMEOUT
+c-icap-0.4.2_.libs_c-icap.c: 39254   154.861469800   20.704188400
+crossfire-client-1.71.0_gtk-v2_src_crossfire-client-gtk2.c: 41185   1.740112900   PHASE 2 TIMEOUT
+daemon-0.6.4_libslack_test_map.c: 42857   280.752866300   40.854584000
+dnshistory-1.3_src_dnshistory.c: 6147   CAPTURE FAILED
+doodle-0.7.0_src_doodle_.libs_doodled.c: 7219   .971977600   .715331500
+eflite-0.4.1_eflite.c: 3945   85.290192700   .823806600
+etherape-0.9.13_src_etherape.c: 22998   1.359390200   3.957894500
+freecell-solver-3.26.0_obj-x86_64-linux-gnu_freecell-solver-multi-thread-solve.c: 15408   37.278891900   .781041500
+fusesmb-0.8.7_fusesmb.cache.c: 3580   .219640800   .599023200
+gcompris-15.02_src_chess_computer-activity_gnuchess_gcompris-gnuchess.c: 17546   1.074213100   .624930400
+glfw-2.7.9_examples_heightmap.c: 10436   .430050300   .748681100
+glfw-2.7.9_tests_accuracy.c: 9536   .303219400   .672456500
+glfw-2.7.9_tests_tearing.c: 0   .089939000   .090529400
+gnoemoe-2.2.0+dfsg_gnoemoe_gnoemoe.c: 51780   1.694157600   4.119712000
+goaccess-0.9.4_goaccess.c: 21141   10.262878200   PHASE 2 TIMEOUT
+gogoc-1.2_gogoc-tsp_bin_gogoc.c: 0   .156730200   .193245400
+hmmer2-2.3.2_src_hmmcalibrate.c: 38301   109.792719400   PHASE 2 TIMEOUT
+httpry-0.1.7_httpry.c: 4013   .421707400   3.347123800
+idzebra-2.0.59_util_tstflock.c: 12516   .325588800   .430865300
+ivykis-0.36.2_debian_build-tree_test_.libs_iv_fd_pump_discard.c: 7777   .401579900   1.539545600
+ivykis-0.36.2_debian_build-tree_test_.libs_struct_sizes.c: 7413   .356132400   1.461453800
+jamnntpd-1.2_src_jamnntpd.c: 11289   56.919097100   .385431100
+libfcgi-2.4.0_examples_.libs_threaded.c: 5494   .841639500   PHASE 2 TIMEOUT
+libfiu-0.94_tests_test-enable_stack_by_name.c: 2728   .179417200   .323252300
+libgadu-1.12.1_test_automatic_connect.c: 28705   3.106701300   7.385650000
+libgpg-error-1.21_build_tests_t-lock.c: 10641   .426770700   .494795600
+liblo-0.28_src_.libs_subtest.c: 8354   23.125336200   .484024400
+libpthread-workqueue-0.9.1_.libs_test_latency.c: 2970   CAPTURE FAILED
+libshout-2.3.1_examples_.libs_nonblocking.c: 9828   .425329800   .313278000
+libtrace3-3.0.21_examples_tutorial_.libs_mplstag.c: 5609   .235928900   .448445800
+liburcu-0.9.1_doc_examples_list_cds_list_add_rcu.c: 4393   .289407600   2.239572600
+liburcu-0.9.1_tests_benchmark_.libs_test_urcu_defer.c: 0   .091896200   .093799700
+liburcu-0.9.1_tests_benchmark_.libs_test_urcu_qsbr_lgc.c: 6894   .359309000   PHASE 2 TIMEOUT
+liburcu-0.9.1_tests_benchmark_.libs_test_urcu_wfs_dynlink.c: 3150   .210764500   .756816100
+liburcu-0.9.1_tests_regression_.libs_57870-lt-rcutorture_urcu_signal.c: 8141   .441937500   262.186765600
+lingot-0.9.1_src_lingot.c: 9310   .352294400   4.927177800
+mesa-demos-8.3.0_src_xdemos_glthreads.c: 2424   397.103877900   PHASE 2 TIMEOUT
+nbdkit-1.1.11_src_nbdkit.c: 3955   .951950200   .662152000
+openscap-1.2.8_build-python-2.7_src_OVAL_probes_.libs_probe_runlevel.c: 14219   4.119554700   PHASE 2 TIMEOUT
+rt-tests-0.96_ptsematest.c: 1795   .175180800   .134948300
+see-0.72_src_seetxt.c: 10572   4.766692700   .904849500
+speech-dispatcher-0.8_src_modules_sd_cicero.c: 7147   393.327391100   PHASE 2 TIMEOUT
+speech-dispatcher-0.8_src_tests_.libs_spd_cancel_long_message.c: 3636   .318635700   1.307146200
+speech-dispatcher-contrib-0.8_src_tests_.libs_run_test.c: 0   .100554800   .109084200
+towitoko-2.0.7_src_test_.libs_tester.c: 12339   38.233108100   77.504972900
+waffle-1.5.2_obj-x86_64-linux-gnu_tests_wcore_error_unittest.c: 13991   .784019100   .412673000
+xdffileio-0.3_tests_.libs_testgdf2.c: 10859   .539381100   2.044401000
+xscreensaver-5.34_hacks_glx_bubble3d.c: 12168   .429630200   3.938067900
+xscreensaver-5.34_hacks_glx_engine.c: 13278   .504543900   4.132510900
+xscreensaver-5.34_hacks_glx_photopile.c: 13876   .494352400   4.559730800
+xscreensaver-5.34_hacks_glx_unknownpleasures.c: 12483   .409652200   3.868427600
