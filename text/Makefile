@@ -49,7 +49,7 @@ $(PACK): $(CO).pdf
 
 .PHONY: vlna
 vlna:
-	vlna -l $(CO).tex $(CO).bib $(CHAPTERS) $(APPENDICES)
+	vlna -l -v aAI $(CO).tex $(CO).bib $(CHAPTERS) $(APPENDICES)
 
 
 .PHONY: normostrany
