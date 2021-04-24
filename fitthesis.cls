@@ -6,7 +6,7 @@
 % ------------------------------------------------------------------------------
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{fitthesis}[2021/01/21 Template for BP/DP]
+\ProvidesClass{fitthesis}[2021/04/21 Template for BP/DP]
 
 % Default values for parameters
 \newif\ifczech \let\ifczech\iftrue
@@ -100,7 +100,10 @@
 \usepackage{ragged2e}
 \usepackage{color}
 \usepackage{etoolbox}
+
 \usepackage[inline]{enumitem}
+\newlist{enuminline}{enumerate*}{1}
+\setlist[enuminline]{label={(\roman*)}}
 
 \ifczech
   \main@language{czech}
@@ -518,7 +521,7 @@ Management}{\@fit@EN}%
   \bf#2}\vspace\mkspc}
 
 
-% Properties for a PDF document
+% Properties for a PDF document.
 \def\pdftitle{\@title}
 \def\pdfauthor{\getlc@author}
 \ifczech
@@ -714,7 +717,7 @@ Management}{\@fit@EN}%
 
 \newcommand\makedeclaration{
 \thispagestyle{empty}%
-\mktxt@b{18}{\@title}
+\begin{flushleft}\mktxt@b{18}{\@title}\end{flushleft}
 
 \vspace{10mm}
 \ifslovak
@@ -1071,7 +1074,7 @@ Management}{\@fit@EN}%
 % assignment
 \iftoggle{zadaniTwop}{
   \cleardoublepage
-  \includepdf[pages=-, offset=.6cm -1.7cm]{assignment.pdf}
+  \includepdf[pages=-, offset=-0.1cm -0.2cm]{assignment.pdf}
 }{
   \ifzadani
     \includepdf[pages=-, offset=.6cm -1.7cm]{assignment.pdf}
@@ -1304,25 +1307,7 @@ Management}{\@fit@EN}%
   showspaces=false,
   showtabs=false,
   breaklines=true,
-  showstringspaces=false,
-  breakatwhitespace=true,
-  escapeinside={(*@}{@*)},
-  commentstyle=\color{greencomments},
-  keywordstyle=\color{bluekeywords},
-  stringstyle=\color{redstrings},
-  basicstyle=\ttfamily,
-  captionpos=b,
-  numbers=left,
-  frame=single,
-  morekeywords={this}
-}
-
-\lstdefinestyle{ocaml}{
-  language=caml,
-  showspaces=false,
-  showtabs=false,
-  breaklines=true,
-  showstringspaces=false,
+  showstringspaces=true,
   breakatwhitespace=true,
   escapeinside={<@}{@>},
   commentstyle=\color{greencomments},
@@ -1331,7 +1316,25 @@ Management}{\@fit@EN}%
   basicstyle=\ttfamily,
   captionpos=b,
   numbers=left,
-  frame=single,
+  frame=trBL,
+  morekeywords={this}
+}
+
+\lstdefinestyle{ocaml}{
+  language=caml,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=true,
+  breakatwhitespace=true,
+  escapeinside={<@}{@>},
+  commentstyle=\color{greencomments},
+  keywordstyle=\color{bluekeywords},
+  stringstyle=\color{redstrings},
+  basicstyle=\ttfamily,
+  captionpos=b,
+  numbers=left,
+  frame=trBL,
   morekeywords={Some, None}
 }
 

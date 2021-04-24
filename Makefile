@@ -13,6 +13,7 @@ CLS := fitthesis.cls
 IMGS := template-fig/* img/*
 ASSIGNMENT := assignment.pdf
 DESKS := desks.pdf
+PACK := $(CO).tar.gz
 
 
 .PHONY: all
@@ -34,13 +35,13 @@ clean:
 		$(CO).out $(CO).lof $(CO).ptc $(CO).fdb_latexmk $(CO).fls \
 		$(CO).synctex.gz
 	rm -f *~
-	rm -f $(CO).tar.gz
+	rm -f $(PACK)
 
 
 .PHONY: pack
-pack: $(CO).tar.gz
+pack: $(PACK)
 
-$(CO).tar.gz: $(CO).pdf
+$(PACK): $(CO).pdf
 	COPYFILE_DISABLE=1 tar -czvf $@ $(CO).tex $(CO).bib $(BST) $(IMGS) $(CLS) \
 		$(ASSIGNMENT) $(DESKS) $^ Makefile latexmkrc $(CHAPTERS) \
 		$(APPENDICES)
