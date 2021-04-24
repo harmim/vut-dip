@@ -3,6 +3,9 @@
 
 
 %===============================================================================
+
+
+
 \chapter{Introduction}
 
 Bugs are an integral part of computer programs ever since the inception of the programming discipline. Unfortunately, they are often hidden in unexpected places, and they can lead to unexpected behaviour, which may cause significant damage. Nowadays, developers have many possibilities of catching bugs in the early development process. \emph{Dynamic analysers} or tools for \emph{automated testing} are often used, and they are satisfactory in many cases. Nevertheless, they can still leave too many bugs undetected, because they can analyse only \emph{particular program flows} dependent on the input data. An alternative solution is \emph{static analysis} that has its shortcomings as well, such as the \emph{scalability} on large codebases or a~considerably high rate of incorrectly reported errors (so-called \emph{false positives} or \emph{false alarms}). Several efficient tools for static analysis were implemented, e.g., Coverity or CodeSonar. However, they are often proprietary and difficult to openly evaluate and extend.
@@ -15,67 +18,89 @@ Within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{Th
 
 Within this thesis, Atomer was improved and extended. Further, other experiments were performed. In particular, to improve \emph{scalability}, working with sequences of function calls was \emph{approximated} by working with \emph{sets of function calls}. Furthermore, two new features were implemented: support for \emph{C++} and \emph{Java} languages; and a~way to distinguish \emph{multiple locks used}. Moreover, several other improvements were proposed to reduce the number of false alarms, namely, \emph{parametrisation of the analysis}, support for \emph{interprocedural locks}, or combinations with a~\emph{dynamic analysis}. Their implementation and evaluation is currently the work in progress.
 
-The development of Atomer and its extensions have been discussed with developers of Facebook Infer, and it is a~part of the H2020 ECSEL project Arrowhead Tools. Parts of this thesis are taken from the thesis~\cite{harmimBP}, project practice~\cite{ppHarmim2020}, and the paper~\cite{excel2019FBInfer} written by the author.
+The development of Atomer and its extensions have been discussed with developers of Facebook Infer, and it is a~part of the H2020 ECSEL project Arrowhead Tools. Parts of this thesis are taken from the thesis~\cite{harmimBP} and the paper~\cite{excel2021Harmim} written by the author.
 
-The rest of the thesis is organised as follows. In Chapter~\ref{chap:prelim}, there are described all the topics related to and essential to this thesis. In particular, Section~\ref{sec:statAnalysisAI} deals with \emph{static analysis} based on \emph{abstract interpretation}. The \emph{Facebook Infer} framework, which uses abstract interpretation, is described in Section~\ref{sec:fbinfer}. Finally, in Section~\ref{sec:contracts}, there is described the concept of \emph{contracts for concurrency}. \emph{Atomer} is described in Chapter~\ref{chap:atomer}, together with its limitations. All the extensions and improvements proposed within the thesis are described in Chapter~\ref{chap:proposal}. The implementation of these extensions is then presented in Chapter~\ref{chap:implement}. Subsequently, Chapter~\ref{chap:exp} discusses the experimental evaluation of the new Atomer's features and other experiments performed within this thesis. Finally, the thesis is concluded in Chapter~\ref{chap:conc}. Besides, there are included the following appendices. Appendix~\ref{app:expValid} provides more details of the experimental validation results. The content of the attached memory media is listed in Appendix~\ref{app:memMedia}. In the end, Appendix~\ref{app:man} serves as an installation and user manual.
+The rest of the thesis is organised as follows. In Chapter~\ref{chap:prelim}, there are described all the topics related to and essential to this thesis. In particular, Section~\ref{sec:statAnalysisAI} deals with \emph{static analysis} based on \emph{abstract interpretation}. The \emph{Facebook Infer} framework, which uses abstract interpretation, is described in Section~\ref{sec:fbinfer}. Finally, in Section~\ref{sec:contracts}, there is described the concept of \emph{contracts for concurrency}. \emph{Atomer} is described in Chapter~\ref{chap:atomer}, together with its limitations. All the extensions and improvements proposed within the thesis are described in Chapter~\ref{chap:proposal}. The implementation of these extensions is then presented in Chapter~\ref{chap:implement}. Subsequently, Chapter~\ref{chap:exp} discusses the experimental evaluation of the new Atomer's features and other experiments performed within this thesis. Finally, the thesis is concluded in Chapter~\ref{chap:conc}. Besides, there are included the following appendices. The content of the attached memory media is listed in Appendix~\ref{app:memMedia}. In the end, Appendix~\ref{app:man} serves as an installation and user manual.
 
 
 
 %===============================================================================
+
+
 \chapter{Preliminaries}
 \label{chap:prelim}
 
-\cite{staticRaceDetectorTruePositives}
-\cite{inferCSharp}
-\cite{contract}
-\cite{analysisAndVerVojnarKrena}
-\cite{inferBiabduction}
-\cite{controlFlowAnalysisAllen}
-\cite{AIBasedFormalMethodsCousot}
-\cite{AILatticeModelCousot}
-\cite{wideningNarrowingCousot}
-\cite{AIInNutshellCousot}
-\cite{AICousotWeb}
-\cite{inferAISpeech}
-\cite{racerDOnline}
-\cite{inferboOnline}
-\cite{harmimBP}
-\cite{excel2019FBInfer}
-\cite{ppHarmim2020}
-\cite{marcinBP}
-\cite{ppMarcin2018}
-\cite{muzikovskaBP}
-\cite{excel2018Muzikovska}
-\cite{DFAGraphReach}
-\cite{contracts2015}
-\cite{programAnalysisNielson}
-\cite{racerD}
-\cite{realWorldOCaml}
-\cite{deadlockKroening}
-\cite{staticAnalysisRival}
-\cite{staticAnalysisMoller}
-\cite{threadsafe}
-\cite{DFAApproaches}
-\cite{contracts2017}
-\cite{savStaticAnalysis}
-\cite{savLatticesAndFixpoints}
-\cite{savAI}
-\cite{hoare}
+% \todo{Převzít z~bakalářky/projektové praxe/Excelu a~rozšířit \\ a~aktualizovat/vylepšit.}
 
-\todo{Převzít z~bakalářky/projektové praxe a~rozšířit a~aktualizovat/vylepšit.}
+This chapter explains the theoretical background that the thesis builds on. It also explains and describes the existing tools used in the thesis. Also, note that the author already partially published the contents of Sections~\ref{sec:statAnalysisAI}, \ref{sec:fbinfer}, \ref{sec:contracts} in his bachelor's thesis~\cite{harmimBP} and paper~\cite{excel2021Harmim}.
 
-This chapter explains the theoretical background that the thesis builds
-on. It also explains and describes the existing tools used in the
-thesis. Lastly, the chapter deals with principles which this thesis
-got inspired by.
+\paragraph{Multi-Threaded Programs~\cite{atomizer, muzikovskaBP}}
+\emph{Multiple threads} of control are commonly used in the software development process because they help reduce \emph{latency}, increase \emph{throughput}, and better utilise \emph{multiple processor computers}. Threads or \emph{processes} are independent \emph{sequences of instructions} that may be performed simultaneously. A~process represents a~single running program. It has its own address space and a~unique identifier. One process can consist of multiple threads, i.e., a~thread is a~so-called \emph{lightweight process}. All threads of a~single process share the same address space (i.e., code and data). However, reasoning about the behaviour and correctness of a~multi-threaded system is complex due to the need to consider all possible interleavings of the executions of different threads. An integral part of parallel programming is the \emph{synchronisation} of individual threads. Usually, synchronisation mechanisms ensure the \emph{mutual exclusion} of shared resources or synchronise actions that threads perform. Operating systems provide basic synchronisation primitives that can be often used in programming languages in a~higher-level manner. Such fundamental mechanisms are \emph{semaphores} (binary semaphores are called \emph{mutexes}), \emph{barriers}, \emph{read-copy-update} techniques, or \emph{monitors}. In this work (and also in practice), for simplicity, it will be used a~notion of \emph{locks} for semaphores, mutexes, monitors, etc. as a~mechanism that mutually excludes access to a~\emph{critical section}.
 
-In particular, in Section~\ref{sec:statAnalysisAI}, there is a~brief
-explanation of \emph{static analysis} itself, and then an explanation of
-\emph{abstract interpretation} that is used in Facebook Infer, i.e., the
-tool that is extended in this thesis. Facebook Infer, its principles and
-features are illustrated in Section~\ref{sec:fbinfer}. The concept of
-\emph{contracts for concurrency} that the thesis gets inspired by is
-discussed and defined in Section~\ref{sec:contracts}.
+The use of locks and access to shared data in parallel programs involves the risk of errors not known in sequential programming. Much previous work on checking \emph{thread interference} has focused on \emph{data races} (or, in general, on \emph{race conditions}). A~data race occurs when two threads simultaneously access the same data variable, and, at least, one of the access is a~write. In practice, data races are commonly avoided by guarding each data structure with a~lock. Unfortunately, the absence of data races is insufficient to guarantee the absence of errors due to unexpected interference between threads.~\cite{atomizer, atomicityOOP}
+
+\paragraph{Atomicity Violations~\cite{atomizer}}
+Another possible source of errors due to unexpected interference between threads are \emph{atomicity violations}. A~method (or, in general, a~code block) is \emph{atomic} iff, for every (arbitrarily interleaved) program execution, there is an equivalent execution with the same overall behaviour where the atomic method is executed serially. In other words, the method's execution is not interleaved with instructions of other threads. Also, atomicity provides a~powerful, indeed maximal, guarantee of non-interference among threads. In short, atomicity is a~generally applicable and fundamental \emph{correctness property} of multi-threaded code. Nevertheless, commonly used \emph{testing approaches} are deficient in verifying atomicity. While testing may reveal a~concrete interleaving in which an atomicity violation causes erroneous behaviour, the exponentially large amount of possible interleavings does fundamentally impossible to get suitable \emph{test coverage}. Research results~\cite{contracts2017, atomizer, contracts2015, atomicityOOP} have shown that defects related to atomicity are common, even in well-tested libraries.
+
+It has to be described which blocks of code should be executed atomically to detect atomicity violations. Algorithms for the detection of this error often deal only with the atomicity of operations on variables. Examples of a~complex description of \emph{atomicity requirements} are \emph{contracts} that require atomicity of the execution of certain methods/functions (defined in Section~\ref{sec:contracts}).~\cite{muzikovskaBP}
+
+Further, Section~\ref{sec:programAnalysis} outlines the fundamental notions and approaches in \emph{program analysis}. In Section~\ref{sec:statAnalysisAI}, there is a~brief explanation of \emph{static analysis} itself and an explanation of \emph{abstract interpretation} used in \emph{Facebook Infer}, i.e., the key framework used in this thesis. Facebook Infer, its principles, and features are covered in Section~\ref{sec:fbinfer}. The concept of \emph{contracts for concurrency} is discussed and defined in Section~\ref{sec:contracts}.
+
+
+\section{Concepts in Program Analysis}
+\label{sec:programAnalysis}
+
+This section provides a~fundamental intuition about the main principles of \emph{program analysis}. It discusses several standard techniques for reasoning about programs. The section is based on a~few first chapters from the book~\cite{staticAnalysisRival} and the overview paper~\cite{analysisAndVerVojnarKrena}.
+
+\subsection{What to Analyse}
+
+The first question is \emph{what programs to analyse}. An obvious characterisation of programs to analyse is the programming language in which the programs are written. Moreover, certain specific families of input programs may be distinguished. However, besides the language and the family of programs to consider, the way input programs are worked can also differ and affects how the analysis works. The most straightforward way to handle input programs is working directly with a~\emph{source code} just like a~compiler would. Nevertheless, different representations of programs are used in program analysis likewise. The two below types of techniques are customarily distinguished.
+
+\paragraph{Program-Level Analysis}
+The first possibility is to run the analysis on a~\emph{source code} of input programs (e.g., programs written in conventional programming languages like~C or Java; or hardware described in VHDL, Verilog, etc.) or on \emph{executable binaries}. This technique typically involves some \emph{front-end} comparable to a~compiler's one that constructs the \emph{syntax trees} of input programs.
+
+\paragraph{Model-Level Analysis}
+An alternative option is to consider a~different input language that aims at modelling the semantics of programs. Then, the analysis takes as an input a~description that \emph{models} the program to analyse. Such models either need to be created manually, or some specialised tools are used. These models may hide implementation difficulties or inaccuracies. Examples of the models are automata of any kind, UML diagrams, Petri nets, Markov chains, or specialised modelling languages like, e.g., Promela.
+
+\subsection{Static vs Dynamic Approaches}
+
+Another critical question in program analysis is \emph{when} the analysis is made. In particular, whether it operates \emph{during} or \emph{before} the program's execution.
+
+One solution is to analyse programs at \emph{run-time}, i.e., \emph{during} the program's execution. This approach is called \emph{dynamic analysis}. It takes place while the program computes, often, over a~number of executions.
+
+A~second approach is to analyse the program \emph{before} execution, which is called \emph{static analysis}. It is done independently from any execution.
+
+Static and dynamic approaches are significantly distinct in many ways. They come with different benefits and weaknesses. While dynamic approaches are often simpler to design and implement, they often have problems with performance at run-time. They do not force developers to fix  bugs before program execution. Moreover, some properties cannot be checked (or, at least, it is very challenging) dynamically. For instance, dynamically detecting whether an execution \emph{terminates} would require an infinite program run. Particular static and dynamic techniques are further discussed in Section~\ref{sec:analysisTechniques}.
+
+\subsection{Automation and Scalability}
+
+\emph{Automation} is a~further relevant aspect in program analysis. It would be ideal if program analysis methods were \emph{fully automated} (i.e., no human help is needed). Unfortunately, this is not always possible due to the consequences of \emph{Rice's theorem}~\cite{rice}. Thus, sometimes, it is needed to give up on automation and let program analyses ask some \emph{user input} (i.e., some human help is required). In that case, the user is asked to give some information to the analysis, e.g., \emph{invariants}\footnote{An \textbf{invariant} is a~logical property that can be proved to be inductive for a~given program.}. That is, the analysis is partially manual since users need to compute parts of the results themselves. However, having to provide this information may be unwieldy because input programs can be huge or complex.
+
+\emph{Scalability} is another essential characteristic of program analysis algorithms. Even if a~program analysis is fully automatic, it is not guaranteed that it will generate a~result within a~reasonable time, depending on the complexity of the algorithms. A~program analysis tool may not \emph{scale} to extensive programs due to time costs or, e.g., memory constraints.
+
+\subsection{Relaxing the Ideal: Soundness and Completeness}
+
+...
+
+\subsection{Program Analysis Techniques}
+\label{sec:analysisTechniques}
+
+...
+
+\paragraph{Testing and Dynamic Analysis}
+...
+
+\paragraph{Deductive Verification}
+...
+
+\paragraph{Model Checking}
+...
+
+\paragraph{Conservative Static Analysis}
+...
+
+\paragraph{Bug Finding}
+...
 
 
 \section{Static Analysis by Abstract Interpretation}
@@ -145,13 +170,13 @@ The biggest disadvantage of static analysis is that it can produce many
 an error. Also called \emph{false positives}.}, which is often resolved by
 accepting \emph{unsoundness}\footnote{\textbf{Soundness}\,--\,if
 a~verification method claims that a~system is correct according to a~given
-specification, it is truly correct~\cite{savStaticAnalysis}.}. Another major
+specification, it is truly correct~\cite{harmimBP}.}. Another major
 issue is that of ensuring sufficient \emph{scalability} of static analysis:
 in fact, typically, the more precise the analysis is, the less scalable it
 becomes.
 
 Various forms of static analysis of programs have been invented, for
-instance~\cite{savStaticAnalysis}: bug pattern searching, data-flow
+instance~\cite{harmimBP}: bug pattern searching, data-flow
 analysis, constraint-based analysis, type analysis, or symbolic execution.
 One of the most widely used approaches\,---\,\emph{abstract
 interpretation}\,---\,is detailed in Section~\ref{sec:AI}.
@@ -170,8 +195,8 @@ a~použít jeho trojice. Zmínit se o~C\#.}
 This section explains and defines the basics of \emph{abstract interpretation}.
 The description is based on~\cite{AIBasedFormalMethodsCousot,
 AILatticeModelCousot, AIInNutshellCousot, AICousotWeb, savAI,
-ppMarcin2018, wideningNarrowingCousot, programAnalysisNielson,
-staticAnalysisMoller, savLatticesAndFixpoints}. In these works, there can be
+harmimBP, wideningNarrowingCousot, programAnalysisNielson,
+staticAnalysisMoller}. In these works, there can be
 found more detailed and more formal explanation.
 
 Abstract interpretation was introduced and formalised by a~French
@@ -181,7 +206,7 @@ Languages)~\cite{AILatticeModelCousot}. It is a~generic \emph{framework}
 for static analyses. It allows one to create particular analyses by
 providing specific components (described later) to the framework. The
 obtained analysis is guaranteed to be \emph{sound} if certain properties
-of the components are met.~\cite{savAI, ppMarcin2018}
+of the components are met.~\cite{savAI, harmimBP}
 
 In general, in the set theory, which is independent of the application
 setting, abstract interpretation is considered a~theory for
@@ -254,7 +279,7 @@ semantics does not intersect it.
 
 \subsubsection{Components of Abstract Interpretation}
 
-In accordance with~\cite{savAI, ppMarcin2018}, the basic
+In accordance with~\cite{savAI, harmimBP}, the basic
 components of abstract interpretation are as follows:
 \begin{itemize}
     \item
@@ -337,14 +362,14 @@ components of abstract interpretation are as follows:
 
 A~\textbf{fixpoint} of a~function  $ f : A \rightarrow A $ is an
 element $ a \in A $ if and only if
-$ \boldsymbol{f(a) = a} $~\cite{savLatticesAndFixpoints}.
+$ \boldsymbol{f(a) = a} $~\cite{harmimBP}.
 
 Computation of the \emph{most precise abstract fixpoint} is not generally
 guaranteed to terminate, in particular, when a~given program contains
 a~loop or recursion. The solution is to approximate the fixpoint using
 \emph{widening} (over-approximation of a~fixpoint) and \emph{narrowing}
 (improves the approximation of the fixpoint)~\cite{savAI,
-ppMarcin2018}. Most program properties can be represented as
+harmimBP}. Most program properties can be represented as
 fixpoints. This reduces program analysis to the fixpoint
 approximation~\cite{AICousotWeb}. Further information about fixpoint
 approximation can be found, e.g., in~\cite{programAnalysisNielson,
@@ -384,7 +409,7 @@ where
 
     \item
         $ (Q, \sqcup, \top) $ is a~\emph{complete
-        semilattice}~\cite{savLatticesAndFixpoints, savAI}.
+        semilattice}~\cite{harmimBP, savAI}.
 \end{itemize}
 
 Using so-called \emph{Galois connections}~\cite{programAnalysisNielson,
@@ -392,8 +417,8 @@ wideningNarrowingCousot, savAI, AICousotWeb}, one can guarantee the
 \emph{soundness} of abstract interpretation.
 
 
-\section{\texorpdfstring{Facebook Infer\,---\,a~Static Analysis Framework}{%
-    Facebook Infer - a~Static Analysis Framework%
+\section{\texorpdfstring{Facebook Infer\,---\,Static Analysis Framework}{%
+    Facebook Infer - Static Analysis Framework%
 }}
 \label{sec:fbinfer}
 
@@ -401,8 +426,8 @@ This section describes the principles and features of
 \emph{Facebook Infer}. The description is based on information provided
 at the Facebook Infer website\footnote{\textbf{Facebook Infer}
 website\,--\,\url{https://fbinfer.com}.} and in~\cite{inferAISpeech,
-ppMarcin2018}. Parts of this section are taken
-from the paper~\cite{excel2019FBInfer}.
+harmimBP}. Parts of this section are taken
+from the paper~\cite{harmimBP, excel2021Harmim}.
 
 Facebook Infer is an open-source\footnote{\textbf{Open-source repository of
 Facebook Infer} on GitHub\,--\,\url{https://github.com/facebook/infer}.}
@@ -553,7 +578,7 @@ in multiple languages.
     \includegraphics[width=.65 \linewidth]{infer-architecture.pdf}
     \caption{%
         The architecture of Facebook Infer's abstract interpretation
-        framework~\cite{inferAISpeech, ppMarcin2018}
+        framework~\cite{inferAISpeech, harmimBP}
     }
     \label{fig:inferArch}
 \end{figure}
@@ -564,8 +589,7 @@ in multiple languages.
     \includegraphics[width=.25 \textwidth]{infer-call-graph.pdf}
     \caption{%
         A~call graph for an illustration of Facebook Infer's
-        analysis process~\cite{inferAISpeech, excel2019FBInfer,
-        ppMarcin2018}
+        analysis process~\cite{inferAISpeech, harmimBP}
     }
     \label{fig:inferCallGraph}
 \end{wrapfigure}
@@ -609,7 +633,7 @@ shown in a~simplified form in Figure~\ref{fig:inferAnalysis}.
     \includegraphics[width=.65 \linewidth]{infer-analysis.pdf}
     \caption{%
         Facebook Infer's abstract interpretation
-        process~\cite{inferAISpeech, ppMarcin2018}
+        process~\cite{inferAISpeech, harmimBP}
     }
     \label{fig:inferAnalysis}
 \end{figure}
@@ -622,7 +646,7 @@ shown in a~simplified form in Figure~\ref{fig:inferAnalysis}.
 
 This section introduces the concept of \emph{contracts for concurrency}
 described in~\cite{contracts2015, contracts2017}. Parts of this section are
-taken from the paper~\cite{excel2019FBInfer}. Listings in this section are
+taken from the thesis~\cite{harmimBP}. Listings in this section are
 pieces of programs written in ANSI~C.
 
 Respecting the \emph{protocol} of a~software module\,---\,defines
@@ -864,11 +888,38 @@ from Section~\ref{sec:contractsBasic} as follows:
 \subsection{Contracts for Concurrency with Spoilers}
 \label{sec:contractsSpoilers}
 
+\cite{staticRaceDetectorTruePositives}
+\cite{inferCSharp}
+\cite{contract}
+\cite{inferBiabduction}
+\cite{controlFlowAnalysisAllen}
+\cite{AIBasedFormalMethodsCousot}
+\cite{AILatticeModelCousot}
+\cite{wideningNarrowingCousot}
+\cite{AIInNutshellCousot}
+\cite{AICousotWeb}
+\cite{inferAISpeech}
+\cite{racerDOnline}
+\cite{inferboOnline}
+\cite{marcinBP}
+\cite{DFAGraphReach}
+\cite{contracts2015}
+\cite{programAnalysisNielson}
+\cite{racerD}
+\cite{realWorldOCaml}
+\cite{deadlockKroening}
+\cite{staticAnalysisRival}
+\cite{staticAnalysisMoller}
+\cite{DFAApproaches}
+\cite{savAI}
+\cite{hoare}
+\cite{anaconda}
+
 
 
 %===============================================================================
-\chapter{\texorpdfstring{Atomer\,---\,an Atomicity Violations Detector}{%
-    Atomer - an Atomicity Violations Detector%
+\chapter{\texorpdfstring{Atomer\,---\,Atomicity Violations Detector}{%
+    Atomer - Atomicity Violations Detector%
 }}
 \label{chap:atomer}
 
@@ -879,35 +930,20 @@ analyser} \emph{Atomer} proposed as a~module of \emph{Facebook Infer}
 bachelor's thesis of the author of this thesis~\cite{harmimBP}. Therefore,
 naturally, the following description in Section~\ref{sec:atomerDesing} is based
 on the mentioned thesis, and further, there is used information
-from~\cite{ppHarmim2020, excel2019FBInfer}.
+from~\cite{excel2021Harmim}.
+
+Already existing solutions in this area (besides Atomer)
+discusses Section~\ref{sec:atomerRelatedWork}. In particular, it deals with other existing
+approaches and tools for finding atomicity violations, their advantages,
+disadvantages, features, availability, and so on.
 
 In Section~\ref{sec:atomerLimits}, there are discussed \emph{limitations} and
 \emph{shortcomings} of Atomer. Again, some of the thoughts mentioned in this
-section are taken into consideration in~\cite{harmimBP, ppHarmim2020,
-excel2019FBInfer}.
+section are taken into consideration in~\cite{harmimBP, excel2021Harmim}.
 
 
-\section{Design of Atomer and Its Principles}
-\label{sec:atomerDesing}
-
-Atomer concentrates on checking \emph{atomicity of execution of certain
-sequences of function calls}, which is often required for \emph{concurrent
-programs'} correct behaviour. Atomer's principle is based on the assumption
-that sequences of function calls executed \emph{atomically once}
-should probably be executed \emph{always atomically}.
-
-At first, already existing solutions in this area (besides Atomer) are
-discussed. In particular, the following deals with other existing
-approaches and tools for finding atomicity violations, their advantages,
-disadvantages, features, availability, and so on. Then, finally, the
-algorithm that is behind Atomer is introduced.
-
-Listings in the below sections are pieces of exemplary programs written
-in C~language (assuming \emph{POSIX thread}, i.e., \emph{PThread locks}
-and declared and initialised global variable \texttt{lock} of a~type
-\texttt{phtread\_mutex\_t}).
-
-\subsection{Related Work}
+\section{Related Work}
+\label{sec:atomerRelatedWork}
 
 Atomer is slightly inspired by ideas from~\cite{contracts2017, contracts2015}.
 In these papers, there is a~proposal and implementation of a~\emph{static
@@ -951,7 +987,22 @@ checks whether \emph{contracts for concurrency}
 determine which sequences should indeed be executed atomically (hence, to
 \emph{derive the contracts automatically}).
 
-\subsection{Design of the Atomer Analyser}
+
+\section{Design of Atomer and Its Principles}
+\label{sec:atomerDesing}
+
+\todo{Říct, že Atomer není sound ani complete.}
+
+Atomer concentrates on checking \emph{atomicity of execution of certain
+sequences of function calls}, which is often required for \emph{concurrent
+programs'} correct behaviour. Atomer's principle is based on the assumption
+that sequences of function calls executed \emph{atomically once}
+should probably be executed \emph{always atomically}.
+
+Listings in the below sections are pieces of exemplary programs written
+in C~language (assuming \emph{POSIX thread}, i.e., \emph{PThread locks}
+and declared and initialised global variable \texttt{lock} of a~type
+\texttt{phtread\_mutex\_t}).
 
 As it has already been said, the proposal of Atomer is based on the concept
 of \emph{contracts for concurrency} described in Section~\ref{sec:contracts}.
@@ -1011,7 +1062,7 @@ because, so far, it is not necessary to have any preconditions for analysed
 functions. Thus, in this case, the Hoare triple ${ true\ \{Q\}\ R }$ holds,
 where~$ Q $ is an analysed program, i.e., $ P = true $.
 
-\subsubsection{Phase~1: Detection of Atomic Sequences}
+\subsection{Phase~1: Detection of Atomic Sequences}
 
 Before detecting \emph{atomicity violations} may begin, it is required to have
 \emph{contracts} introduced in Section~\ref{sec:contracts}. \textbf{Phase~1}
@@ -1332,7 +1383,7 @@ atomically\,---\,the~$ \boldsymbol{B} $ sequences\,---\,from the summaries
 of all analysed functions are stored into a~file used during \textbf{Phase~2},
 which is described below.
 
-\subsubsection{Phase~2: Detection of Atomicity Violations}
+\subsection{Phase~2: Detection of Atomicity Violations}
 
 In the second phase of the analysis, i.e., when \emph{detecting violations}
 of the atomic sequences obtained from \textbf{Phase~1}, the analysis looks
@@ -1467,8 +1518,7 @@ be used in practice to analyse various kinds of programs, and it may find
 \emph{real atomicity related bugs}. Nevertheless, there are still several
 limitations and cases where Atomer would not work correctly, i.e., cases not
 considered during the original proposal. Some of these cases were briefly
-discussed in~\cite{harmimBP, excel2019FBInfer}, and further described
-in~\cite{ppHarmim2020}.
+discussed in~\cite{harmimBP}, and further described in~\cite{excel2021Harmim}.
 
 So far, Atomer does not work with \emph{nested locks}, i.e., it does not
 distinguish \emph{different locks} used in a~program. Only calls of
@@ -1571,7 +1621,7 @@ Atomer, detailed in Chapter~\ref{chap:implement}.
 
 
 %===============================================================================
-\chapter{Proposal of Precision/Scalability Enhancements for Atomer}
+\chapter{Proposal of Enhancements for Atomer}
 \label{chap:proposal}
 
 This chapter describes the proposed solutions for Atomer's limitations
@@ -1579,7 +1629,7 @@ stated in Section~\ref{sec:atomerLimits}, i.e., solutions that enhance
 \emph{precision} and \emph{scalability} of the analysis performed by Atomer.
 To formally define these enhancements, notions and symbols introduced in
 Section~\ref{sec:atomerDesing} are used. Some of the enhancements were
-(informally) described already in~\cite{ppHarmim2020}.
+described already in~\cite{excel2021Harmim}.
 
 In the following sections, to give an intuition, there are used listings with
 C~programs that use \emph{PThread locks} and assume declared and initialised
@@ -1587,8 +1637,8 @@ global variables \texttt{lock}, \texttt{lockA}, \texttt{lockB}, \ldots\,(of
 a~type \texttt{phtread\_mutex\_lock}).
 
 Section~\ref{sec:proposalSets} proposes an optimisation of Atomer's
-scalability. The following sections~\ref{sec:proposalMultiLocks},
-\ref{sec:proposalParametr}, and \ref{sec:proposalInterprocLocks} covers
+scalability. The following sections~\ref{sec:proposalAdvancedLocks},
+\ref{sec:proposalParametr}, and \ref{sec:proposalLocalGlobalViols} covers
 precision improvements, i.e., an extension of Atomer by additional
 features that improve its ability to cope with cases that were not supported
 in the first version of Atomer, and that can be seen in \emph{real-life
@@ -1598,11 +1648,8 @@ available in Chapter~\ref{chap:implement}.
 In the description in the below Sections, the enhancements stated in the
 preceding Sections of a~given Section are considered.
 
-\todo{Pak ještě možná přidat návrh propojení s~dynamickou analýzou,
-nějaké heuristiky atd.}
 
-
-\section{Approximation of the Use of Sequences by Sets}
+\section{Approximation of Sequences by Sets}
 \label{sec:proposalSets}
 
 Because Atomer can have \emph{scalability} problems when analysing
@@ -1619,9 +1666,7 @@ a~certain approximation in these structures and algorithms likewise.
 The approximated phases of the analysis and its collaboration are
 illustrated in Figure~\ref{fig:atomerPhasesSets} (one can compare that
 with the illustration of the first version of Atomer in
-Figure~\ref{fig:atomerPhasesSequences}). A~description of the
-implementation of the approximation can be found in
-Section~\ref{sec:implementSets}.
+Figure~\ref{fig:atomerPhasesSequences}).
 
 \begin{figure}[hbt]
     \centering
@@ -1847,8 +1892,8 @@ B \times B \wedge \mathtt{x} \neq \mathtt{y})\} $.
 \end{example}
 
 
-\section{Distinguishing Multiple Locks Used}
-\label{sec:proposalMultiLocks}
+\section{Advanced Manipulation with Locks}
+\label{sec:proposalAdvancedLocks}
 
 In the first version of Atomer, \emph{different locks} are not distinguished
 at all. Only calls of locks/unlocks are identified, and parameters of these
@@ -1865,9 +1910,7 @@ Because \emph{syntactically identical access paths} are used as the intuition
 for distinguishing atomic sections, some \emph{atomicity violations} could be
 missed (or some \emph{false alarms} could be reported) due to distinct access
 paths that refer to the same memory. However, it vastly simplifies the
-analysis, and the stress is put on finding likely violations. The
-implementation of this extension is detailed in
-Section~\ref{sec:implementMultiLocks}.
+analysis, and the stress is put on finding likely violations.
 
 \subsection{Access Paths}
 \label{sec:accessPath}
@@ -2181,65 +2224,64 @@ void f()
 \end{lstlisting}
 
 
-\section{Parametrisation of the Analysis}
+\section{Analysis's Parametrisation}
 \label{sec:proposalParametr}
 
 
-\section{Working with Interprocedural Locks}
-\label{sec:proposalInterprocLocks}
+\section{Local/Global Atomicity Violations}
+\label{sec:proposalLocalGlobalViols}
 
 
 
 %===============================================================================
+
+
 \chapter{Implementation of a~New Version of Atomer}
 \label{chap:implement}
 
-\todo{Některé věci částečně převzít z~projektové praxe. Pak přidat implementaci
-věcí, které jsou zatím jen v~návrhu. Zmínit, že byl aktualizován Infer a~že
-byl udělán nějaký refaktoring.}
+\todo{Některé věci částečně převzít z~projektové praxe a~z~Excelu. Zmínit, že byl aktualizován Infer a~že byl udělán nějaký refaktoring.}
 
 
-\section{Implementation of the Approximation with Sets of Calls}
-\label{sec:implementSets}
+\section{\texorpdfstring{Phase~1\,---\,Detection of Atomic Sets}{Phase~1 - Detection of Atomic Sets}}
+\label{sec:implementPhase1}
 
 
-\section{Implementation of the Support for C++ and Java}
+\section{\texorpdfstring{Phase~2\,---\,Detection of Atomicity Violations}{Phase~2 - Detection of Atomicity Violations}}
+\label{sec:implementPhase2}
+
+
+\section{Support for C++ and Java Languages}
 \label{sec:implementLanguages}
 
 
-\section{Implementation of the Distinguishment of Various Locks}
-\label{sec:implementMultiLocks}
-
-
-\section{Implementation of the Analysis Parametrisation}
-\label{sec:implementParameter}
-
-
-\section{Implementation of the Work with Interprocedural Locks}
-\label{sec:implementInterprocLocks}
+\section{Additional Locking Mechanisms}
+\label{sec:implementLocks}
 
 
 
 %===============================================================================
+
+
+
 \chapter{Experimental Evaluation of the New Version of Atomer}
 \label{chap:exp}
 
-\todo{Pak ještě přidat experimenty věcí, které zatím ještě nejsou
-implementované. Experimenty s~dynamickou analýzou. Další nějaké experimenty
-s~reálnými programy. Zkusit nějaké experimenty s~programy z~článku
-ThreadSafe. Zkusit nějak experimentálně změřit zrychlení po aproximaci
-množinami. Jinak některé věci převzít z~projektové praxe.}
+\todo{Některé věci převzít z~Excelu a~z~projektové praxe.}
 
 
 \section{Testing on Hand-Crafted Examples}
 \label{sec:expHand}
 
 
-\section{Experiments on Test Programs Derived from Gluon}
+\section{Scalability Benchmark}
+\label{sec:expScal}
+
+
+\section{Evaluation on Validation Programs Derived from Gluon}
 \label{sec:expGluon}
 
 
-\section{Evaluation on Real-Life Programs}
+\section{Experiments with Real-Life Programs}
 \label{sec:expReal}
 
 
@@ -2249,6 +2291,9 @@ množinami. Jinak některé věci převzít z~projektové praxe.}
 
 
 %===============================================================================
+
+
+
 \chapter{Conclusion}
 \label{chap:conc}
 

@@ -8,11 +8,11 @@
 % File:        enplain.bst was created by translating czplain.bst, that was
 %              created by editing plain.bst
 % Date:        Created on June 31, 2019.
-%              Last edited 20.1.2021, 17:06.
+%              Last edited 21.4.2021, 22:00.
 %              Edited by Adam Herout for FIT thesis template: 31.7.2019
 %              Edited by Jaroslav Dytrych to achieve conformance with
 %                standard for FIT thesis template: 10.10.2019
-%              Edited by Dominik Harmim: 20.1.2021
+%              Edited by Dominik Harmim: 21.4.2021
 % Description: English bibliographic style.
 % Use:
 % Encoding:    UTF-8

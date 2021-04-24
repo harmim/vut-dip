@@ -5,8 +5,8 @@
 %===============================================================================
 % encoding: UTF-8
 %-------------------------------------------------------------------------------
-% processing: make, make all, make pdf, make xharmi00.pdf make clean, make pack
-%             make xharmi00.tar.gz, make vlna, make normostrany
+% processing: make, make all, make pdf, make xharmi00.pdf, make clean,
+%             make pack, make xharmi00.tar.gz, make vlna, make normostrany
 %===============================================================================
 % Included files:
 %   xharmi00.bib - bibliography
@@ -46,9 +46,9 @@
 \setlength{\algomargin}{2em}
 
 % Line spacing in the table of contents.
-\renewcommand\cftchapafterpnum{\vskip .1em}
+\renewcommand\cftchapafterpnum{\vskip .2em}
 \renewcommand\cftsecafterpnum{\vskip .2em}
-\setlength{\cftbeforechapskip}{.4em}
+\setlength{\cftbeforechapskip}{.5em}
 
 % "hyperref" package create clickable links in pdf if you are using pdflatex.
 % Problem is that this package have to be introduced as the last one so it
@@ -86,6 +86,8 @@
 \clubpenalty=10000
 \widowpenalty=10000
 
+\interfootnotelinepenalty=10000 % do not separate footnotes to multiple pages
+
 
 % Information about the thesis
 %-------------------------------------------------------------------------------
@@ -99,15 +101,9 @@
 %
     % Thesis title
     % thesis title in english
-    title.en={%
-        Advanced Static Analysis of Atomicity in Concurrent Programs through
-        Facebook Infer%
-    },
+    title.en={Advanced Static Analysis of Atomicity in Concurrent Programs through Facebook Infer},
     % thesis title in czech language
-    title.cs={%
-        Pokročilá statická analýza atomičnosti v~paralelních programech
-        v~prostředí Facebook Infer%
-    },
+    title.cs={Pokročilá statická analýza atomičnosti v~paralelních programech v~prostředí Facebook Infer},
     % setting the length of a block with a thesis title
     title.length={15cm},
     % setting the length of a block with a second thesis title
@@ -126,20 +122,9 @@
 %
     % Keywords
     % keywords in english
-    keywords.en={%
-        Facebook Infer, static analysis, abstract interpretation, contracts
-        for concurrency, atomicity violation, concurrent programs, programs
-        analysis, atomicity, incremental analysis, modular analysis,
-        compositional analysis, interprocedural analysis, scalability, Atomer%
-    },
+    keywords.en={Facebook Infer, static analysis, abstract interpretation, contracts for concurrency, atomicity violation, concurrent programs, programs analysis, atomicity, incremental analysis, modular analysis, compositional analysis, interprocedural analysis, scalability, Atomer, function calls sequence, multi-threaded programs},
     % keywords in czech language
-    keywords.cs={%
-        Facebook Infer, statická analýza, abstraktní intepretace, kontrakty
-        pro paralelismus, po\-ru\-še\-ní atomicity, paralelní  programy,
-        analýza programů, atomicita, inkrementální analýza, modulární
-        analýza, kompoziční analýza, interprocedurální analýza,
-        škálovatelnost, Atomer%
-    },
+    keywords.cs={Facebook Infer, statická analýza, abstraktní intepretace, kontrakty pro paralelismus, po\-ru\-še\-ní atomicity, paralelní programy, analýza programů, atomicita, inkrementální analýza, modulární analýza, kompoziční analýza, interprocedurální analýza, škálovatelnost, Atomer, sekvence volání funkcí, vícevláknové programy},
 %
     % Abstract
     % abstract in english
@@ -190,29 +175,13 @@
     },
 %
     % Extended abstract
-    extendedabstract={%
-        \todo{Tady nějak zkombinovat a~zkrátit úvod + závěr a~přeložit
-        do češtiny.}%
-    },
+    extendedabstract={\todo{Tady nějak zkombinovat a~zkrátit úvod + závěr a~přeložit do češtiny.}},
 %
     % Declaration
-    declaration={%
-        Hereby I~declare that this master's thesis was prepared as an
-        original author's work under the supervision of professor Tomáš
-        Vojnar. All the relevant information sources used during this
-        thesis's preparation are appropriately cited and included in the
-        references list.%
-    },
+    declaration={Hereby I~declare that this master's thesis was prepared as an original author's work under the supervision of professor Tomáš Vojnar. All the relevant information sources used during this thesis's preparation are appropriately cited and included in the reference list.},
 %
     % Acknowledgement
-    acknowledgement={%
-        I~want to thank my supervisor Tomáš Vojnar for his assistance.
-        Further, I~would like to thank other colleagues from VeriFIT.
-        I~would also like to thank Nikos Gorogiannis from the Infer team
-        at Facebook for useful discussions about the analyser's development.
-        Lastly, I~thank for the support received from the H2020 ECSEL
-        project Arrowhead Tools.%
-    }
+    acknowledgement={I~thank my colleagues from VeriFIT for their assistance. I~would particularly link to thank my supervisor Tomáš Vojnar. I~also wish to acknowledge Nikos Gorogiannis from the Infer team at Facebook for valuable discussions about the analyser's development. Lastly, I~acknowledge the financial support received from the H2020 ECSEL projects AQUAS, Arrowhead Tools, and VALU3S.}
 }
 
 
@@ -268,9 +237,9 @@
     \makeatother
     \bibliographystyle{enplain}
 
-    \begin{flushleft}
+    % \begin{flushleft}
         \bibliography{xharmi00}
-    \end{flushleft}
+    % \end{flushleft}
 
 
     \iftwoside\cleardoublepage\else\clearpage\fi
