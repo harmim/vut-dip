@@ -124,55 +124,13 @@
     % keywords in english
     keywords.en={Facebook Infer, static analysis, abstract interpretation, contracts for concurrency, atomicity violation, concurrent programs, programs analysis, atomicity, incremental analysis, modular analysis, compositional analysis, interprocedural analysis, scalability, Atomer, function calls sequence, multi-threaded programs},
     % keywords in czech language
-    keywords.cs={Facebook Infer, statická analýza, abstraktní intepretace, kontrakty pro paralelismus, po\-ru\-še\-ní atomicity, paralelní programy, analýza programů, atomicita, inkrementální analýza, modulární analýza, kompoziční analýza, interprocedurální analýza, škálovatelnost, Atomer, sekvence volání funkcí, vícevláknové programy},
+    keywords.cs={Facebook Infer, statická analýza, abstraktní interpretace, kontrakty pro paralelismus, po\-ru\-še\-ní atomicity, paralelní programy, analýza programů, atomicita, inkrementální analýza, modulární analýza, kompoziční analýza, interprocedurální analýza, škálovatelnost, Atomer, sekvence volání funkcí, vícevláknové programy},
 %
     % Abstract
     % abstract in english
-    abstract.en={%
-        This thesis aims to improve and extend \emph{Atomer}. A~further goal
-        is to perform new experiments with it. Atomer is a~\emph{static
-        analyser} that detects \emph{atomicity violations}, created within
-        the bachelor's thesis of the author as a~module of
-        \emph{Facebook Infer}\,---\,an open-source static analysis framework
-        that promotes efficient analysis. The original analysis assumes that
-        \emph{sequences of function calls} executed \emph{atomically once}
-        should probably be executed \emph{always atomically}, and it naturally
-        works with sequences. In the thesis, to improve \emph{scalability},
-        the use of sequences was \emph{approximated} by \emph{sets}. Further,
-        two new features were implemented: support for \emph{C++} and
-        \emph{Java} languages; and distinguishing \emph{multiple locks used}.
-        The new features were verified and evaluated on smaller programs
-        created for testing purposes. Furthermore, new experiments on
-        \emph{real-life programs} were made, and already fixed and reported
-        \emph{real bugs} were rediscovered. Several other improvements were
-        proposed (\emph{parametrisation} of the analysis, support for
-        \emph{interprocedural locks}, or combination with a~\emph{dynamic
-        analysis}) and their implementation and evaluation is the work in
-        progress.%
-    },
+    abstract.en={\emph{Atomer} is a~\emph{static analyser} based on the idea that if some \emph{sequences of functions} of a~\emph{multi-threaded program} are executed \emph{under locks} in some runs, likely, they are \emph{always intended to execute atomically}. Atomer thus strives to look for such sequences and then detects for which of them the atomicity may be broken in some other program runs. The author of this master's thesis proposed and implemented the first version of Atomer as a~plugin of the \emph{Facebook Infer framework} in his bachelor's thesis. In the master's thesis, a~new and \emph{significantly improved} version of Atomer is proposed. The improvements aim at both increasing \emph{scalability} as well as \emph{precision}. Moreover, support for several initially not supported programming features has been added (including, e.g., the possibility of analysing \emph{C++ and Java programs} or support for \emph{re-entrant locks} or \emph{lock guards}). Through a~number of experiments (including experiments with \emph{real-life code} and \emph{real-life bugs}), it is shown that the new version of Atomer is indeed much \emph{more general, scalable, and precise}.},
     % abstract in czech language
-    abstract.cs={%
-        Tato práce si klade za cíl vylepšit a~rozšířit nástroj \emph{Atomer}.
-        Dalším cílem je provést s~ním nové experimenty. Atomer je
-        \emph{statický analyzátor}, který detekuje \emph{porušení atomicity}.
-        Byl vytvořen v~rámci bakalářské práce autora jako modul pro
-        \emph{Facebook Infer}\,---\,volně šířený aplikační rámec pro
-        statickou analýzu umožňující efektivní analýzu. Původní analýza
-        předpokládá, že \emph{sekvence volání funkcí}, které byly zavolány
-        \emph{atomicky jednou}, by pravděpodobně měly být volány
-        \emph{atomicky vždy} a~analýza přirozeně pracuje se sekvencemi.
-        V~této práci bylo pro zlepšení \emph{škálovatelnosti} použití
-        sekvencí \emph{aproximováno} \emph{množinami}. Dále byly
-        implementovány dvě nové funkce: podpora jazyků \emph{C++}
-        a~\emph{Java}; a~rozlišování \emph{více použitých zámků}. Nové funkce
-        byly ověřeny a~vyhodnoceny na menších programech vytvořených pro
-        testovací účely. Dále byly provedeny experimenty na \emph{reálných
-        programech} a~byly nalezeny \emph{skutečné chyby}, které už byly
-        dříve nahlášeny a~opraveny. Bylo navrženo několik dalších vylepšení
-        (\emph{parametrizace} analýzy, podpora \emph{interprocedurálních
-        zámků} nebo kombinace s~\emph{dynamickou analýzou}) a~na jejich
-        implementaci a~vyhodnocení se aktuálně pracuje.%
-    },
+    abstract.cs={Nástroj \emph{Atomer} je \emph{statický analyzátor} založený na myšlence, že pokud jsou některé \emph{sekvence funkcí vícevláknového programu} prováděny v~některých bězích \emph{pod zámky}, je pravděpodobně zamýšleno, že mají být \emph{vždy provedeny atomicky}. Analyzátor Atomer se tudíž snaží takové sekvence hledat a~poté zjišťovat, pro které z~nich může být v~některých jiných bězích programu porušena atomicita. Autor této diplomové práce ve své bakalářské práci navrhl a~implementoval první verzi nástroje Atomer jako zásuvný modul \emph{aplikačního rámce Facebook Infer}. V~této diplomové práci je navržena nová a~\emph{výrazně vylepšená} verze analyzátoru Atomer. Cílem vylepšení je zvýšení jak \emph{škálovatelnosti}, tak \emph{přesnosti}. Kromě toho byla přidána podpora pro několik původně nepodporovaných programovacích vlastností (včetně např. možnosti analyzovat \emph{programy napsané v~jazycích C++ a~Java} nebo podpory pro \emph{reentrantní zámky} nebo \emph{stráže zámků}, tzv. \csuv{lock guards}). Prostřednictvím řady experimentů (včetně experimentů s~\emph{reálnými programy} a~\emph{reálnými chybami}) se ukázalo, že nová verze nástroje Atomer je skutečně \emph{mnohem obecnější, přesnější a~lépe škáluje}},
 %
     % Extended abstract
     extendedabstract={\todo{Tady nějak zkombinovat a~zkrátit úvod + závěr a~přeložit do češtiny.}},
@@ -181,7 +139,7 @@
     declaration={Hereby I~declare that this master's thesis was prepared as an original author's work under the supervision of professor Tomáš Vojnar. All the relevant information sources used during this thesis's preparation are appropriately cited and included in the reference list.},
 %
     % Acknowledgement
-    acknowledgement={I~thank my colleagues from VeriFIT for their assistance. I~would particularly link to thank my supervisor Tomáš Vojnar. I~also wish to acknowledge Nikos Gorogiannis from the Infer team at Facebook for valuable discussions about the analyser's development. Lastly, I~acknowledge the financial support received from the H2020 ECSEL projects AQUAS, Arrowhead Tools, and VALU3S.}
+    acknowledgement={I~thank my colleagues from VeriFIT for their assistance. I~would particularly like to thank my supervisor Tomáš Vojnar. I~also wish to acknowledge Nikos Gorogiannis from the Infer team at Facebook for valuable discussions about the analyser's development. Lastly, I~acknowledge the financial support received from the H2020 ECSEL projects AQUAS, Arrowhead Tools, and VALU3S.}
 }
 
 

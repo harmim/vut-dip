@@ -8,19 +8,27 @@
 
 \chapter{Introduction}
 
-Bugs are an integral part of computer programs ever since the inception of the programming discipline. Unfortunately, they are often hidden in unexpected places, and they can lead to unexpected behaviour, which may cause significant damage. Nowadays, developers have many possibilities of catching bugs in the early development process. \emph{Dynamic analysers} or tools for \emph{automated testing} are often used, and they are satisfactory in many cases. Nevertheless, they can still leave too many bugs undetected, because they can analyse only \emph{particular program flows} dependent on the input data. An alternative solution is \emph{static analysis} that has its shortcomings as well, such as the \emph{scalability} on large codebases or a~considerably high rate of incorrectly reported errors (so-called \emph{false positives} or \emph{false alarms}). Several efficient tools for static analysis were implemented, e.g., Coverity or CodeSonar. However, they are often proprietary and difficult to openly evaluate and extend.
+Bugs have been present in computer programs ever since the inception of the programming discipline. Unfortunately, they are often hidden in unexpected places, and they can lead to unexpected behaviour, which may cause significant damage. Nowadays, developers have many possibilities of catching bugs in the early development process. \emph{Dynamic analysers} or tools for \emph{automated testing} are often used, and they are satisfactory in many cases. Nevertheless, they can still leave too many bugs undetected because they can analyse only \emph{particular program flows} dependent on the input data. An alternative solution is \emph{static analysis} (despite it, of course, suffers from some problems too\,---\,such as the possibility of reporting many \emph{false alarms}, i.e., \emph{spurious errors}). Quite some tools for static analysis were implemented, e.g., Coverity or CodeSonar. However, they are often proprietary and difficult to openly evaluate and extend.
 
-Recently, Facebook introduced \emph{Facebook Infer}: an \emph{open-source} tool for creating \emph{highly scalable}, \emph{compositional}, \emph{incremental}, and \emph{interprocedural} static analysers. Facebook Infer has grown considerably, but it is still under active development by many teams across the globe. It is employed every day not only in Facebook itself, but also in other companies, such as Spotify, Uber, Mozilla, or Amazon. Currently, Facebook Infer provides several analysers that check for various types of bugs, such as buffer overflows, data races and some forms of deadlocks and starvation, null-dereferencing, or memory leaks. However, most importantly, Facebook Infer is a~\emph{framework} for building new analysers quickly and easily. Unfortunately, the current version of Facebook Infer still lacks better support for \emph{concurrency bugs}. While it provides a~reasonably advanced data race analyser, it is limited to Java and C++ programs only and fails for C~programs, which use a~\emph{lower-level lock manipulation}.
+Recently, Facebook introduced \emph{Facebook Infer}: an \emph{open-source} tool for creating \emph{highly scalable}, \emph{compositional}, \emph{incremental}, and \emph{interprocedural} static analysers. Facebook Infer has grown considerably, but it is still under active development by many teams across the globe. It is employed every day not only in Facebook itself but also in other companies, such as Spotify, Uber, Mozilla, or Amazon. Currently, Facebook Infer provides several analysers that check for various types of bugs, such as buffer overflows, data races and some forms of deadlocks and starvation, null-dereferencing, or memory leaks. However, most importantly, Facebook Infer is a~\emph{framework} for building new analysers quickly and easily. Unfortunately, the current version of Facebook Infer still lacks better support for \emph{concurrency bugs}. While it provides a~reasonably advanced data race analyser, it is limited to Java and C++ programs only and fails for C~programs, which use a~\emph{lower-level lock manipulation}. Moreover, the only available checker of \emph{atomicity of call sequences} is the first version of \emph{Atomer}~\cite{harmimBP} proposed in the bachelor's thesis of the author.
 
-In \emph{concurrent programs}, there are often \emph{atomicity requirements} for execution of specific sequences of instructions. Violating these requirements may cause many kinds of problems, such as unexpected behaviour, exceptions, segmentation faults, or other failures. \emph{Atomicity violations} are usually not verified by compilers, unlike syntactic or some sorts of semantic rules. Moreover, atomicity requirements, in most cases, are not even documented at all. So in the end, programmers themselves must abide by these requirements and usually lack any tool support. Furthermore, in general, it is difficult to avoid errors in \emph{atomicity-dependent programs}, especially in large projects, and even more laborious and time-consuming is finding and fixing them.
+At the same time, in \emph{concurrent programs}, there are often \emph{atomicity requirements} for the execution of specific sequences of instructions. Violating these requirements may cause many kinds of problems, such as unexpected behaviour, exceptions, segmentation faults, or other failures. \emph{Atomicity violations} are usually not verified by compilers, unlike syntactic or some sorts of semantic rules. Moreover, atomicity requirements, in most cases, are not even documented at all. Therefore, in the end, programmers themselves must abide by these requirements and usually lack any tool support. Furthermore, in general, it is difficult to avoid errors in \emph{atomicity-dependent programs}, especially in large projects, and even more laborious and time-consuming is finding and fixing them. The papers~\cite{contracts2017, atomizer, contracts2015, atomicityOOP} discuss the importance of \emph{atomicity-related bugs}, and they also show some bugs in \emph{real-world programs}. Unfortunately, tool support for automatically discovering such kinds of errors is currently minimal.
 
-Within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available on GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}.} was proposed\,---\,a~\emph{static analyser} for finding some forms of \emph{atomicity violations} implemented as a~Facebook Infer's module. In particular, the stress is put on the \emph{atomic execution of sequences of function calls}, which is often required, e.g., when using specific library calls. It is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}, and it naturally works with sequences. In fact, the idea of checking atomicity of certain sequences of function calls is inspired by the works of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. In the terminology of~\cite{contracts2017, contracts2015}, atomicity of specific sequences of calls is the most straightforward (yet very useful in practice) kind of contracts for concurrency. The implementation of the first version of Atomer mainly targets \emph{C~programs} that use \emph{POSIX thread}, i.e., \emph{PThread locks}.
+As already mentioned, within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}.} was proposed\,---\,a~\emph{static analyser} for finding some forms of \emph{atomicity violations} implemented as a~Facebook Infer's module. In particular, the stress is put on the \emph{atomic execution of sequences of function calls}, which is often required, e.g., when using specific library calls. For example, assume the function \texttt{replace} from Listing~\ref{list:exampleViolation} that replaces item~\texttt{a} in an array by item~\texttt{b}. It contains atomicity violation\,---\,the index obtained may be outdated when \texttt{set} is executed (because, e.g., a~\emph{concurrent thread} can modify the array), i.e., \texttt{index\_of} and \texttt{set} should be executed atomically. The analysis is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}. Hence, the checker naturally works with sequences. In fact, the idea of checking the atomicity of certain sequences of function calls is inspired by the works of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. In the terminology of~\cite{contracts2017, contracts2015}, the atomicity of specific sequences of calls is the most straightforward (yet very useful in practice) kind of contracts for concurrency. However, while the idea of using sequences in the given context is indeed natural and rather exact, it quite severely limits the \emph{scalability} of the analysis (indeed, even with a~few functions, there can appear numerous different orders in which they can be called). Moreover, the implementation of the first version of Atomer targets mainly \emph{C~programs} using \emph{PThread locks}. Consequently, there was no support for other languages and their locking mechanisms in the first version of Atomer.
 
-Within this thesis, Atomer was improved and extended. Further, other experiments were performed. In particular, to improve \emph{scalability}, working with sequences of function calls was \emph{approximated} by working with \emph{sets of function calls}. Furthermore, two new features were implemented: support for \emph{C++} and \emph{Java} languages; and a~way to distinguish \emph{multiple locks used}. Moreover, several other improvements were proposed to reduce the number of false alarms, namely, \emph{parametrisation of the analysis}, support for \emph{interprocedural locks}, or combinations with a~\emph{dynamic analysis}. Their implementation and evaluation is currently the work in progress.
+\begin{lstlisting}[style=c++, label={list:exampleViolation}, float=hbt, caption={An example of \emph{atomicity violation}}]
+void replace(int a, int b, Array &array) 
+{
+    int i = array.index_of(a);
+    if (i >= 0) array.set(i, b);
+}
+\end{lstlisting}
 
-The development of Atomer and its extensions have been discussed with developers of Facebook Infer, and it is a~part of the H2020 ECSEL project Arrowhead Tools. Parts of this thesis are taken from the thesis~\cite{harmimBP} and the paper~\cite{excel2021Harmim} written by the author.
+Within this thesis, Atomer has been \emph{significantly improved and extended}. In particular, to improve scalability, working with \emph{sequences} of function calls was \emph{approximated} by working with \emph{sets} of function calls. Furthermore, several new features were implemented: support for \emph{C++ and Java}, including various advanced kinds of \emph{locks} these languages offer (such as \emph{re-entrant locks} or \emph{lock guards}); or a~more precise way of \emph{distinguishing between different lock instances}. Moreover, the analysis has been \emph{parameterised} by function names to concentrate on during the analysis and limits of the number of functions in \emph{critical sections}. These parameters aim to reduce the number of false alarms. Their proposal is based on the author's analysis of false alarms produced by the first Atomer's version. Lastly, new experiments were performed to test capabilities of the new version of Atomer.
 
-The rest of the thesis is organised as follows. In Chapter~\ref{chap:prelim}, there are described all the topics related to and essential to this thesis. In particular, Section~\ref{sec:statAnalysisAI} deals with \emph{static analysis} based on \emph{abstract interpretation}. The \emph{Facebook Infer} framework, which uses abstract interpretation, is described in Section~\ref{sec:fbinfer}. Finally, in Section~\ref{sec:contracts}, there is described the concept of \emph{contracts for concurrency}. \emph{Atomer} is described in Chapter~\ref{chap:atomer}, together with its limitations. All the extensions and improvements proposed within the thesis are described in Chapter~\ref{chap:proposal}. The implementation of these extensions is then presented in Chapter~\ref{chap:implement}. Subsequently, Chapter~\ref{chap:exp} discusses the experimental evaluation of the new Atomer's features and other experiments performed within this thesis. Finally, the thesis is concluded in Chapter~\ref{chap:conc}. Besides, there are included the following appendices. The content of the attached memory media is listed in Appendix~\ref{app:memMedia}. In the end, Appendix~\ref{app:man} serves as an installation and user manual.
+The development of the original Atomer started under the H2020 ECSEL projects AQUAS and Arrowhead Tools. The development of its new version is supported by the H2020 ECSEL project VALU3S. It has been discussed with the developers of Facebook Infer too. Parts of the thesis concerning the preliminaries and the basic version of Atomer are partially taken from the thesis~\cite{harmimBP}. Moreover, some preliminary results were also published in the Excel@FIT paper~\cite{excel2021Harmim} written by the author.
+
+The rest of the thesis is organised as follows. Chapter~\ref{chap:prelim} describes all the topics related to and essential to this thesis (including \emph{static analysis}, \emph{abstract interpretation}, \emph{Facebook Infer}, and \emph{contracts for concurrency}). The original version of \emph{Atomer}, its limitations, and related work are described in Chapter~\ref{chap:atomer}. Subsequently, Chapter~\ref{chap:proposal} presents all the proposed extensions and improvements. The implementation of these extensions is then covered in Chapter~\ref{chap:implement}. The experimental evaluation of the new Atomer's features and other experiments performed within this thesis are discussed in Chapter~\ref{chap:exp} together with the future work. Finally, the thesis is concluded in Chapter~\ref{chap:conc}. Besides, there are included the following appendices. The content of the attached memory media is listed in Appendix~\ref{app:memMedia}. In the end, Appendix~\ref{app:man} serves as an installation and user manual.
 
 
 
@@ -30,9 +38,7 @@ The rest of the thesis is organised as follows. In Chapter~\ref{chap:prelim}, th
 \chapter{Preliminaries}
 \label{chap:prelim}
 
-% \todo{Převzít z~bakalářky/projektové praxe/Excelu a~rozšířit \\ a~aktualizovat/vylepšit.}
-
-This chapter explains the theoretical background that the thesis builds on. It also explains and describes the existing tools used in the thesis. Also, note that the author already partially published the contents of Sections~\ref{sec:statAnalysisAI}, \ref{sec:fbinfer}, \ref{sec:contracts} in his bachelor's thesis~\cite{harmimBP} and paper~\cite{excel2021Harmim}.
+This chapter explains the theoretical background that the thesis builds on. It also explains and describes the existing tools used in the thesis. Also, note that the author already partially published the contents of the sections in this chapter in his bachelor's thesis~\cite{harmimBP} and paper~\cite{excel2021Harmim}.
 
 \paragraph{Multi-Threaded Programs~\cite{atomizer, muzikovskaBP}}
 \emph{Multiple threads} of control are commonly used in the software development process because they help reduce \emph{latency}, increase \emph{throughput}, and better utilise \emph{multiple processor computers}. Threads or \emph{processes} are independent \emph{sequences of instructions} that may be performed simultaneously. A~process represents a~single running program. It has its own address space and a~unique identifier. One process can consist of multiple threads, i.e., a~thread is a~so-called \emph{lightweight process}. All threads of a~single process share the same address space (i.e., code and data). However, reasoning about the behaviour and correctness of a~multi-threaded system is complex due to the need to consider all possible interleavings of the executions of different threads. An integral part of parallel programming is the \emph{synchronisation} of individual threads. Usually, synchronisation mechanisms ensure the \emph{mutual exclusion} of shared resources or synchronise actions that threads perform. Operating systems provide basic synchronisation primitives that can be often used in programming languages in a~higher-level manner. Such fundamental mechanisms are \emph{semaphores} (binary semaphores are called \emph{mutexes}), \emph{barriers}, \emph{read-copy-update} techniques, or \emph{monitors}. In this work (and also in practice), for simplicity, it will be used a~notion of \emph{locks} for semaphores, mutexes, monitors, etc. as a~mechanism that mutually excludes access to a~\emph{critical section}.
@@ -44,7 +50,7 @@ Another possible source of errors due to unexpected interference between threads
 
 It has to be described which blocks of code should be executed atomically to detect atomicity violations. Algorithms for the detection of this error often deal only with the atomicity of operations on variables. Examples of a~complex description of \emph{atomicity requirements} are \emph{contracts} that require atomicity of the execution of certain methods/functions (defined in Section~\ref{sec:contracts}).~\cite{muzikovskaBP}
 
-Further, Section~\ref{sec:programAnalysis} outlines the fundamental notions and approaches in \emph{program analysis}. In Section~\ref{sec:statAnalysisAI}, there is a~brief explanation of \emph{static analysis} itself and an explanation of \emph{abstract interpretation} used in \emph{Facebook Infer}, i.e., the key framework used in this thesis. Facebook Infer, its principles, and features are covered in Section~\ref{sec:fbinfer}. The concept of \emph{contracts for concurrency} is discussed and defined in Section~\ref{sec:contracts}.
+Further, Section~\ref{sec:programAnalysis} outlines the fundamental notions and approaches in \emph{program analysis}. In Section~\ref{sec:AI}, there is an explanation of \emph{static analysis} by \emph{abstract interpretation}, which is used in \emph{Facebook Infer}, i.e., the key framework used in this thesis. Facebook Infer, its principles, and features are covered in Section~\ref{sec:fbinfer}. The concept of \emph{contracts for concurrency} is discussed and defined in Section~\ref{sec:contracts}.
 
 
 \section{Concepts in Program Analysis}
@@ -54,7 +60,7 @@ This section provides a~fundamental intuition about the main principles of \emph
 
 \subsection{What to Analyse}
 
-The first question is \emph{what programs to analyse}. An obvious characterisation of programs to analyse is the programming language in which the programs are written. Moreover, certain specific families of input programs may be distinguished. However, besides the language and the family of programs to consider, the way input programs are worked can also differ and affects how the analysis works. The most straightforward way to handle input programs is working directly with a~\emph{source code} just like a~compiler would. Nevertheless, different representations of programs are used in program analysis likewise. The two below types of techniques are customarily distinguished.
+The first question is \emph{what programs to analyse}. An obvious characterisation of programs to analyse is the programming language in which the programs are written. Moreover, certain specific families of input programs may be distinguished. However, besides the language and the family of programs to consider, the way input programs are processed can also differ and affects how the analysis works. The most straightforward way to handle input programs is working directly with a~\emph{source code} just like a~compiler would. Nevertheless, different representations of programs are used in program analysis likewise. The two below types of techniques are customarily distinguished.
 
 \paragraph{Program-Level Analysis}
 The first possibility is to run the analysis on a~\emph{source code} of input programs (e.g., programs written in conventional programming languages like~C or Java; or hardware described in VHDL, Verilog, etc.) or on \emph{executable binaries}. This technique typically involves some \emph{front-end} comparable to a~compiler's one that constructs the \emph{syntax trees} of input programs.
@@ -70,46 +76,97 @@ One solution is to analyse programs at \emph{run-time}, i.e., \emph{during} the 
 
 A~second approach is to analyse the program \emph{before} execution, which is called \emph{static analysis}. It is done independently from any execution.
 
-Static and dynamic approaches are significantly distinct in many ways. They come with different benefits and weaknesses. While dynamic approaches are often simpler to design and implement, they often have problems with performance at run-time. They do not force developers to fix  bugs before program execution. Moreover, some properties cannot be checked (or, at least, it is very challenging) dynamically. For instance, dynamically detecting whether an execution \emph{terminates} would require an infinite program run. Particular static and dynamic techniques are further discussed in Section~\ref{sec:analysisTechniques}.
+Static and dynamic approaches are significantly distinct in many ways. They come with different benefits and weaknesses. While dynamic approaches are often simpler to design and implement, they often have problems with performance at run-time. They do not force developers to fix bugs before program execution. Moreover, some properties cannot be checked (or, at least, it is very challenging) dynamically. For instance, dynamically detecting whether an execution does not \emph{terminate} would require an infinite program run. Particular static and dynamic techniques are further discussed in Section~\ref{sec:analysisTechniques}.
 
 \subsection{Automation and Scalability}
 
-\emph{Automation} is a~further relevant aspect in program analysis. It would be ideal if program analysis methods were \emph{fully automated} (i.e., no human help is needed). Unfortunately, this is not always possible due to the consequences of \emph{Rice's theorem}~\cite{rice}. Thus, sometimes, it is needed to give up on automation and let program analyses ask some \emph{user input} (i.e., some human help is required). In that case, the user is asked to give some information to the analysis, e.g., \emph{invariants}\footnote{An \textbf{invariant} is a~logical property that can be proved to be inductive for a~given program.}. That is, the analysis is partially manual since users need to compute parts of the results themselves. However, having to provide this information may be unwieldy because input programs can be huge or complex.
+\emph{Automation} is a~further relevant aspect in program analysis. It would be ideal if program analysis methods were \emph{fully automated} (i.e., no human help is needed). Unfortunately, this is not always possible due to the consequences of \emph{Rice's theorem}~\cite{rice}. Thus, sometimes, it is needed to give up on automation and let program analyses ask some \emph{user input} (i.e., some human help is required). In that case, the user is asked to give some information to the analysis, e.g., \emph{invariants}\footnote{An \textbf{invariant} is a~\emph{logical property} that can be proved to be inductive for a~given program.}. That is, the analysis is partially manual since users need to compute parts of the results themselves. However, having to provide this information may be unwieldy because input programs can be huge or complex.
 
 \emph{Scalability} is another essential characteristic of program analysis algorithms. Even if a~program analysis is fully automatic, it is not guaranteed that it will generate a~result within a~reasonable time, depending on the complexity of the algorithms. A~program analysis tool may not \emph{scale} to extensive programs due to time costs or, e.g., memory constraints.
 
-\subsection{Relaxing the Ideal: Soundness and Completeness}
+\subsection{Soundness and Completeness}
 
-...
+In order to preserve automation and/or scalability, the conditions about program analysis may be relaxed. Namely, the analysis can be proposed to return \emph{inaccurate} results (alternatively, it can return a~non-conclusive \uv{do not know} answer). For this purpose, two dual properties (forms of \emph{approximations} or \emph{inaccuracies}) are used. To express these notions, let~$ \mathcal{L} $ be a~\emph{Turing-complete language}, $ \varphi $ be a~\emph{non-trivial semantic property} of interest of programs of~$ \mathcal{L} $, and~$ T $ be an analysis tool that decides whether~$ \varphi $ holds in a~given program. Ideally, if~$ T $ were absolutely precise, it would be such that:
+$$
+    \text{for every program}\ P \in \mathcal{L}: T(P) = true \Longleftrightarrow P \models \varphi
+$$
+The above, of course, can be decomposed into a~pair of implications:
+$$
+    \begin{cases}
+        \forall P \in \mathcal{L}: T(P) = true \Longrightarrow P \models \varphi \\
+        \forall P \in \mathcal{L}: T(P) = true \Longleftarrow P \models \varphi
+    \end{cases}
+$$
+
+\paragraph{Soundness}
+A~\emph{sound} program analysis satisfies the first implication.
+\begin{definition}[\textbf{Soundness}~\cite{staticAnalysisRival}]
+    The program analyser~$ T $ is sound w.r.t. property~$ \varphi $ whenever, for any program $ P \in \mathcal{L} $, $ T(P) = true \Longrightarrow P \models \varphi $.
+\end{definition}
+When a~sound analysis terminates and claims that the analysed program has property~$ \varphi $, it guarantees that the program indeed satisfies~$ \varphi $, i.e., no errors are missed. In other words, a~sound analysis will refuse all programs that do not satisfy~$ \varphi $. In terms of errors in \emph{binary classification}, there are not \emph{false-negative} errors\footnote{A~\textbf{false-negative} error is a~real error that is undetected by an analysis tool.} when using sound analysis. On the other hand, there is a~chance of \emph{false-positive} errors\footnote{A \textbf{false-positive} error (also called a~\textbf{false alarm}) is a~\emph{spurious error}, i.e., it is detected by an analysis tool, but the error does not exist in the real program.}.
+
+\paragraph{Completeness}
+A~\emph{complete} program analysis satisfies the second implication.
+\begin{definition}[\textbf{Completeness}~\cite{staticAnalysisRival}]
+    The program analyser~$ T $ is complete w.r.t. property~$ \varphi $ whenever, for any program $ P \in \mathcal{L} $, $ P \models \varphi \Longrightarrow T(P) = true $.
+\end{definition}
+A~complete program analysis will accept every program that satisfies property~$ \varphi $. In other words, when a~complete analysis refuses an analysed program, it is guaranteed that the program indeed fails to satisfy~$ \varphi $, i.e., there are no false-positive errors. However, there can be false-negative errors.
+
+Due to the \emph{computability} barrier~\cite{rice}, it is not possible to design a general analysis to determine which programs satisfy any non-trivial property for a~Turing-complete language that is sound, complete, fully automated, and scalable at the same time. Some of these have to be sacrificed, or the analysis has to be proposed to operate only on a~specific set of input programs.
 
 \subsection{Program Analysis Techniques}
 \label{sec:analysisTechniques}
 
-...
+This section describes several standard \emph{program analysis techniques}. Although this thesis focuses on \emph{static analysis} (or maybe rather \emph{bug finding} based on static analysis), it is essential to see the differences between other analysis techniques. Hence, a~brief overview is presented in the below sections. Finally, Table~\ref{tab:progAnalysisTechniques} compares the techniques (how they are usually used) based on the earlier criteria.
 
 \paragraph{Testing and Dynamic Analysis}
-...
+The \emph{testing} approach checks a~finite set of finite program executions. In the development process, several levels of testing are used at various stages of the software/hardware life-cycle, e.g., \emph{unit testing} or \emph{integration testing}. In general, it is challenging to achieve suitable \emph{test coverage} because of infinite program paths when using, e.g., \emph{random testing}. However, several more advanced techniques that improve the coverage have been introduced. These techniques are often combined with other verification approaches. For instance, \emph{concolic testing} combines testing with \emph{symbolic execution}, \emph{dynamic analysis} that observes behaviour in a~testing run (such behaviour can be \emph{extrapolated} to behaviour not seen in the given testing run), or \emph{search-based techniques} that can generate test data or parameters. Moreover, to test programs with non-deterministic semantics (i.e., concurrent programs), techniques like \emph{noise injection} are applied. In particular, many advanced dynamic analysers have been proposed to detect data races or deadlocks, including, e.g., Eraser or FastTrack.
+
+Testing has the following features. In general, it is simple to automate. It is unsound in almost all cases (besides programs that have a~finite number of finite paths). Since failed testing runs provide incorrect concrete executions, the testing is complete.
+
+Other analysis techniques mentioned below use a~static approach. The significant difference between static and dynamic approaches is the following. It is well-known that testing may expose errors, but it cannot prove their absence. It was also famously stated by Edsger W. Dijkstra: \uv{\textit{Program testing can be used to show the presence of bugs, but never to show their absence!}}. However, static approaches may be able to prove their absence\,---\,with some \emph{approximation}\,---\,they can check \emph{all possible executions} of a~program and provide guarantees about its properties. Another static approaches' benefit is that the analysis can be performed during the development process, so the program does not have to be executable yet, and it already can be analysed. The biggest drawback of static approaches, in general, is that they can produce a~lot of false alarms (though this is not the case, e.g., for \emph{theorem proving}), which is often resolved by accepting unsoundness. Another crucial issue of static approaches (this is, however, also an issue of dynamic analyses) is ensuring sufficient scalability\,---\,in fact, typically, the more precise the analysis, the less scalable it becomes.
 
 \paragraph{Deductive Verification}
-...
+The \emph{semi-automated} approach \emph{deductive verification} (or \emph{theorem proving}) uses \emph{inference systems} for inferring theorems about the analysed system from the facts known about the system and from general theorems of different logical theories. The approach falls under \emph{machine-assisted} techniques, which means that users may be required to provide extra information to the analysis (usually \emph{loop invariants}, procedure \emph{preconditions/postconditions}, assertions, or some other invariants). This can be demanding and require some level of expertise. However, a~substantial part of the verification can usually still be carried out in a~fully automated fashion. This approach is very general, but there is a~problem with generating diagnostic information for incorrect systems. There exist a~number of \emph{interactive theorem proving} tools like Coq, Isabelle/HOL, PVS, ACL2, etc. The user usually guides the inference process in these tools.
+
+These techniques also involve \emph{automated decision procedures} (or \emph{satisfiability solvers}) for various logical theories. Such solvers are often used as back-end components for higher-level verification methods, such as \emph{symbolic execution} or \emph{predication abstraction} in model checking. Commonly used solvers are \emph{SAT-solvers} (e.g., CaDiCaL and Glucose) and \emph{SMT-solvers} (e.g., Z3 and CVC4). Various tools allow the user to provide some \emph{logical annotations} in a~code and then automatically attempt to prove specific properties using decision procedures. Examples of such tools are VCC and Dafny.
+
+Theorem proving techniques have the following properties. They are not fully automatic, i.e., \emph{high user expertise} is often needed. They are sound w.r.t. the model of the program used in the proof, and they are usually complete up to the capabilities of the proof assistant.
 
 \paragraph{Model Checking}
+Another technique called (\emph{finite-state}) \emph{model checking} aims at finite systems. It automatically verifies  whether a~system or its model satisfies a~particular property based on an \emph{algorithmic exploration of the system's state space}. Unfortunately, the biggest issue here is the \emph{state space explosion} problem~\cite{stateExpl}. However, in practice, model checking tools use effective data structures (such as \emph{binary decision diagrams} or \emph{hierarchical storage of states}) to describe program behaviours and avoid enumerating all executions thanks to approaches that reduce the search space. In addition, other techniques are used to cope with this problem. For instance, various abstractions are used (e.g., \emph{predicate abstraction}) or \emph{bounded model checking}\footnote{\textbf{Bounded model checking} explores models up to a~\emph{fixed depth} only. This technique is often referred to as \emph{bug finding} because it sacrifices completeness and often also soundness. Examples of tools that implement such technique are CMBC, LLBMC, or JBMC.}. Properties are usually defined using \emph{temporal logics}, such as LTL, CTL, or PCTL. Finite model checking has the following characteristics. It is automatic (up to the need of modelling the system or its environment). It is sound and usually complete, w.r.t. the model. Other advantages are that it is pretty general and provides diagnostic data for incorrect systems.
+
+Model checking is typically done at the \emph{model level}, i.e., a~model of the program needs to be built, either manually or automatically. In practice, model checking tools usually implement a~front-end for that purpose. The problem is that the model generally cannot precisely capture the input program's behaviours since programs are usually infinite systems. Thus, the checking of the synthesised model may be either incomplete or unsound, w.r.t. the input program. Some model checking techniques can automatically \emph{refine} the model when they fail to prove a~property due to a~\emph{spurious counterexample}, although a~\emph{termination} must be ensured. In practice, model checking tools are often sound and incomplete w.r.t. the input program.
+
+Model checking has found many successful applications, including hardware verification, verification of \emph{concurrent} and \emph{distributed} systems, \emph{probabilistic} systems, \emph{biological} systems, etc. Examples of hardware model checkers are RuleBase, Incisive Verifier, or NuSMV. Model checkers for concurrent and distributed systems include Spin or DIVINE. Tools, such as CPAchecker or BLAST, are model checkers that use predicate abstraction. PRISM and Storm are state-of-the-art tools for model checking probabilistic systems. Finally, Uppaal is a~model checker that verifies temporal logic formulas on \emph{timed automata}.
+
+\paragraph{Static Analysis}
 ...
 
-\paragraph{Conservative Static Analysis}
-...
+\begin{table}[hbt]
+    \centering
 
-\paragraph{Bug Finding}
-...
+    \begin{tabular}{|l|c|c|c|c|c|}
+        \hline
+        \textbf{Technique} & \textbf{Automatic} & \textbf{Sound} & \textbf{Complete} & \textbf{Object} & \textbf{Approach} \\ \hline \hline
+        Testing & Yes & No & Yes & Program & Dynamic \\ \hline
+        Deductive & \multirow{2}{*}{No} & \multirow{2}{*}{Yes} & \multirow{2}{*}{Yes/No} & \multirow{2}{*}{Model/Program} & \multirow{2}{*}{Static} \\
+        verification & & & & & \\ \hline
+        Model checking & Yes & Yes & Yes/No & Model/Program & Static \\ \hline
+        Conservative & \multirow{2}{*}{Yes} & \multirow{2}{*}{Yes} & \multirow{2}{*}{No} & \multirow{2}{*}{Program} & \multirow{2}{*}{Static} \\
+        static analysis & & & & & \\ \hline
+        Bug finding & Yes & No & No & Program & Static \\ \hline
+    \end{tabular}
+
+    \caption{A~summary of \emph{program analysis techniques}~\cite{staticAnalysisRival}}
+    \label{tab:progAnalysisTechniques}
+\end{table}
 
 
-\section{Static Analysis by Abstract Interpretation}
-\label{sec:statAnalysisAI}
+\section{Abstract Interpretation}
+\label{sec:AI}
 
-\todo{Přidat Galoisovo spojení. Definovat
-widening, narrowing. Podívat se na Vladovu bakalářku. Vzít něco z~článku
-od Křena/Vojnar. Vysvětlit svazy, pevné body. Vzít něco z~té nové knihy
-o~abstraktní interpretaci.}
+\todo{Přidat Galoisovo spojení. Definovat widening, narrowing.}
 
 According to~\cite{staticAnalysisMoller}, \emph{static analysis} of
 programs is reasoning about the behaviour of computer programs without
@@ -155,26 +212,6 @@ about a~given program, such as, e.g.,~\cite{staticAnalysisMoller}:
         use?
 \end{itemize}
 
-It is well-known that testing, i.e., executing programs
-with some input data and examining the output, may expose errors, but it
-cannot prove their absence. (It was also famously stated by Edsger W.
-Dijkstra: \uv{\textit{Program testing can be used to show the presence of bugs,
-but never to show their absence!}}.) However, static program analysis
-can prove their absence\,---\,with some \emph{approximation}\,---\,it can
-check \emph{all possible executions} of the programs and provide guarantees
-about their properties. Another advantage of static analysis is that the
-analysis can be performed during the development process, so the program
-does not have to be executable yet and it already can be analysed.
-The biggest disadvantage of static analysis is that it can produce many
-\emph{false alarms}\footnote{\textbf{False alarms}\,--\,incorrectly reported
-an error. Also called \emph{false positives}.}, which is often resolved by
-accepting \emph{unsoundness}\footnote{\textbf{Soundness}\,--\,if
-a~verification method claims that a~system is correct according to a~given
-specification, it is truly correct~\cite{harmimBP}.}. Another major
-issue is that of ensuring sufficient \emph{scalability} of static analysis:
-in fact, typically, the more precise the analysis is, the less scalable it
-becomes.
-
 Various forms of static analysis of programs have been invented, for
 instance~\cite{harmimBP}: bug pattern searching, data-flow
 analysis, constraint-based analysis, type analysis, or symbolic execution.
@@ -187,10 +224,8 @@ Frama-C, PHPStan, or \emph{Facebook Infer} (described in
 Section~\ref{sec:fbinfer}).
 
 \subsection{Abstract Interpretation}
-\label{sec:AI}
 
-\todo{Podívat se na Vladovu bakalářku. Pro definici summary citovat Hoareho
-a~použít jeho trojice. Zmínit se o~C\#.}
+\todo{Pro definici summary citovat Hoareho a~použít jeho trojice.}
 
 This section explains and defines the basics of \emph{abstract interpretation}.
 The description is based on~\cite{AIBasedFormalMethodsCousot,
@@ -422,6 +457,8 @@ wideningNarrowingCousot, savAI, AICousotWeb}, one can guarantee the
 }}
 \label{sec:fbinfer}
 
+\todo{Citovat Vladovu bakalářku. Zmínit se o~C\#.}
+
 This section describes the principles and features of
 \emph{Facebook Infer}. The description is based on information provided
 at the Facebook Infer website\footnote{\textbf{Facebook Infer}
@@ -485,7 +522,7 @@ particular functions. Facebook Infer generally does not compute the summaries
 in the course of the analysis along the \emph{Control Flow Graph}
 (\textbf{CFG})\footnote{\textbf{A~control flow graph (CFG)} is a~directed
 graph in which the nodes represent basic blocks and the edges represent control
-flow paths~\cite{controlFlowAnalysisAllen}.} as it is done in classical
+flow paths~\cite{controlFlowAnalysisAllen}. \todo{Křena/Vojnar - strana 6, poznámka pod čarou.}} as it is done in classical
 analyses based on the concepts from~\cite{DFAGraphReach,
 DFAApproaches}. Instead, Facebook Infer performs the
 analysis of a~program \emph{function-by-function along the call tree},

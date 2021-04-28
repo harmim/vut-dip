@@ -1162,7 +1162,6 @@ Management}{\@fit@EN}%
 % Packages
 \usepackage[czech, slovak, british]{babel}
 \usepackage[]{opensans}
-\usepackage{float}
 \usepackage{calc}
 \usepackage{longtable, booktabs}
 \usepackage{xcolor, colortbl}
@@ -1179,6 +1178,10 @@ Management}{\@fit@EN}%
 \ifczech
   \usepackage{ae}
 \fi
+
+\RequirePackage{float}
+\floatstyle{plaintop}
+\restylefloat{table}
 
 
 %-------------------------------------------------------------------------------
@@ -1227,7 +1230,9 @@ Management}{\@fit@EN}%
   commentstyle=\color{gray}\upshape,
   captionpos=b,
   tabsize=4,
-  keepspaces=true
+  keepspaces=true,
+  belowskip=-1\baselineskip,
+  aboveskip=.5\baselineskip
 }
 
 \lstdefinestyle{atomSets}{
