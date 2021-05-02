@@ -507,11 +507,11 @@ Management}{\@fit@EN}%
   \MakeUppercase{#2}}\vspace\mkspc}
 % For the 2-line thesis title
 \newcommand{\mkuctxttl}[3]{\vbox to 1.2cm{\noindent\parbox{#2}{\setfontsize{#1}%
-  \fosfamily\bfseries\noindent\MakeUppercase{#3}}}\vspace\mkspc}
+  \fosfamily\bfseries\noindent\flushleft\MakeUppercase{#3}}}\vspace\mkspc}
 % For the 2-line second thesis title
 \newcommand{\mkuctxttls}[3]{\vbox to 1cm{\noindent\parbox{#2}{\setfontsize{#1}%
-  \fosfamily\bfseries\noindent\baselineskip=13pt\MakeUppercase{#3}}}%
-  \vspace\mkspc}
+  \vspace{-.2cm}\fosfamily\bfseries\noindent\baselineskip=13pt\flushleft%
+  \MakeUppercase{#3}}}\vspace\mkspc}
 \newcommand{\mkuctxtc}[2]{\vbox{\setfontsize{#1}\ifCOPEN\fosfamily\fi\ifCBOPEN%
   \fosfamily\bfseries\fi\noindent\MakeUppercase{#2}}\vspace\mkspc}
 % bold
@@ -678,6 +678,7 @@ Management}{\@fit@EN}%
 
 \vfill
 
+{\fontsize{11}{11}\selectfont%
 \mktxt@b{16}{\ifslovak\@cite@SK\else\ifczech\@cite@CS\else\@cite@EN\fi\fi}
 \iftoggle{slovak_used}{
   \noindent\MakeUppercase{\@author@s}, \@author@n. \it\@title\rm. Brno, \@year.
@@ -685,12 +686,13 @@ Management}{\@fit@EN}%
   \@supervisor@tp\else\@supervisor@tp ~\fi}{\@supervisor@n} {\@supervisor@s}%
   {\ifx\undefined\@supervisor@ta\else,~\@supervisor@ta\fi}
 }{
-  \noindent\MakeUppercase{\@author@s}, \@author@n. \it\@title\rm. Brno, \@year.
+  \noindent\MakeUppercase{\@author@s}, \@author@n. \it{\@title}\rm. Brno, \@year.
   \ifczech\@projecttype@CS\else\@projecttype@EN\fi. \ifczech\@vut@CS\else%
   \@vut@EN\fi, \ifczech\@fit@CS\else\@fit@EN\fi. {\ifczech\@supervisor@CS%
   \else\@supervisor@EN\fi} {\ifx\undefined\@supervisor@tp\else%
   \@supervisor@tp ~\fi}{\@supervisor@n} {\@supervisor@s}{\ifx\undefined%
   \@supervisor@ta\else,~\@supervisor@ta\fi}
+}%
 }
 %===============================================================================
 \newpage
