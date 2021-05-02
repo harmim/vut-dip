@@ -101,14 +101,14 @@ $$
 \paragraph{Soundness}
 A~\emph{sound} program analysis satisfies the first implication.
 \begin{definition}[\textbf{Soundness}~\cite{staticAnalysisRival}]
-    The program analyser~$ T $ is sound w.r.t. property~$ \varphi $ whenever, for any program $ P \in \mathcal{L} $, $ T(P) = true \Longrightarrow P \models \varphi $.
+    The program analyser~$ T $ is \textbf{sound} w.r.t. property~$ \varphi $ whenever, for any program $ P \in \mathcal{L} $, $ T(P) = true \Longrightarrow P \models \varphi $.
 \end{definition}
 When a~sound analysis terminates and claims that the analysed program has property~$ \varphi $, it guarantees that the program indeed satisfies~$ \varphi $, i.e., no errors are missed. In other words, a~sound analysis will refuse all programs that do not satisfy~$ \varphi $. In terms of errors in \emph{binary classification}, there are not \emph{false-negative} errors\footnote{A~\textbf{false-negative} error is a~real error that is undetected by an analysis tool.} when using sound analysis. On the other hand, there is a~chance of \emph{false-positive} errors\footnote{A \textbf{false-positive} error (also called a~\textbf{false alarm}) is a~\emph{spurious error}, i.e., it is detected by an analysis tool, but the error does not exist in the real program.}.
 
 \paragraph{Completeness}
 A~\emph{complete} program analysis satisfies the second implication.
 \begin{definition}[\textbf{Completeness}~\cite{staticAnalysisRival}]
-    The program analyser~$ T $ is complete w.r.t. property~$ \varphi $ whenever, for any program $ P \in \mathcal{L} $, $ P \models \varphi \Longrightarrow T(P) = true $.
+    The program analyser~$ T $ is \textbf{complete} w.r.t. property~$ \varphi $ whenever, for any program $ P \in \mathcal{L} $, $ P \models \varphi \Longrightarrow T(P) = true $.
 \end{definition}
 A~complete program analysis will accept every program that satisfies property~$ \varphi $. In other words, when a~complete analysis refuses an analysed program, it is guaranteed that the program indeed fails to satisfy~$ \varphi $, i.e., there are no false-positive errors. However, there can be false-negative errors.
 
@@ -141,7 +141,37 @@ Model checking is typically done at the \emph{model level}, i.e., a~model of the
 Model checking has found many successful applications, including hardware verification, verification of \emph{concurrent} and \emph{distributed} systems, \emph{probabilistic} systems, \emph{biological} systems, etc. Examples of hardware model checkers are RuleBase, Incisive Verifier, or NuSMV. Model checkers for concurrent and distributed systems include Spin or DIVINE. Tools, such as CPAchecker or BLAST, are model checkers that use predicate abstraction. PRISM and Storm are state-of-the-art tools for model checking probabilistic systems. Finally, Uppaal is a~model checker that verifies temporal logic formulas on \emph{timed automata}.
 
 \paragraph{Static Analysis}
-...
+The last technique (and the most important one for the thesis) is \emph{static analysis}. It relies on other techniques to compute \emph{conservative} (sound but incomplete) descriptions of program behaviours using finite resources rather than building a~finite model. The fundamental idea is to finitely \emph{over-approximate} the set of all program behaviours using a~particular set of properties.
+
+According to~\cite{staticAnalysisMoller}, static analysis of programs is reasoning about the behaviour of computer programs without really executing them. It has been used since the 1960s in \emph{optimising compilers} for generating efficient code. More recently, it has proven valuable also for automatic error detection, verification of the correctness of programs, and it is used in other tools that can help programmers. Intuitively, a~static program analyser is a~program that reasons about the behaviour of other programs by looking for some \emph{syntactic patterns} in the code and/or by assigning the program statements some \emph{abstract semantics} and then deriving a~characterisation of the behaviour in terms of the abstract semantics. Nowadays, static analysis is one of the leading concepts in \emph{formal verification}. It can even automatically answer considerably complicated questions about a~given program, such as~\cite{staticAnalysisMoller}:
+\begin{itemize}
+    \item Does the program \emph{terminate} on every input?    
+
+    \item Do two pointers refer to \emph{disjoint data structures} in memory?
+    
+    \item Are \emph{data races} possible? Can the program \emph{deadlock}?
+    
+    \item Does there exist an input that leads to a~\emph{null-pointer dereference}, \emph{division-by-zero}, or \emph{arithmetic overflow}?
+    
+    \item Are arrays always accessed \emph{within their bounds}?
+    
+    \item \textbf{Are certain operations executed \emph{atomically}?}
+\end{itemize}
+
+In general, conservative static analysis has the following characteristics. It is automatic, it can often handle large systems, and it does not ordinarily need a~model of the environment. It produces sound results, and it is generally incomplete, i.e., it can produce many false alarms. However, it is possible to drop soundness to minimise the number of false alarms and preserve automation, which, in fact, is done by many tools. Such techniques are often instead called \emph{bug finding} or \emph{bug hunting}, which is based not only on static analysis but also, e.g., on model checking. Since the primary motivation of these approaches is to discover bugs (and not to prove their absence), they are neither sound nor complete, and they aim at swiftly catching bugs.
+
+The above explanation of static analysis is quite general. Thus, even model checking or deductive verification may be considered as static analysis. However, when setting these approaches aside, the most traditional techniques in the static analysis include:
+\begin{itemize}
+    \item \emph{Syntactic checks} looking for various \emph{bug patterns} (\emph{anti-patterns})\,---\,implemented, e.g., in Lint, Cppcheck, or in analyses in VisualStudio, Clang, GCC.
+
+    \item \emph{Data-flow analysis}\,---\,it is often combined with bug pattern searching, and it is usually unsound. Many successful tools of this kind have been implemented. They are often proprietary and hard to openly evaluate or extend. Examples of some well-known tools are Coverity, CodeSonar, Klocwork, FindBugs/SpotBugs, SonarQube.
+
+    \item \emph{Constraint-based analysis}, \emph{type-based analysis} (type and effect systems).
+
+    \item \emph{Symbolic execution}\,---\,implemented, e.g., in KLEE, Pex, Symbiotic.
+    
+    \item \emph{Abstract interpretation} (see Section~\ref{sec:AI})\,---\,examples of sound tools are Polyspace, AbsInt/Astrée, or Sparrow. State-of-the-art frameworks that allow creating sound analysers include Facebook Infer (see Section~\ref{sec:fbinfer}), Facebook SPARTA, or Frama-C. These tools also offer already implemented sound as well as unsound checkers.
+\end{itemize}
 
 \begin{table}[hbt]
     \centering
@@ -166,457 +196,217 @@ Model checking has found many successful applications, including hardware verifi
 \section{Abstract Interpretation}
 \label{sec:AI}
 
-\todo{Přidat Galoisovo spojení. Definovat widening, narrowing.}
+This section explains and defines the basics of static analysis technique \emph{abstract interpretation}. The description is based on~\cite{AICousotWeb, AIInNutshellCousot, AIBasedFormalMethodsCousot, AILatticeModelCousot, wideningNarrowingCousot, analysisAndVerVojnarKrena, savAI, staticAnalysisMoller, programAnalysisNielson, staticAnalysisRival}. In these works, there can be found a~more detailed and formal explanation.
 
-According to~\cite{staticAnalysisMoller}, \emph{static analysis} of
-programs is reasoning about the behaviour of computer programs without
-actually executing them. It has been used since the 1970s in optimising
-compilers for generating efficient code. More recently, it has proven
-valuable also for automatic error detection, verification of correctness
-of programs, and it is used in other tools that can help programmers.
-Intuitively, a~static program analyser is a~program that reasons about the
-behaviour of other programs, in other words, a~static program analyser is
-a~program that reasons about another programs by looking for some
-\emph{syntactic patterns} in the code and/or by assigning the program
-statements some \emph{abstract semantics} and then deriving
-a~characterisation of the behaviour in terms of the abstract semantics.
-Nowadays, static analysis is one of the fundamental concepts of
-\emph{formal verification}. It aims to automatically answer questions
-about a~given program, such as, e.g.,~\cite{staticAnalysisMoller}:
-\begin{itemize}
-    \item
-        \textbf{Are certain operations executed \emph{atomically}?}
+Abstract interpretation was introduced and formalised by French computer scientist Patrick Cousot and his wife Radhia Cousot at POPL'77~\cite{AILatticeModelCousot}. It is a~generic \emph{framework} for static analyses. It allows one to create particular analyses by providing specific \emph{components} (discussed in Section~\ref{sec:AIComponents}) to the framework. The obtained analysis is guaranteed to be \emph{sound} if specific properties of the components are met.
 
-    \item
-        Does the program terminate on every input?
+In general, in \emph{set theory}, which is independent of the application setting, abstract interpretation is considered a~theory for \emph{approximating} sets and set operations. A~more restricted formulation of abstract interpretation is to interpret it as a~theory of approximation of the behaviour of the \emph{formal semantics} of programs. \emph{Fixpoints} may characterise those behaviours (see Section~\ref{sec:AIFixpoints}), which is why the primary part of the theory provides efficient techniques for \emph{fixpoint approximation}~\cite{programAnalysisNielson}. Therefore, for standard semantics, abstract interpretation is used to derive the approximate abstract semantics over an \emph{abstract domain} (explained in Section~\ref{sec:AIComponents}). The abstract semantics obtained from program analysis can then be used for verification, optimisation, code generation, etc.~\cite{AIBasedFormalMethodsCousot}
 
-    \item
-        Can the program \emph{deadlock}?
+To be sound, it is essential that an approximation performed using abstract interpretation should be an \emph{over-approximation}. This means that the considered abstract semantics should be a~\emph{superset} of the concrete semantics, i.e., the abstract semantics should cover all possible cases. Whence, if the abstract semantics satisfies a~given property, then the concrete semantics satisfies it too. Moreover, the consequence of the over-approximation of the possible executions is that inexisting executions are considered, leading to \emph{false alarms}. Thus, due to a~lack of accuracy, abstract interpretation is usually \emph{incomplete}.~\cite{AIInNutshellCousot}
 
-    \item
-        Does there exist an input that leads to a~\emph{null-pointer
-        dereference}, a~\emph{division-by-zero}, or an \emph{arithmetic
-        overflow}?
-
-    \item
-        Are all variables initialised before they are used?
-
-    \item
-        Are arrays always accessed within their bound?
-
-    \item
-        Does the program contain \emph{dead code}?
-
-    \item
-        Are all resources correctly released after their last
-        use?
-\end{itemize}
-
-Various forms of static analysis of programs have been invented, for
-instance~\cite{harmimBP}: bug pattern searching, data-flow
-analysis, constraint-based analysis, type analysis, or symbolic execution.
-One of the most widely used approaches\,---\,\emph{abstract
-interpretation}\,---\,is detailed in Section~\ref{sec:AI}.
-
-There exist numerous tools for static analysis (often proprietary and
-difficult to openly evaluate or extend), e.g.: Coverity, Klockwork, CodeSonar,
-Frama-C, PHPStan, or \emph{Facebook Infer} (described in
-Section~\ref{sec:fbinfer}).
-
-\subsection{Abstract Interpretation}
-
-\todo{Pro definici summary citovat Hoareho a~použít jeho trojice.}
-
-This section explains and defines the basics of \emph{abstract interpretation}.
-The description is based on~\cite{AIBasedFormalMethodsCousot,
-AILatticeModelCousot, AIInNutshellCousot, AICousotWeb, savAI,
-harmimBP, wideningNarrowingCousot, programAnalysisNielson,
-staticAnalysisMoller}. In these works, there can be
-found more detailed and more formal explanation.
-
-Abstract interpretation was introduced and formalised by a~French
-computer scientist Patrick Cousot and his wife Radhia Cousot in the year
-1977 at POPL (symposium on Principles of Programming
-Languages)~\cite{AILatticeModelCousot}. It is a~generic \emph{framework}
-for static analyses. It allows one to create particular analyses by
-providing specific components (described later) to the framework. The
-obtained analysis is guaranteed to be \emph{sound} if certain properties
-of the components are met.~\cite{savAI, harmimBP}
-
-In general, in the set theory, which is independent of the application
-setting, abstract interpretation is considered a~theory for
-\emph{approximating} sets and set operations. A~more restricted formulation
-of abstract interpretation is to interpret it as a~theory of approximation
-of the behaviour of the \emph{formal semantics} of programs. Those
-behaviours may be characterised by \emph{fixpoints} (defined below), which
-is why a~primary part of the theory provides efficient techniques for
-\emph{fixpoint approximation}~\cite{programAnalysisNielson}.
-So, for a~standard semantics, abstract interpretation is used to derive
-the approximate abstract semantics over an \emph{abstract domain} (defined
-below). The abstract semantics obtained as a~result of program analysis can
-then be used for verification, optimisation, code generation or
-transformation, etc.~\cite{AIBasedFormalMethodsCousot}
-
-Patrick Cousot intuitively and informally illustrates abstract
-interpretation in~\cite{AIInNutshellCousot} as follows.
-Figure~\ref{fig:ai1} shows the \emph{concrete semantics} of a~program
-by a~set of curves, which represents the set of all possible executions
-of the program in all possible execution environments. Each curve shows
-the evolution of the vector~$ x(t) $~of input values, state, and
-output values of the program as a~function of the time~$ t $.
-\emph{Forbidden zones} on this figure represent a~set of erroneous states
-of the program execution. Proving that the intersection of the concrete
-semantics of the program with the forbidden zone is empty may be
-\emph{undecidable} because the program concrete semantics is, in general,
-\emph{not computable}. As demonstrates Figure~\ref{fig:ai2}, abstract
-interpretation deals with an \emph{abstract semantics}, i.e., the
-\emph{superset} of the concrete program semantics. The abstract semantics
-includes all possible executions. That implies that if the abstract
-semantics is safe (i.e. it does not intersect the forbidden zone), the
-concrete semantics is safe as well. However, the \emph{over-approximation}
-of the possible program executions causes that inexisting program executions
-are considered, which may lead to \emph{false alarms}. It is the case when
-the abstract semantics intersects the forbidden zone, whereas the concrete
-semantics does not intersect it.
+Patrick Cousot intuitively and informally illustrates abstract interpretation in~\cite{AIInNutshellCousot} as follows. Figure~\ref{fig:ai1} shows the concrete semantics of a~program by a~set of curves, which represents the set of all possible executions of the program in all possible execution environments. Each curve shows the evolution of the vector~$ x(t) $~of input, state, and output values of the program as a~function of the time~$ t $. \emph{Forbidden zones} on this figure represent a~set of erroneous states of the program execution. Proving that the intersection of the concrete semantics of the program with the forbidden zones is empty may be \emph{undecidable} because the program concrete semantics is, in general, \emph{not computable}. As demonstrated in Figure~\ref{fig:ai2}, abstract interpretation deals with the abstract semantics, i.e., the superset of the concrete program semantics. The abstract semantics includes all possible executions. That implies that if the abstract semantics is safe\,---\,i.e., it does not intersect the forbidden zones\,---\,the concrete semantics is safe as well. However, the over-approximation of the possible program executions causes that inexisting program executions are considered, which leads to false alarms, as demonstrates the figure. It is the case when the abstract semantics intersects the forbidden zone, whereas the concrete semantics does not intersect it.
 
 \begin{figure}[hbt]
     \centering
 
-    \begin{subfigure}[hbt]{.45 \linewidth}
+    \begin{subfigure}[hbt]{.49 \linewidth}
         \centering
         \includegraphics[width=1 \linewidth]{ai-1.png}
-        \caption{%
-            \emph{Concrete semantics} of programs with
-            \emph{forbidden zones}
-        }
+        \caption{The \emph{concrete semantics} of programs with \\ \emph{forbidden zones}}
         \label{fig:ai1}
     \end{subfigure}
 %
     \hfill
 %
-    \begin{subfigure}[hbt]{.45\linewidth}
+    \begin{subfigure}[hbt]{.49 \linewidth}
         \centering
         \includegraphics[width=1 \linewidth]{ai-2.png}
-        \caption{%
-            \emph{Abstract semantics} of programs with imprecise
-            trajectory abstraction
-        }
+        \caption{The \emph{abstract semantics} of programs with \\ \emph{imprecise abstraction}}
         \label{fig:ai2}
     \end{subfigure}
 
-    \caption{%
-        Abstract interpretation demonstration~\cite{AIInNutshellCousot}.
-        Horizontal axes: time~$ t $. Vertical axes:
-        vector~$ x(t) $~of input, state, and output values of the
-        considered program
-    }
+    \caption{An \emph{abstract interpretation} demonstration~\cite{AIInNutshellCousot} (horizontal axes: the time~$ t $; vertical axes: the vector~$ x(t) $~of input, state, and output values of the considered program)}
 \end{figure}
 
-\subsubsection{Components of Abstract Interpretation}
+\subsection{Components of Abstract Interpretation}
+\label{sec:AIComponents}
 
-In accordance with~\cite{savAI, harmimBP}, the basic
-components of abstract interpretation are as follows:
+Before the formal definition of abstract interpretation is given, below are intuitively described basic components of the framework in accordance with~\cite{AICousotWeb, AIBasedFormalMethodsCousot, savAI, programAnalysisNielson}:
 \begin{itemize}
-    \item
-        \textbf{An Abstract Domain}~\cite{AICousotWeb}:
-
+    \item \textbf{Abstract Domain}~$ \boldsymbol{Q} $:
         \begin{itemize}
-            \item
-                An abstraction of the possible concrete program states
-                (or their parts) in the form of \emph{abstract
-                properties}\footnote{\textbf{Abstract properties}
-                approximating \emph{concrete properties behaviours}.}
-                and \emph{abstract operations}\footnote{\textbf{Abstract
-                operations} include abstractions of the \emph{concrete
-                approximation}, an approximation of the \emph{concrete
-                fixpoint transform function},
-                etc.}~\cite{AIBasedFormalMethodsCousot}.
-
-            \item
-                Sets of program states at certain locations are represented
-                using \emph{abstract states}.
+            \item An abstraction of the possible concrete program states (or their parts) in the form of \emph{abstract properties}\footnote{\textbf{Abstract properties} approximate \emph{concrete properties} behaviours.~\cite{AIBasedFormalMethodsCousot}}.
+                
+            \item In other words, it is a~set of \emph{abstract states} (or \emph{abstract contexts}), where an abstract state represents a~set of program states reachable at a~particular program location.
+            
+            \item For instance, several practical domains have been defined: numerical intervals, polyhedra, octagons, congruences, or various heap domains.
         \end{itemize}
 
-    \item
-        \textbf{Abstract Transformers}:
-
+    \item \textbf{Abstract Transformers}~$ \boldsymbol{\tau} $:
         \begin{itemize}
-            \item
-                There is a~\emph{transform function} for each program
-                operation (instruction) that represents the impact
-                of the operation executed on an abstract state.
+            \item There is a~\emph{transform function}~$ \tau $ for each program operation (instruction) representing the impact of the operation executed on an abstract state.
         \end{itemize}
 
-    \item
-        \textbf{The Join Operator}~$ \sqcup $:
-
+    \item \textbf{Join Operator}~$ \boldsymbol{\sqcup} $:
         \begin{itemize}
-            \item
-                Joins abstract states from individual program branches into
-                a~single one.
+            \item Joins abstract states from individual program branches into a~single one.
         \end{itemize}
 
-    \item
-        \textbf{The Widening
-        Operator~$ \triangledown $}~\cite{programAnalysisNielson,
-        wideningNarrowingCousot, savAI}:
-
+    \item \textbf{Widening Operator~$ \boldsymbol{\triangledown} $}:
         \begin{itemize}
-            \item
-                Enforces termination of the abstract interpretation.
+            \item Enforces \emph{termination} of the abstract interpretation.
 
-            \item
-                It is used to approximate the \emph{least fixed points}
-                of program semantics (it is performed on a~sequence of
-                abstract states at a~certain location).
+            \item It is used to over-approximate the \emph{least fixed points} of program semantics (it is performed on a~sequence of abstract states at a~certain location).
 
-            \item
-                Usually, the later in the analysis this operator is used,
-                the more accurate the result is (but the analysis takes more
-                time).
+            \item Usually, the later in the analysis this operator is applied, the more accurate the result is (but the analysis takes more time).
         \end{itemize}
 
-    \item
-        \textbf{The Narrowing
-        Operator~$ \vartriangle $}~\cite{programAnalysisNielson,
-        wideningNarrowingCousot, savAI}:
-
+    \item \textbf{Narrowing Operator~$ \boldsymbol{\vartriangle} $}:
         \begin{itemize}
-            \item
-                Using this operator, the approximation obtained by
-                widening can be refined, i.e., it may be used to refine the
-                result of widening.
+            \item The approximation obtained by the widening operator can be \emph{refined} using the narrowing operator, i.e., it may be used to refine the result of widening.
 
-            \item
-                This operator is used when a~\emph{fixpoint} is
-                approximated using widening.
+            \item It is used when a~fixpoint is approximated by the widening operator.
         \end{itemize}
 \end{itemize}
+Note that neither the widening operator nor narrowing operator are required. However, at least the widening operator is frequently used. The narrowing operator can be sometimes dropped.
 
-\subsubsection{Fixpoints and Fixpoint Approximation}
+\subsection{Formal Definition of Abstract Interpretation}
 
-A~\textbf{fixpoint} of a~function  $ f : A \rightarrow A $ is an
-element $ a \in A $ if and only if
-$ \boldsymbol{f(a) = a} $~\cite{harmimBP}.
+The definitions below consider notions from \emph{lattice theory}. More information about lattices, functions on lattices, \emph{partial orders}, and set theory can be found, e.g., in~\cite{staticAnalysisMoller, programAnalysisNielson, staticAnalysisRival}.
 
-Computation of the \emph{most precise abstract fixpoint} is not generally
-guaranteed to terminate, in particular, when a~given program contains
-a~loop or recursion. The solution is to approximate the fixpoint using
-\emph{widening} (over-approximation of a~fixpoint) and \emph{narrowing}
-(improves the approximation of the fixpoint)~\cite{savAI,
-harmimBP}. Most program properties can be represented as
-fixpoints. This reduces program analysis to the fixpoint
-approximation~\cite{AICousotWeb}. Further information about fixpoint
-approximation can be found, e.g., in~\cite{programAnalysisNielson,
-wideningNarrowingCousot}.
+\begin{definition}[\textbf{Abstract Interpretation}]
+    \label{def:AI}
+    According to~\cite{AILatticeModelCousot, savAI}, \textbf{abstract interpretation}~$ I $~of a~program~$ P $~with the instruction set $ Instr $~is a~tuple
+    $$ 
+        I = (Q, \sqcup, \sqsubseteq, \top, \bot, \tau)
+    $$
+    where
+    \begin{itemize}
+        \item $ Q $~is the \emph{abstract domain} (the set of \emph{abstract states}),
+    
+        \item $ \sqcup : Q \times Q \rightarrow Q $ is the \emph{join operator} for accumulation of abstract states,
+    
+        \item $ \sqsubseteq\ \subseteq Q \times Q $ is an \emph{ordering} defined as $ x \sqsubseteq y \Longleftrightarrow x \sqcup y = y $ where
+            \begin{itemize}
+                \item $ \langle Q, \sqsubseteq \rangle $ is a~\emph{complete $ \sqcup $-semilattice},
+            \end{itemize}
+    
+        \item $ \top \in Q $ is the \emph{supremum} of~$ \langle Q, \sqsubseteq \rangle $,
+    
+        \item $ \bot \in Q $ is the \emph{infimum} of~$ \langle Q, \sqsubseteq \rangle $\,---\,thus, $ \langle Q, \sqsubseteq \rangle $ is, in fact, a~\emph{complete lattice},
+    
+        \item $ \tau : Instr \times Q \rightarrow Q $ defines the \emph{abstract transformers} for specific instructions,
+            \begin{itemize}
+                \item $ \tau $~must be \emph{monotone}\footnote{Assume two \emph{partially-ordered sets}~$ \langle E, \preceq_E \rangle $ and~$ \langle F, \preceq_F \rangle $, and a~function $ f : E \rightarrow F $. $ f $~is \textbf{monotone} iff $ \forall x, y \in E : x \preceq_E y \Longrightarrow f(x) \preceq_F f(y) $.~\cite{staticAnalysisRival}} on~$ Q $ for each instruction from $ Instr $.
+            \end{itemize}
+    \end{itemize}
+\end{definition}
 
-\subsubsection{Formal Definition of Abstract Interpretation}
+Using a~so-called \emph{Galois connection}~\cite{AILatticeModelCousot, wideningNarrowingCousot, savAI, staticAnalysisMoller, programAnalysisNielson, staticAnalysisRival}, one can ensure the \emph{soundness} of the abstract interpretation, i.e., the correspondence between the \emph{concrete semantics} and its \emph{abstract semantics} can be formalised by a~Galois connection (also a~so-called pair of \emph{adjoined functions}).
+\begin{definition}[\textbf{Galois Connection}]
+    If $ \mathcal{P} = \langle P, \preceq \rangle $ and $ \mathcal{Q} = \langle Q, \sqsubseteq \rangle $ are \emph{partially-ordered sets}, then a~quadruple $ \pi = (\mathcal{P}, \alpha, \gamma, \mathcal{Q}) $ is a~\textbf{Galois connection}, written 
+    $$ 
+        \langle P, \preceq \rangle \overset{\gamma}{\underset{\alpha}\leftrightarrows} \langle Q, \sqsubseteq \rangle,
+    $$
+    iff $ \alpha : P \rightarrow Q $ and $ \gamma : Q \rightarrow P $ are \emph{monotone} functions such that
+    $$
+        \forall p \in P : \forall q \in Q : \alpha(p) \sqsubseteq q \Longleftrightarrow p \preceq \gamma(q)
+    $$
+    where~$ P $ is the concrete domain and~$ Q $ is the abstract domain. Furthermore, $ \alpha $~is an \emph{abstraction function}, and~$ \gamma $ is a~\emph{concretisation function}. Consequently, $ \alpha(p) $ is the abstraction of~$ p $, i.e., the most precise approximation of $ p \in P $ in~$ Q $, and $ \gamma(q) $ is the concretisation of~$ q $, i.e., the most imprecise element of~$ P $ which $ q \in Q $ can soundly approximate. A~Galois connection is illustrated in Figure~\ref{fig:galois}.
+\end{definition}
 
-According to~\cite{AILatticeModelCousot, savAI},
-\textbf{abstract interpretation}~$ \boldsymbol{I} $~of a~program~$ P $~with
-the instruction set~$ S $~is a~tuple
-$$ \boldsymbol{I = (Q, \sqcup, \sqsubseteq, \top, \bot, \tau)} $$
-where
-\begin{itemize}
-    \item
-        $ \boldsymbol{Q} $~is the \emph{abstract domain} (domain of
-        \emph{abstract states}),
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=.4 \linewidth]{galois.pdf}
+    \caption{An illustration of a~\emph{Galois connection}}
+    \label{fig:galois}
+\end{figure}
 
-    \item
-        $ \boldsymbol{\sqcup}~\text{:}~Q \times Q \rightarrow Q $
-        is the \emph{join operator} for accumulation of abstract states,
+If the abstraction and concretisation functions of the abstract interpretation form a~Galois connection, then applying the abstraction function and concretising the result back yield a~less (or equally) precise result. However, it is a~safe (\emph{conservative}) approximation. That is, formally written, $ \forall p \in P : p \preceq \gamma(\alpha(p)) $. Finally, the abstract interpretation may only over-approximate the concrete semantics (i.e., it is sound) if for each \emph{concrete transformer} (instruction) $ i : P \rightarrow P $ from the instruction set $ Instr $ and the appropriate \emph{abstract transformer} $ \tau : Instr \times Q \rightarrow Q $ respects a~Galois connection. This is $ \forall p \in P : \alpha(i(p)) \sqsubseteq \tau(i, \alpha(p)) $.
 
-    \item
-        $ \text{(}\boldsymbol{\sqsubseteq}\text{)} \subseteq Q \times Q $ is
-        an \emph{ordering} defined as
-        $ x \sqsubseteq y \Leftrightarrow x \sqcup y = y $ in
-        $ (Q, \sqcup, \top) $,
+\subsection{Fixpoint Approximation~\cite{AILatticeModelCousot, wideningNarrowingCousot, savAI, staticAnalysisMoller, programAnalysisNielson, staticAnalysisRival}}
+\label{sec:AIFixpoints}
 
-    \item
-        $ \boldsymbol{\top} \in Q $ is the \emph{supremum} of~$ Q $,
+Most program properties can be represented as \emph{fixpoints}\footnote{Consider a~function~$ f : L \rightarrow L $ on a~set~$ L $. A \textbf{fixed point} (or \textbf{fixpoint}) of~$ f $ is an element $ l \in L $ iff $ f(l) = l $. The set of all fixpoints of~$ f $ is denoted as $ Fix(f) = \{l \in L\ |\ f(l) = l\} $.~\cite{programAnalysisNielson}}. This reduces the program analysis to the \emph{fixpoint approximation}. The complete analysis of a~program using abstract interpretation can be then viewed as finding the \emph{least/greatest} fixpoint of the equation $ \overline{Q} = \overline{\tau}(\overline{Q}) $, where~$ \overline{Q} $ is a~vector of abstract states and~$ \overline{\tau} $ is an extension of~$ \tau $ to the whole program. This fixpoint equation is then solved iteratively. \emph{Knaster-Tarski theorem}~\cite{tarski} guarantees these fixpoints' existence.
 
-    \item
-        $ \boldsymbol{\bot} \in Q $ is the \emph{infimum} of~$ Q $,
+The computation of the most precise abstract fixpoint is not generally guaranteed to \emph{terminate}, in particular, when a~given program contains a~loop (or recursion) and uses an infinite domain (or even finite but very large). In order to enforce or accelerate the convergence, the fixpoint is often over-approximated using the \emph{widening} operator~$ \triangledown $. The approximation may be later refined using the \emph{narrowing} operator~$ \vartriangle $. These two operators are defined below. In practice, the analysis is usually done by iterating the abstract transformers over the \emph{control flow graph}\footnote{A~\textbf{control flow graph} (\textbf{CFG}) is a~\emph{directed graph} in which the nodes represent \emph{basic blocks} of the program, and the edges represent control flow paths among them~\cite{controlFlowAnalysisAllen}. A~basic block is a~\emph{maximal sequence of statements} such that all transfers to it are to the first statement in the sequence, and all statements in the sequence are executed sequentially~\cite{programAnalysisNielson}.} (CFG). The join operator~$ \sqcup $ is applied at program locations where different branches come across. Moreover, the widening operator~$ \triangledown $ is applied at loop junctions (and afterwards, the narrowing operator~$ \vartriangle $ may be used).
 
-    \item
-        $ \boldsymbol{\tau}~\text{:}~S \times Q \rightarrow Q $
-        defines \emph{abstract transformers} for specific instructions,
+\begin{definition}[\textbf{Widening}]
+    Assume the abstract interpretation from Definition~\ref{def:AI}. The \textbf{widening operator} over the abstract domain~$ Q $ is a~binary operator~$ \triangledown : Q \times Q \rightarrow Q $ such that $ \forall x, y \in Q : x \sqcup y \sqsubseteq x\,\triangledown\,y $, and for all \emph{increasing chains} $ x_0 \sqsubseteq x_1 \sqsubseteq \ldots\ $, the increasing chain defined by $ y_0 = x_0,\ \ldots\ ,\ y_{i + 1} = y_i\,\triangledown\,x_{i + 1},\ \ldots $ is not \emph{strictly increasing}. Note that the chain eventually stabilises since the result of~$ \triangledown $ is an upper bound.
+\end{definition}
 
-    \item
-        $ (Q, \sqcup, \top) $ is a~\emph{complete
-        semilattice}~\cite{harmimBP, savAI}.
-\end{itemize}
-
-Using so-called \emph{Galois connections}~\cite{programAnalysisNielson,
-wideningNarrowingCousot, savAI, AICousotWeb}, one can guarantee the
-\emph{soundness} of abstract interpretation.
+\begin{definition}[\textbf{Narrowing}]
+    Assume the abstract interpretation from Definition~\ref{def:AI}. The \textbf{narrowing operator} over the abstract domain~$ Q $ is a~binary operator~$ \vartriangle : Q \times Q \rightarrow Q $ such that $ \forall x, y \in Q : y \sqsubseteq x \Longrightarrow y \sqsubseteq x \vartriangle y \sqsubseteq x $, and for all \emph{decreasing chains} $ x_0 \sqsupseteq x_1 \sqsupseteq \ldots\ $, the decreasing chain defined by $ y_0 = x_0,\ \ldots\ ,\ y_{i + 1} = y_i \vartriangle x_{i + 1},\ \ldots $ is not \emph{strictly decreasing}. Note that the chain eventually stabilises since the result of~$ \vartriangle $ is a lower bound.
+\end{definition}
 
 
-\section{\texorpdfstring{Facebook Infer\,---\,Static Analysis Framework}{%
-    Facebook Infer - Static Analysis Framework%
-}}
+\section{\texorpdfstring{Facebook Infer\,---\,Static Analysis Framework}{Facebook Infer - Static Analysis Framework}}
 \label{sec:fbinfer}
 
-\todo{Citovat Vladovu bakalářku. Zmínit se o~C\#.}
-
-This section describes the principles and features of
-\emph{Facebook Infer}. The description is based on information provided
-at the Facebook Infer website\footnote{\textbf{Facebook Infer}
-website\,--\,\url{https://fbinfer.com}.} and in~\cite{inferAISpeech,
-harmimBP}. Parts of this section are taken
-from the paper~\cite{harmimBP, excel2021Harmim}.
-
-Facebook Infer is an open-source\footnote{\textbf{Open-source repository of
-Facebook Infer} on GitHub\,--\,\url{https://github.com/facebook/infer}.}
-static analysis \emph{framework}, which is able to discover various kinds of
-software bugs of a~given program, with the stress put on \emph{scalability}.
-The basic usage of Facebook Infer is illustrated in Figure~\ref{fig:infer}.
-A~more detailed explanation of its architecture is shown below. Facebook
-Infer is implemented in \emph{OCaml}\footnote{\textbf{OCaml}
-website\,--\,\url{https://ocaml.org}.}\,--\,\emph{functional} programming
-language, also supporting \emph{imperative} and \emph{object-oriented}
-paradigms. Further details about OCaml can be found in~\cite{realWorldOCaml}
-or in official documentation\footnote{\textbf{OCaml
-documentation}\,--\,\url{http://caml.inria.fr/pub/docs/manual-ocaml}.},
-tutorials\footnote{\textbf{OCaml
-tutorials}\,--\,\url{https://ocaml.org/learn/tutorials}.}. Facebook Infer was
-originally a~standalone tool focused on \emph{sound verification} of the
-absence of \emph{memory safety violations}, which was first published in
-the well-known paper~\cite{inferBiabduction}.
+This section describes the principles and features of \emph{Facebook Infer}. The description is based on information provided at the Facebook Infer's website\footnote{The \textbf{Facebook Infer's} website: \url{https://fbinfer.com}.} and in~\cite{inferAISpeech}.
 
 \begin{figure}[hbt]
     \centering
     \includegraphics[width=.5 \linewidth]{infer.pdf}
-    \caption{%
-        Static analysis in Facebook Infer
-        (inspired by
-        \url{https://adtmag.com/articles/2015/06/12/facebook-infer.aspx})%
-    }
+    \caption{Static analysis in \emph{Facebook Infer}}
     \label{fig:infer}
 \end{figure}
 
-Facebook Infer is able to analyse programs written in several languages.
-In particular, it supports languages C, C++, Java, and Objective-C. Moreover,
-it is possible to extend Facebook Infer's \emph{frontend} for supporting
-other languages. Currently, Facebook Infer contains many analyses focusing
-on various kinds of bugs, e.g., \emph{Inferbo} (buffer
-overruns)~\cite{inferboOnline}; \emph{RacerD} (data races)~\cite{racerD,
-racerDOnline, staticRaceDetectorTruePositives}; and other analyses
-that check for buffer overflows, some forms of deadlocks and starvation,
-null-dereferencing, memory leaks, resource leaks, etc.
+Facebook Infer is an \emph{open-source}\footnote{The \textbf{Facebook Infer's open-source repository} at GitHub: \url{https://github.com/facebook/infer}.} \emph{static analysis framework}, which can discover various kinds of software bugs and which stress the \emph{scalability} of the analysis. The Facebook Infer's basic usage is illustrated in Figure~\ref{fig:infer}. A~more detailed explanation of its architecture is given in Section~\ref{sec:fbinferArch}. Facebook Infer is implemented in \emph{OCaml}\footnote{The \textbf{OCaml's} website: \url{https://ocaml.org}.}\,---\,a~\emph{functional} programming language, also supporting \emph{imperative} and \emph{object-oriented} paradigms. Further details about OCaml can be found in the book~\cite{realWorldOCaml}. Infer has initially been a~rather specialised tool focused on \emph{sound verification} of the absence of \emph{memory safety violations}, which was first published in the well-known paper~\cite{inferBiabduction}. Once Facebook has purchased it, its scope significantly widened and abandoned the focus on sound analysis only.
+
+Facebook Infer can analyse programs written in the following languages: C, C++, Java, Objective-C (and support for~C\# has been recently implemented~\cite{inferCSharp}). Moreover, it is possible to extend Facebook Infer's \emph{frontend} for supporting other languages. Currently, Facebook Infer contains many analyses focusing on various kinds of bugs, e.g., \emph{Inferbo}~\cite{inferboOnline} (buffer overruns); \emph{RacerD}~\cite{racerD, racerDOnline, staticRaceDetectorTruePositives} (data races); and other analyses that check for buffer overflows, some forms of deadlocks and starvation, null-dereferencing, memory leaks, resource leaks, etc. Since Facebook Infer is a~relatively popular and open-source framework, many experimental analysers arise pretty often. For instance, the promising experimental deadlock checker L2D2~\cite{marcinBP} has been implemented at FIT BUT not long ago.
 
 \subsection{Abstract Interpretation in Facebook Infer}
 \label{sec:fbinferAI}
 
-Facebook Infer is a~general framework for static analysis of programs, it is
-based on \emph{abstract interpretation}. Despite the original approach
-taken from~\cite{inferBiabduction}, Facebook Infer  aims to find bugs rather
-than formal verification. It can be used to quickly develop new sorts of
-\emph{compositional} and \emph{incremental} analysers (\emph{intraprocedural}
-or \emph{interprocedural}~\cite{programAnalysisNielson}) based
-on the concept of function \emph{summaries}. In general, a~\emph{summary}
-is a~representation of \emph{preconditions} and \emph{postconditions} of
-a~function. However, in practice, a~summary is a~custom data structure that
-may be used for storing any information resulting from the analysis of
-particular functions. Facebook Infer generally does not compute the summaries
-in the course of the analysis along the \emph{Control Flow Graph}
-(\textbf{CFG})\footnote{\textbf{A~control flow graph (CFG)} is a~directed
-graph in which the nodes represent basic blocks and the edges represent control
-flow paths~\cite{controlFlowAnalysisAllen}. \todo{Křena/Vojnar - strana 6, poznámka pod čarou.}} as it is done in classical
-analyses based on the concepts from~\cite{DFAGraphReach,
-DFAApproaches}. Instead, Facebook Infer performs the
-analysis of a~program \emph{function-by-function along the call tree},
-starting from its leafs (demonstrated later). Therefore, a~function
-is analysed and a~summary is computed without knowledge of the
-call context. Then, the summary of a~function is used at all of its call
-sites. Since summaries do not differ for different contexts, the analysis
-becomes more scalable, but it can lead to a~loss of accuracy. In order
-to create a~new intraprocedural analyser in Facebook Infer, it is needed to
-define the following (listed items are described in more detail in
-Section~\ref{sec:AI}):
+Facebook Infer is a~general framework for static analysis of programs, and it is based on \emph{abstract interpretation}. Despite the original approach taken from~\cite{inferBiabduction}, Facebook Infer aims to find bugs rather than perform \emph{formal verification}. It is still possible to propose \emph{sound} and \emph{complete} analyses in the framework. However, the majority of the checkers already implemented in Facebook Infer are both unsound and incomplete.
+
+It can be used to develop new sorts of \emph{compositional} and \emph{incremental} analysers quickly (both \emph{intraprocedural} and \emph{interprocedural}~\cite{programAnalysisNielson}) based on the concept of function \emph{summaries}. In general, a~summary represents a~set of \emph{pre-condition}/\emph{post-condition} pairs for a~function. In particular, it records under which pre-condition a~function can be performed leading to a~given post-condition. Formally, it can be described using \emph{Hoare triples}~\cite{hoare}, because it can be viewed as a~triple $ \{P\}\ S\ \{R\} $, where~$ P $ is a~pre-condition, $ S $ is a~program (or a~single statement/command)\footnote{In Facebook Infer's summaries considered as Hoare triples, $ S $ is usually one function.}, and~$ R $ is a~description of the result of the execution of~$ C $ (i.e., a~post-condition). In theory, $ P $ and $ R $ are considered formulae in a~suitable logic. The triple may be interpreted as follows. Suppose~$ S $ is executed from a~state satisfying~$ P $, and the execution of~$ S $ terminates. In that case, the program state after~$ S $ terminates satisfies~$ R $. However, in practice, a~summary is a~custom data structure that may be used for storing any information resulting from the analysis of particular functions. Usually, a~summary consists of the relevant parts of \emph{abstract states} for a~particular analysis.
+
+Facebook Infer generally does not compute the summaries during the analysis along the CFG as it is done in classical analyses based on the concepts from~\cite{DFAGraphReach, DFAApproaches}. Instead, Facebook Infer performs the analysis of a~program \emph{function-by-function along the call-tree}, starting from its leaves (demonstrated later in Example~\ref{ex:AIAnalysis}). Therefore, a~function is analysed, and a~summary is computed without knowledge of the call context. Then, the summary of the function is used at all its call sites. It is needed to deduce under which pre-conditions a~function can produce post-conditions appropriate for the given analysis. Since the summaries do not differ for different contexts, each function is analysed precisely once, and the analysis becomes more scalable, but it can lead to a~loss of accuracy. However, of course, it is more troublesome to propose such a~\emph{bottom-up} analysis.
+
+In order to create a~new intraprocedural analyser in Facebook Infer, it is required to define the following (the listed items are described in more detail in Section~\ref{sec:AI}):
 \begin{enumerate}
-    \item
-        The \emph{abstract domain}~$ Q $, i.e., a~type of an
-        \emph{abstract state}.
+    \item The \emph{abstract domain}~$ Q $, i.e., the type of \emph{abstract states}.
 
-    \item
-        Operator~$ \sqsubseteq $, i.e., an \emph{ordering} of abstract
-        states.
+    \item The \emph{ordering operator}~$ \sqsubseteq $, i.e., an ordering of abstract states.
 
-    \item
-        The \emph{join} operator~$ \sqcup $, i.e., the way of joining two
-        abstract states.
+    \item The \emph{join} operator~$ \sqcup $, i.e., the way of joining two abstract states.
 
-    \item
-        The \emph{widening} operator~$ \triangledown $, i.e., the way how to
-        enforce termination of the abstract interpretation of an iteration.
+    \item The \emph{widening} operator~$ \triangledown $, i.e., the way how to enforce termination of the computation.
 
-    \item
-        \emph{Transfer functions}~$ \tau $, i.e., a~transformer that
-        takes an abstract state as an input and produces an abstract state
-        as an output.
+    \item The \emph{transfer functions}~$ \tau $, i.e., transformers that take an abstract state as an input and produce an abstract state as an output.
 \end{enumerate}
-Further, in order to create an interprocedural analyser, it is required to
-additionally define:
+Furthermore, to create an interprocedural analyser, it is required to define additionally:
 \begin{enumerate}
-    \item
-        The type of function summaries.
+    \item The type of function summaries~$ \chi $.
 
-    \item
-        The logic for using summaries in transfer functions, and the logic
-        for transforming an intraprocedural abstract state to
-        a~summary.
+    \item The logic for using summaries in transfer functions and the logic for transforming an intraprocedural abstract state to a~summary.
 \end{enumerate}
-An important feature of Facebook Infer improving its scalability is
-\emph{incrementality} of the analysis, it allows one to analyse separate
-code changes only, instead of analysing the whole codebase. It is more
-suitable for extensive and variable projects, where ordinary analysis
-is not feasible. The incrementality is based on \emph{re-using summaries}
-of functions for which there is no change in them neither in the functions
-transitively invoked from them.
 
-\subsubsection{%
-    The Architecture of the Abstract Interpretation Framework in
-    Facebook Infer
-}
+An important Facebook Infer's feature, which improves its scalability, is the \emph{incrementality} of the analysis. It allows one to analyse separate code changes only, instead of analysing the whole codebase. It is more suitable for extensive and variable projects where ordinary analysis is not feasible. The incrementality is based on \emph{re-using summaries} of functions for which there is no change in them neither in the functions transitively invoked from them, as shown in Example~\ref{ex:AIAnalysis} later on.
 
-The architecture of the abstract interpretation framework of Facebook
-Infer (\textbf{Infer.AI}) may be split into three major parts,
-as demonstrated in Figure~\ref{fig:inferArch}: a~\emph{frontend},
-an \emph{analysis scheduler} (and a~\emph{results database}), and a~set of
-\emph{analyser plugins}.
+\subsection{Architecture of the Infer.AI Framework}
+\label{sec:fbinferArch}
 
-The frontend compiles input programs into the \emph{Smallfoot Intermediate
-Language} (SIL) and represents them as a~CFG. There is a~separate CFG
-representation for each analysed function. Nodes of this CFG are formed as
-instructions of SIL. The SIL language consists of the following underlying
-instructions:
+The architecture of the abstract interpretation framework of Facebook Infer (\textbf{Infer.AI}) may be split into three major parts, as demonstrated in Figure~\ref{fig:inferArch}: the \emph{frontend}, an \emph{analysis scheduler} (and the \emph{results database}), and a~set of \emph{analyser plugins}.
+
+The frontend compiles input programs into the \emph{Smallfoot Intermediate Language} (SIL) and represents them as a~CFG. There is a~separate CFG representation for each analysed function. Nodes of this CFG are formed as SIL instructions. The SIL language consists of the following underlying instructions:
 \begin{itemize}
-    \item
-        \texttt{LOAD}: reading into a~temporary variable.
+    \item \texttt{LOAD}\,---\,reading into a~temporary variable;
 
-    \item
-        \texttt{STORE}: writing to a~program variable,
-        a~field of a~structure, or an array.
+    \item \texttt{STORE}\,---\,writing to a~program variable, field of a~structure, or array;
+    
+    \item \texttt{CALL}\,---\,a~function call;
 
-    \item
-        \texttt{PRUNE~e}~(often called \texttt{ASSUME}):
-        evaluation of a~condition~\texttt{e}.
-
-    \item
-        \texttt{CALL}: a~function call.
+    \item \texttt{PRUNE~e}\,---\,the evaluation of an expression~\texttt{e} in a~condition, cycle, etc.
 \end{itemize}
-The frontend allows one to propose \emph{language-independent} analyses
-(to a~certain extent) because it supports input programs to be written
-in multiple languages.
+The frontend allows one to propose \emph{language-independent} analyses (to a~certain extent) because it supports input programs to be written in multiple languages.
 
 \begin{figure}[hbt]
     \centering
     \includegraphics[width=.65 \linewidth]{infer-architecture.pdf}
-    \caption{%
-        The architecture of Facebook Infer's abstract interpretation
-        framework~\cite{inferAISpeech, harmimBP}
-    }
+    \caption{The \emph{architecture} of the Facebook Infer's \emph{abstract interpretation framework}~\cite{harmimBP}}
     \label{fig:inferArch}
 \end{figure}
 
@@ -624,54 +414,23 @@ in multiple languages.
     \centering
     \vspace{-1em}
     \includegraphics[width=.25 \textwidth]{infer-call-graph.pdf}
-    \caption{%
-        A~call graph for an illustration of Facebook Infer's
-        analysis process~\cite{inferAISpeech, harmimBP}
-    }
+    \caption{A~\emph{call graph} for an illustration of Facebook Infer's \emph{analysis process}~\cite{harmimBP}}
+    \vspace{-2em}
     \label{fig:inferCallGraph}
 \end{wrapfigure}
-The next part of the architecture is the scheduler, which defines the
-order of the analysis of single functions according to the appropriate
-\emph{call graph}\footnote{\textbf{A~call graph} is a~\emph{directed graph}
-describing call dependencies among functions.}. The scheduler also checks
-if it is possible to analyse some functions simultaneously, which allows
-Facebook Infer to run the analysis in parallel.
+The next part of the architecture is the scheduler, which defines the order of the analysis of single functions according to the appropriate \emph{call graph}\footnote{A~\textbf{call graph} is a~\emph{directed graph} describing call dependencies among functions.}. The scheduler also checks if it is possible to simultaneously analyse some functions, allowing Facebook Infer to run the analysis in parallel.
 
 \begin{example}
-    For demonstrating the order of the analysis in Facebook Infer and its
-    incrementality, assume a~call graph in Figure~\ref{fig:inferCallGraph}.
-    At first, leaf functions \texttt{F5} and \texttt{F6} are analysed.
-    Further, the analysis goes on towards the root of the call
-    graph\,--\,\texttt{F\textsubscript{MAIN}}, while taking into
-    consideration the dependencies denoted by the edges. This order ensures
-    that a~summary is available once a~nested function call is abstractly
-    interpreted within the analysis. When there is a~subsequent code change,
-    only directly changed functions and all the functions up the call path
-    are re-analysed. For instance, if there is a~change of source code of
-    function \texttt{F4}, Facebook Infer triggers re-analysis of
-    functions \texttt{F4}, \texttt{F2}, and \texttt{F\textsubscript{MAIN}}
-    only.
+    \label{ex:AIAnalysis}
+    For demonstrating the order of the analysis in Facebook Infer and its incrementality, assume the call graph given in Figure~\ref{fig:inferCallGraph}. At first, leaf functions \texttt{F5} and \texttt{F6} are analysed. Further, the analysis goes on towards the root of the call graph\,---\,\texttt{F\textsubscript{MAIN}}, while considering the dependencies denoted by the edges. This order ensures that a~summary is available once a~nested function call is abstractly interpreted within the analysis. When there is a~subsequent code change, only directly changed functions and all the functions up the call path are re-analysed. For instance, if there is a~change of source code of function \texttt{F4}, Facebook Infer triggers re-analysis of functions \texttt{F4}, \texttt{F2}, and \texttt{F\textsubscript{MAIN}} only.
 \end{example}
 
-The last part of the architecture consists of a~set of analyser plugins.
-Each plugin performs some analysis by interpreting of SIL instructions.
-The result of the analysis of each function (function summary) is stored to
-the results database. The interpretation of SIL instructions (\emph{commands})
-is done using an \emph{abstract interpreter} (also called a~\emph{control
-interpreter}) and \emph{transfer functions} (also called a~\emph{command
-interpreter}). The transfer functions take an actual \emph{abstract state}
-of an analysed function as an input, and by applying the interpreting command,
-produce a~new abstract state. The abstract interpreter interprets the
-command in an \emph{abstract domain} according to the CFG. This workflow is
-shown in a~simplified form in Figure~\ref{fig:inferAnalysis}.
+The last part of the architecture consists of analyser plugins. Each plugin performs some analysis by interpreting SIL instructions. The result of the analysis of each function (function summary) is stored in the results database. The interpretation of SIL instructions (\emph{commands}) is made using the \emph{abstract interpreter} (also called the \emph{control interpreter}) and \emph{transfer functions} (also called the \emph{command interpreter}). The transfer functions take a~previously generated abstract state of an analysed function as an input, and by applying the interpreting command, produce a~new abstract state. The abstract interpreter interprets the command in an abstract domain according to the CFG. This workflow is shown in a~simplified form in Figure~\ref{fig:inferAnalysis}.
 
 \begin{figure}[hbt]
     \centering
     \includegraphics[width=.65 \linewidth]{infer-analysis.pdf}
-    \caption{%
-        Facebook Infer's abstract interpretation
-        process~\cite{inferAISpeech, harmimBP}
-    }
+    \caption{The Facebook Infer's \emph{abstract interpretation process}~\cite{harmimBP}}
     \label{fig:inferAnalysis}
 \end{figure}
 
@@ -925,31 +684,8 @@ from Section~\ref{sec:contractsBasic} as follows:
 \subsection{Contracts for Concurrency with Spoilers}
 \label{sec:contractsSpoilers}
 
-\cite{staticRaceDetectorTruePositives}
-\cite{inferCSharp}
 \cite{contract}
-\cite{inferBiabduction}
-\cite{controlFlowAnalysisAllen}
-\cite{AIBasedFormalMethodsCousot}
-\cite{AILatticeModelCousot}
-\cite{wideningNarrowingCousot}
-\cite{AIInNutshellCousot}
-\cite{AICousotWeb}
-\cite{inferAISpeech}
-\cite{racerDOnline}
-\cite{inferboOnline}
-\cite{marcinBP}
-\cite{DFAGraphReach}
-\cite{contracts2015}
-\cite{programAnalysisNielson}
-\cite{racerD}
-\cite{realWorldOCaml}
 \cite{deadlockKroening}
-\cite{staticAnalysisRival}
-\cite{staticAnalysisMoller}
-\cite{DFAApproaches}
-\cite{savAI}
-\cite{hoare}
 \cite{anaconda}
 
 
@@ -959,6 +695,8 @@ from Section~\ref{sec:contractsBasic} as follows:
     Atomer - Atomicity Violations Detector%
 }}
 \label{chap:atomer}
+
+\todo{Říct, že Atomer není sound ani complete.}
 
 This chapter describes the principles and limitations of the \emph{static
 analyser} \emph{Atomer} proposed as a~module of \emph{Facebook Infer}
