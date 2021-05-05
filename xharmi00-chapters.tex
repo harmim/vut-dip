@@ -16,17 +16,17 @@ At the same time, in \emph{concurrent programs}, there are often \emph{atomicity
 
 As already mentioned, within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}.} was proposed\,---\,a~\emph{static analyser} for finding some forms of \emph{atomicity violations} implemented as a~Facebook Infer's module. In particular, the stress is put on the \emph{atomic execution of sequences of function calls}, which is often required, e.g., when using specific library calls. For example, assume the function \texttt{replace} from Listing~\ref{list:exampleViolation} that replaces item~\texttt{a} in an array by item~\texttt{b}. It contains atomicity violation\,---\,the index obtained may be outdated when \texttt{set} is executed (because, e.g., a~\emph{concurrent thread} can modify the array), i.e., \texttt{index\_of} and \texttt{set} should be executed atomically. The analysis is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}. Hence, the checker naturally works with sequences. In fact, the idea of checking the atomicity of certain sequences of function calls is inspired by the works of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. In the terminology of~\cite{contracts2017, contracts2015}, the atomicity of specific sequences of calls is the most straightforward (yet very useful in practice) kind of contracts for concurrency. However, while the idea of using sequences in the given context is indeed natural and rather exact, it quite severely limits the \emph{scalability} of the analysis (indeed, even with a~few functions, there can appear numerous different orders in which they can be called). Moreover, the implementation of the first version of Atomer targets mainly \emph{C~programs} using \emph{PThread locks}. Consequently, there was no support for other languages and their locking mechanisms in the first version of Atomer.
 
-\begin{lstlisting}[style=c++, label={list:exampleViolation}, float=hbt, caption={An example of \emph{atomicity violation}}]
-void replace(int a, int b, Array &array) 
+\begin{lstlisting}[style=c, label={list:exampleViolation}, float=hbt, caption={An example of \emph{atomicity violation}}]
+void replace(int *array, int a, int b) 
 {
-    int i = array.index_of(a);
-    if (i >= 0) array.set(i, b);
+    int index = index_of(array, a);
+    if (index >= 0) set(array, index, b);
 }
 \end{lstlisting}
 
 Within this thesis, Atomer has been \emph{significantly improved and extended}. In particular, to improve scalability, working with \emph{sequences} of function calls was \emph{approximated} by working with \emph{sets} of function calls. Furthermore, several new features were implemented: support for \emph{C++ and Java}, including various advanced kinds of \emph{locks} these languages offer (such as \emph{re-entrant locks} or \emph{lock guards}); or a~more precise way of \emph{distinguishing between different lock instances}. Moreover, the analysis has been \emph{parameterised} by function names to concentrate on during the analysis and limits of the number of functions in \emph{critical sections}. These parameters aim to reduce the number of false alarms. Their proposal is based on the author's analysis of false alarms produced by the first Atomer's version. Lastly, new experiments were performed to test capabilities of the new version of Atomer.
 
-The development of the original Atomer started under the H2020 ECSEL projects AQUAS and Arrowhead Tools. The development of its new version is supported by the H2020 ECSEL project VALU3S. It has been discussed with the developers of Facebook Infer too. Parts of the thesis concerning the preliminaries and the basic version of Atomer are partially taken from the thesis~\cite{harmimBP}. Moreover, some preliminary results were also published in the Excel@FIT paper~\cite{excel2021Harmim} written by the author.
+The development of the original Atomer started under the H2020 ECSEL projects AQUAS and Arrowhead Tools. The development of its new version is supported by the H2020 ECSEL project VALU3S. It has been discussed with the developers of Facebook Infer too. Parts of the thesis concerning the preliminaries and the basic version of Atomer are partially taken from the thesis~\cite{harmimBP}. Moreover, some preliminary results were also published in the Excel@FIT'21 paper~\cite{excel2021Harmim} written by the author.
 
 The rest of the thesis is organised as follows. Chapter~\ref{chap:prelim} describes all the topics related to and essential to this thesis (including \emph{static analysis}, \emph{abstract interpretation}, \emph{Facebook Infer}, and \emph{contracts for concurrency}). The original version of \emph{Atomer}, its limitations, and related work are described in Chapter~\ref{chap:atomer}. Subsequently, Chapter~\ref{chap:proposal} presents all the proposed extensions and improvements. The implementation of these extensions is then covered in Chapter~\ref{chap:implement}. The experimental evaluation of the new Atomer's features and other experiments performed within this thesis are discussed in Chapter~\ref{chap:exp} together with the future work. Finally, the thesis is concluded in Chapter~\ref{chap:conc}. Besides, there are included the following appendices. The content of the attached memory media is listed in Appendix~\ref{app:memMedia}. In the end, Appendix~\ref{app:man} serves as an installation and user manual.
 
@@ -46,7 +46,7 @@ This chapter explains the theoretical background that the thesis builds on. It a
 The use of locks and access to shared data in parallel programs involves the risk of errors not known in sequential programming. Much previous work on checking \emph{thread interference} has focused on \emph{data races} (or, in general, on \emph{race conditions}). A~data race occurs when two threads simultaneously access the same data variable, and, at least, one of the access is a~write. In practice, data races are commonly avoided by guarding each data structure with a~lock. Unfortunately, the absence of data races is insufficient to guarantee the absence of errors due to unexpected interference between threads.~\cite{atomizer, atomicityOOP}
 
 \paragraph{Atomicity Violations~\cite{atomizer}}
-Another possible source of errors due to unexpected interference between threads are \emph{atomicity violations}. A~method (or, in general, a~code block) is \emph{atomic} iff, for every (arbitrarily interleaved) program execution, there is an equivalent execution with the same overall behaviour where the atomic method is executed serially. In other words, the method's execution is not interleaved with instructions of other threads. Also, atomicity provides a~powerful, indeed maximal, guarantee of non-interference among threads. In short, atomicity is a~generally applicable and fundamental \emph{correctness property} of multi-threaded code. Nevertheless, commonly used \emph{testing approaches} are deficient in verifying atomicity. While testing may reveal a~concrete interleaving in which an atomicity violation causes erroneous behaviour, the exponentially large amount of possible interleavings does fundamentally impossible to get suitable \emph{test coverage}. Research results~\cite{contracts2017, atomizer, contracts2015, atomicityOOP} have shown that defects related to atomicity are common, even in well-tested libraries.
+Another possible source of errors due to unexpected interference between threads are \emph{atomicity violations}. A~method (or, in general, a~code block) is \emph{atomic} iff, for every (arbitrarily interleaved) program execution, there is an equivalent execution with the same overall behaviour where the atomic method is executed serially. In other words, the method's execution is not interleaved with instructions of other threads. Also, atomicity provides a~powerful, indeed maximal, guarantee of non-interference among threads. In short, atomicity is a~generally applicable and fundamental \emph{correctness property} of multi-threaded code. Nevertheless, commonly used \emph{testing approaches} are deficient in verifying atomicity. While testing may reveal a~concrete interleaving in which atomicity violation causes erroneous behaviour, the exponentially large amount of possible interleavings does fundamentally impossible to get suitable \emph{test coverage}. Research results~\cite{contracts2017, atomizer, contracts2015, atomicityOOP} have shown that defects related to atomicity are common, even in well-tested libraries.
 
 It has to be described which blocks of code should be executed atomically to detect atomicity violations. Algorithms for the detection of this error often deal only with the atomicity of operations on variables. Examples of a~complex description of \emph{atomicity requirements} are \emph{contracts} that require atomicity of the execution of certain methods/functions (defined in Section~\ref{sec:contracts}).~\cite{muzikovskaBP}
 
@@ -178,13 +178,21 @@ The above explanation of static analysis is quite general. Thus, even model chec
 
     \begin{tabular}{|l|c|c|c|c|c|}
         \hline
+
         \textbf{Technique} & \textbf{Automatic} & \textbf{Sound} & \textbf{Complete} & \textbf{Object} & \textbf{Approach} \\ \hline \hline
+
         Testing & Yes & No & Yes & Program & Dynamic \\ \hline
+
         Deductive & \multirow{2}{*}{No} & \multirow{2}{*}{Yes} & \multirow{2}{*}{Yes/No} & \multirow{2}{*}{Model/Program} & \multirow{2}{*}{Static} \\
+
         verification & & & & & \\ \hline
+
         Model checking & Yes & Yes & Yes/No & Model/Program & Static \\ \hline
+
         Conservative & \multirow{2}{*}{Yes} & \multirow{2}{*}{Yes} & \multirow{2}{*}{No} & \multirow{2}{*}{Program} & \multirow{2}{*}{Static} \\
+
         static analysis & & & & & \\ \hline
+
         Bug finding & Yes & No & No & Program & Static \\ \hline
     \end{tabular}
 
@@ -209,7 +217,7 @@ Patrick Cousot intuitively and informally illustrates abstract interpretation in
 \begin{figure}[hbt]
     \centering
 
-    \begin{subfigure}[hbt]{.49 \linewidth}
+    \begin{subfigure}[t]{.49 \linewidth}
         \centering
         \includegraphics[width=1 \linewidth]{ai-1.png}
         \caption{The \emph{concrete semantics} of programs with \\ \emph{forbidden zones}}
@@ -218,7 +226,7 @@ Patrick Cousot intuitively and informally illustrates abstract interpretation in
 %
     \hfill
 %
-    \begin{subfigure}[hbt]{.49 \linewidth}
+    \begin{subfigure}[t]{.49 \linewidth}
         \centering
         \includegraphics[width=1 \linewidth]{ai-2.png}
         \caption{The \emph{abstract semantics} of programs with \\ \emph{imprecise abstraction}}
@@ -438,209 +446,84 @@ The last part of the architecture consists of analyser plugins. Each plugin perf
 \section{Contracts for Concurrency}
 \label{sec:contracts}
 
-\todo{Přidat něco z~prací Moniky Mužíkovské.}
+This section introduces the concept of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. Examples and listings in the section are pieces of programs written in the C~language.
 
-This section introduces the concept of \emph{contracts for concurrency}
-described in~\cite{contracts2015, contracts2017}. Parts of this section are
-taken from the thesis~\cite{harmimBP}. Listings in this section are
-pieces of programs written in ANSI~C.
+Respecting the \emph{protocol} of a~software module\,---\,that defines which \emph{sequences of functions} are legal to invoke\,---\,is one of the requirements for the correct behaviour of the module. For example, a~module that deals with a~file system typically requires that a~programmer using this module should call a~function \texttt{open} at first, followed by an optional number of functions \texttt{read} and \texttt{write}, and at last, call a~function \texttt{close}. A~program utilising such a~module that does not follow this protocol is erroneous. The methodology of \emph{design by contract}~\cite{contract} requires programs to meet such well-defined behaviours.~\cite{contracts2015}
 
-Respecting the \emph{protocol} of a~software module\,---\,defines
-which \emph{sequences of functions} are legal to invoke\,---\,is one of the
-requirements for the correct behaviour of the module. For example, a~module
-that deals with a~file system typically requires that a~programmer using
-this module should call function \texttt{open} at first, followed by an
-optional number of functions \texttt{read} and \texttt{write}, and at last,
-call function \texttt{close}. A~program utilising such a~module that does
-not follow this protocol is erroneous. The methodology of \emph{design by
-contract} (described in~\cite{contract}) requires programs to meet
-such well-defined behaviours.~\cite{contracts2015}
+In \emph{concurrent programs}, contracts for concurrency allow one\,---\,in the simplest case\,---\,to specify sequences of functions that are needed to be \emph{executed atomically} in order to avoid \emph{atomicity violations}. In general, contracts for concurrency specify sets of sequences of calls called \emph{spoilers} and sets of sequences of calls called \emph{targets}. It is then required that no target overlaps fully with any spoiler. A developer may manually specify such contracts or automatically generate them by a program (analyser). These contracts can be used to verify the correctness of programs as well as they can serve as helpful documentation.
 
-In \emph{concurrent programs}, contracts for concurrency allow
-one\,---\,in the simplest case\,---\,to specify \emph{sequences of
-functions} that are needed to be \emph{executed atomically} in order to
-avoid \emph{atomicity violations}. In general, contracts for concurrency
-specify sets of sequences of calls that are called \emph{spoilers} and sets
-of sequences of calls that are called \emph{targets}, and it is then
-required that no target overlaps fully with any spoiler. Such contracts may
-be manually specified by a~developer or they may be automatically generated
-by a~program (analyser). These contracts can be used to verify the
-correctness of programs as well as they can serve as helpful documentation.
-
-Section~\ref{sec:contractsBasic} defines the notion of \emph{basic contracts
-for concurrency}. Further, Section~\ref{sec:contractsParams} defines
-contracts extended to consider the \emph{data flow} between functions
-(where a~sequence of function calls must be atomic only if they handle the
-same data). The above mentioned more general contracts for concurrency with
-spoilers and targets, which essentially extend the basic contracts with
-some \emph{contextual information}, are not presented here in detail
-(they are explained in the paper~\cite{contracts2017}). The reason is that
-the proposed analyser\,---\,\emph{Atomer}\,---\,so far concentrates on the
-basic contracts.
+Section~\ref{sec:contractsBasic} defines the notion of \emph{basic contracts for concurrency}. Further, Section~\ref{sec:contractsParams} defines contracts extended to consider the \emph{data flow} between functions, where a~sequence of function calls must be atomic only if they handle the same data. Finally, Section~\ref{sec:contractsSpoilers} presents those mentioned above more general contracts for concurrency with spoilers and targets, which essentially extend the basic contracts with some \emph{contextual information}.
 
 \subsection{Basic Contracts for Concurrency}
 \label{sec:contractsBasic}
 
-In~\cite{contracts2017, contracts2015}, a~\emph{basic contract} is
-formally defined as follows. Let~$ \Sigma_\mathbb{M} $~be a~set of all
-function names of a~software module. A~contract is
-a~set~$ \mathbb{R} $~of \emph{clauses} where each clause
-$ \varrho\ \in \mathbb{R} $ is a~\emph{star-free regular
-expression}\footnote{\textbf{Star-free regular expressions} are
-regular expressions using only the \emph{concatenation operators}
-and the \emph{alternative operators} ($ | $), without the
-\emph{Kleene star operator} ($ * $).} over~$ \Sigma_\mathbb{M} $.
-A~\emph{contract violation} occurs if any of the sequences expressed by
-the contract clauses are interleaved with the execution of functions
-from~$ \Sigma_\mathbb{M} $, in other words, each sequence specified by
-any clause~$ \varrho $~must be executed atomically, otherwise, there
-is a~violation of the contract. The number of sequences defined by
-a~contract is finite since the contract is the union of
-\emph{star-free languages}.
+In~\cite{contracts2017, contracts2015}, a~\emph{basic contract for concurrency} is formally defined as follows. Let~$ \Sigma_\mathbb{M} $ be a~set of all function names of a~software module~$ \mathbb{M} $. A~contract is a~set~$ \mathbb{R} $ of \emph{clauses}, where each clause $ \varrho \in \mathbb{R} $ is a~\emph{star-free regular expression}\footnote{\textbf{Star-free regular expressions} are regular expressions that use only the \emph{concatenation operator} and the \emph{alternative operator} (\texttt{|}), without the \emph{Kleene star operator} (\texttt{\textsuperscript{*}}).} over~$ \Sigma_\mathbb{M} $. A~\emph{contract violation} occurs if any of the sequences expressed by the contract clauses are interleaved with the execution of functions from~$ \Sigma_\mathbb{M} $. In other words, each sequence specified by any clause~$ \varrho $ must be executed atomically. Otherwise, there is a~violation of the contract. The number of sequences defined by a~contract is finite since the contract is a~union of \emph{star-free languages}.
 
 \begin{example}
-    Consider the following example from~\cite{contracts2017, contracts2015}.
-    Assume that there is a~module implementing a~resizable array
-    implementing the following interface functions:
-    \begin{enumerate}[label={$ f_{\arabic*} $:}]
+    \label{ex:contractsBasic}
+    Consider the following example from~\cite{contracts2017, contracts2015}. Assume a~module~$ \mathbb{M} $ implementing a~resizable array of integers with the following interface functions $ \Sigma_\mathbb{M} = \{ $\texttt{add, contains, index\_of, get, set, remove, size}$ \} $ defined as:
+    \begin{enumerate}[label=]
         \tt
 
-        \item
-            \textcolor{bluekeywords}{void} add(%
-                \textcolor{bluekeywords}{char} *array,
-                \textcolor{bluekeywords}{char} element%
-            )
+        \item \kw{void} add(\kw{int} *array, \kw{int} element)
 
-        \item
-            \textcolor{bluekeywords}{bool} contains(%
-                \textcolor{bluekeywords}{char} *array,
-                \textcolor{bluekeywords}{char} element%
-            )
+        \item \kw{bool} contains(\kw{int} *array, \kw{int} element)
 
-        \item
-            \textcolor{bluekeywords}{int} index\_of(%
-                \textcolor{bluekeywords}{char} *array,
-                \textcolor{bluekeywords}{char} element%
-            )
+        \item \kw{int} index\_of(\kw{int} *array, \kw{int} element)
 
-        \item
-            \textcolor{bluekeywords}{char} get(%
-                \textcolor{bluekeywords}{char} *array,
-                \textcolor{bluekeywords}{int} index%
-            )
+        \item \kw{int} get(\kw{int} *array, \kw{int} index)
 
-        \item
-            \textcolor{bluekeywords}{void} set(%
-                \textcolor{bluekeywords}{char} *array,
-                \textcolor{bluekeywords}{int} index,
-                \textcolor{bluekeywords}{char} element%
-            )
+        \item \kw{void} set(\kw{int} *array, \kw{int} index, \kw{int} element)
 
-        \item
-            \textcolor{bluekeywords}{void} remove(%
-                \textcolor{bluekeywords}{char} *array,
-                \textcolor{bluekeywords}{int} index%
-            )
+        \item \kw{void} remove(\kw{int} *array, \kw{int} index)
 
-        \item
-            \textcolor{bluekeywords}{int} size(%
-                \textcolor{bluekeywords}{char} *array%
-            )
+        \item \kw{int} size(\kw{int} *array)
     \end{enumerate}
+    The module's contract contains clauses $ \mathbb{R} = \{\varrho_1, \varrho_2, \varrho_3, \varrho_4\} $ such that:
+    \begin{enumerate}[label={($ \varrho_{\arabic*} $)}]
+        \item \texttt{contains index\_of}
+            \begin{addmargin}[1em]{0em}
+                The execution of \texttt{contains} followed by the execution of \texttt{index\_of} should be atomic. Otherwise, the program may fail to get the index because after checking the presence of an element in an array, it can be removed by some concurrent thread.
+            \end{addmargin}
 
-    The module's contract contains the following clauses:
-    \begin{enumerate}[label={$ (\varrho_{\arabic*}) $}]
-        \item
-            \texttt{contains index\_of}
-            \begin{itemize}[label=]
-                \item
-                    The execution of \texttt{contains} followed by the
-                    execution of \texttt{index\_of} should be atomic.
-                    Otherwise, the program may fail to get the index,
-                    because after verification of the presence of an element
-                    in an array, it can be removed by some \emph{concurrently
-                    running process}.
-            \end{itemize}
+        \item \texttt{index\_of (\,get\,|\,set\,|\,remove\,)}
+            \begin{addmargin}[1em]{0em}
+                The execution of \texttt{index\_of} followed by the execution of \texttt{get}, \texttt{set}, or \texttt{remove} should be atomic. Otherwise, the received index may be outdated when applied to address an array element because a~concurrent modification of the array may shift the element's position.
+            \end{addmargin}
 
-        \item
-            \texttt{index\_of (get | set | remove)}
-            \begin{itemize}[label=]
-                \item
-                    The execution of \texttt{index\_of} followed by the
-                    execution of \texttt{get}, \texttt{set}, or
-                    \texttt{remove} should be atomic. Otherwise, the received
-                    index may be outdated when it is applied to the address
-                    of an element, because a~concurrent modification of an
-                    array may shift the position of the element.
-            \end{itemize}
+        \item \texttt{size (\,get\,|\,set\,|\,remove\,)}
+            \begin{addmargin}[1em]{0em}
+                The execution of \texttt{size} followed by the execution of \texttt{get}, \texttt{set}, or \texttt{remove} should be atomic. Otherwise, an array may be empty when accessing it because of a~concurrent change of the array. This can be an issue since a~given index is not in a~valid range anymore (e.g., testing \texttt{index < size}).
+            \end{addmargin}
 
-        \item
-            \texttt{size (get | set | remove)}
-            \begin{itemize}[label=]
-                \item
-                    The execution of \texttt{size} followed by the execution of
-                    \texttt{get}, \texttt{set}, or \texttt{remove} should be
-                    atomic. Otherwise, the size of an array may be void when
-                    accessing an array, because of a~concurrent change of the
-                    array. This can be an issue since a~given index is not in
-                    a~valid range anymore (e.g., testing
-                    \texttt{index < size}).
-            \end{itemize}
-
-        \item
-            \texttt{add (get | index\_of)}
-            \begin{itemize}[label=]
-                \item
-                    The execution of \texttt{add} followed by the execution of
-                    \texttt{get} or \texttt{index\_of} should be atomic.
-                    Otherwise, the added element needs no longer exist or its
-                    position in an array can be changed, when the program
-                    tries to obtain information about it.
-            \end{itemize}
+        \item \texttt{add index\_of}
+            \begin{addmargin}[1em]{0em}
+                The execution of \texttt{add} followed by the execution of \texttt{index\_of} should be atomic. Otherwise, the added element needs no longer exist in an array.
+            \end{addmargin}
     \end{enumerate}
 \end{example}
 
 \subsection{Contracts for Concurrency with Parameters}
 \label{sec:contractsParams}
 
-The above definition of basic contracts is quite limited in some
-circumstances and can consider valid programs as erroneous (reports
-\emph{false alarms}). Hence, in this section, there is defined an extension
-of basic contracts\,---\,\emph{contracts with parameters}\,---\,which takes
-into consideration the data flow within function calls.
+The above definition of basic contracts for concurrency is quite limited in some circumstances and can consider valid programs as erroneous (i.e., \emph{false alarms} may be reported). Hence, in this section, there is introduced an extension of basic contracts\,---\,\emph{contracts for concurrency with parameters} (defined in~\cite{contracts2017, contracts2015})\,---\,which takes into consideration the \emph{data flow} within function calls.
 
 \begin{example}
-    Consider the following example from~\cite{contracts2017, contracts2015},
-    given Listing~\ref{list:contractsReplace}. There is a~function
-    \texttt{replace} that replaces item~\texttt{a}~in an array by
-    item~\texttt{b}. The implementation of this function comprises two
-    atomicity violations:
-    \begin{enumerate}[label={(\roman*)}]
-        \item
-            when \texttt{index\_of} is invoked, item~\texttt{a}~does not
-            need to be in the array anymore;
+    Consider the following example from~\cite{contracts2017, contracts2015}, given Listing~\ref{list:contractsReplace}. There is the function \texttt{replace} that replaces item~\texttt{a}~in an array by item~\texttt{b}. The implementation of this function comprises two atomicity violations:
+    \begin{enumerate}
+        \item when \texttt{index\_of} is invoked, item~\texttt{a} does not need to be in the array anymore;
 
-        \item
-            the acquired index can be obsolete when \texttt{set} is invoked.
+        \item and the acquired index can be obsolete when \texttt{set} is executed.
     \end{enumerate}
-    A~basic contract could cover this scenario by the clause~$ \varrho_5 $:
-    $$ (\varrho_5)\ \text{\texttt{contains index\_of set}} $$
-    Nevertheless, this definition is too restrictive because the functions
-    are required to be executed atomically only if \texttt{contains} and
-    \texttt{index\_of} have the same arguments \texttt{array} and
-    \texttt{element}, \texttt{index\_of} and \texttt{set} have the same
-    argument \texttt{array}, and the returned value of \texttt{index\_of} is
-    used as the argument \texttt{index} of the function \texttt{set}.
+    A~basic contract could cover this scenario by the following clause:
+    $$ 
+        (\varrho_5)\ \text{\texttt{contains index\_of set}}
+    $$
+    It can be obtained from the composition of clauses~$ \varrho_1 $ and~$ \varrho_2 $. Nevertheless, this definition is too restrictive because the functions are required to be executed atomically only if \texttt{contains} and \texttt{index\_of} have the same arguments \texttt{array} and \texttt{element}; \texttt{index\_of} and \texttt{set} have the same argument \texttt{array}; and the returned value of \texttt{index\_of} is used as the argument \texttt{index} of the function \texttt{set}.
 \end{example}
 
-\begin{lstlisting}[
-    style=c, label={list:contractsReplace}, float=hbt,
-    caption={%
-        An example of an atomicity violation with data
-        dependencies~\cite{contracts2017}
-    }
-]
-void replace(char *array, char a, char b)
+\begin{lstlisting}[style=c, label={list:contractsReplace}, float=hbt, caption={An example of atomicity violation with \emph{data dependencies}~\cite{contracts2017, contracts2015}}]
+void replace(int *array, int a, int b)
 {
     if (contains(array, a))
     {
@@ -650,43 +533,89 @@ void replace(char *array, char a, char b)
 }
 \end{lstlisting}
 
-In order to respect function call \emph{parameters} and \emph{return values}
-of functions in contracts, the basic contracts are extended by
-dependencies among functions in~\cite{contracts2017, contracts2015}
-as follows. Function call parameters and return values are expressed as
-\emph{meta-variables}. Further, if a~contract should be required to be
-observed exclusively if the same object emerges as an argument or as the
-return value of multiple calls in a~given call sequence, it may be denoted
-by using the same meta-variable at the position of all these occurrences of
-parameters and return values.
+To respect function call \emph{parameters} and \emph{return values} of functions in contracts, the basic contracts are extended by dependencies among functions in~\cite{contracts2017, contracts2015} as follows. Function call parameters and return values are expressed as \emph{meta-variables}. Further, if a~contract should be required to be observed exclusively if the same object emerges as an argument or as the return value of multiple calls in a~given call sequence, it may be denoted by using the same meta-variable at the position of all these occurrences of parameters and return values.
 
-Clause~$ \varrho_5 $~can be extended as follows (repeated application of
-meta-variables \texttt{X/Y/Z} requiring the same objects
-\texttt{o\textsubscript{1}/o\textsubscript{2}/o\textsubscript{3}} to be used
-at the positions of \texttt{X/Y/Z}):
+Clause~$ \varrho_5 $~can be extended as follows (repeated application of meta-variables \texttt{X/Y/Z} requires the same objects $ o_1/o_2/o_3 $ to be used at the positions of \texttt{X/Y/Z}, respectively; and the underscore indicates a~\emph{free meta-variable} that does not restrict
+the contract clause):
 $$
-    (\varrho'_5)\ \text{\texttt{%
-        contains(X,Y) Z=index\_of(X,Y) set(X,Z,\_)
-    }}
+    (\varrho^\prime_5)\ \text{\texttt{contains(X,\,Y) Z\,=\,index\_of(X,\,Y) set(X,\,Z,\,\_)}}
 $$
-The underscore indicates a~\emph{free meta-variable} that does not restrict
-the contract clause.
 
-With the extension described above, it is possible to extend the contract
-from Section~\ref{sec:contractsBasic} as follows:
-\begin{enumerate}[label={$ (\varrho'_{\arabic*}) $}]
-    \tt
+\begin{example}
+    With the extension described above, it is possible to extend the contract from Example~\ref{ex:contractsBasic} to capture the dependencies between function calls as follows:
+    \begin{enumerate}[label={($ \varrho^\prime_{\arabic*} $)}]
+        \tt
+    
+        \item contains(X,\,Y) index\_of(X,\,Y)
 
-    \item contains(X,Y) index\_of(X,Y)
-    \item Y=index\_of(X,\_) (get(X,Y) | set(X,Y,\_) | remove(X,Y))
-\end{enumerate}
+        \item Y\,=\,index\_of(X,\,\_) (\,get(X,\,Y)\,|\,set(X,\,Y,\,\_)\,|\,remove(X,\,Y)\,)
+        
+        \item size(X) (\,get(X,\,\_)\,|\,set(X,\,\_,\,\_)\,|\,remove(X,\,\_)\,)
+        
+        \item add(X,\,Y) index\_of(X,\,Y)
+    \end{enumerate}
+\end{example}
 
 \subsection{Contracts for Concurrency with Spoilers}
 \label{sec:contractsSpoilers}
 
-\cite{contract}
-\cite{deadlockKroening}
-\cite{anaconda}
+Interleaving a~sequence of function calls from a~contract clause (considering the basic contracts for concurrency or contracts with parameters) with some function calls of a~given module can cause atomicity violations. At the same time, this is not the case for some other function calls from the module. However, this is not possible to describe in the contracts introduced so far. For instance, clause ($ \varrho_1 $) \texttt{contains index\_of} requires that this sequence of calls must always be performed atomically, i.e., it does not matter which functions are executed by other threads. Thus, interleaving the execution of this sequence with, e.g., \texttt{remove} or \texttt{get} is a~contract violation. However, in effect, only the execution of \texttt{remove} may be problematic, while the execution of \texttt{get} may not.
+
+The paper~\cite{contracts2017} proposes a~solution to the above issue\,---\,an extension of the basic contracts for concurrency with \emph{contextual information}\,---\,allowing one to describe in which context the contract clauses should be enforced. Each clause of the basic contract is now called \emph{target}. For each target, there is a~set of so-called \emph{spoilers} that restrict its application. That is, a~spoiler is a~sequence of function calls that can violate its target. In the end, it has to be ensured that each target is executed atomically w.r.t. its spoilers. Assuming the earlier example, let \texttt{contains index\_of} be the target clause. Then, a~possible spoiler is \texttt{remove}. The syntax for this description is as follows: \texttt{contains index\_of}\ $ \leftsquigarrow $\ \texttt{remove}.
+
+Formally, let~$ \Sigma_\mathbb{M} $ be a~set of all function names of a~software module~$ \mathbb{M} $. Further, let~$ \mathbb{R} $ be a~set of \emph{target clauses}, where each clause $ \varrho \in \mathbb{R} $ is a~star-free regular expression over~$ \Sigma_\mathbb{M} $. Let~$ \mathbb{S} $ be a~set of \emph{spoiler clauses}, where each clause $ \sigma \in \mathbb{S} $ is a~star-free regular expression over~$ \Sigma_\mathbb{M} $. Moreover, let $ \Sigma_\mathbb{R} \subseteq \Sigma_\mathbb{M} $ and $ \Sigma_\mathbb{S} \subseteq \Sigma_\mathbb{M} $ be the alphabets of function names used in the target or spoiler clauses, respectively. Then, a~contract is a~relation $ \mathbb{C} \subseteq \mathbb{R} \times \mathbb{S} $, which states for each target the spoilers that can cause atomicity violations. One spoiler may violate more than one target, and, on the contrary, one target may be violated by more than one spoiler. A~contract is violated iff any executed sequence expressed by a~target $ \varrho \in \mathbb{R} $ is \emph{completely interleaved} with the execution of the sequence representing its spoiler, i.e., $ \sigma \in \mathbb{C}(\varrho) $. A~target sequence~$ r $ is completely interleaved by a~spoiler sequence~$ s $ iff the execution of~$ r $ \emph{starts before} the execution of~$ s $, and the execution of~$ s $ \emph{ends before} the execution of~$ r $. \emph{Partial interleavings} of targets and spoilers are here not considered to cause an error. However, if needed, this can be resolved by adding a~new target clause with an appropriate spoiler. Whether a~sequence is executed before another one is, is defined using the so-called \emph{\uv{happened before} relation}~($ \xrightarrow{\mathtt{hb}} $)~\cite{lamportHb}. Complete interleaving is illustrated in Figure~\ref{fig:contract1}, and partial interleavings are shown in Figures~\ref{fig:contract2} and~\ref{fig:contract3}.
+
+\begin{figure}[hbt]
+    \centering
+
+    \begin{subfigure}[t]{.31 \linewidth}
+        \centering
+        \includegraphics[width=.55 \linewidth]{contract1.pdf}
+        \caption{\emph{Complete interleaving}: \\ the contract is violated}
+        \label{fig:contract1}
+    \end{subfigure}
+%
+    \hfill
+%
+    \begin{subfigure}[t]{.31 \linewidth}
+        \centering
+        \includegraphics[width=.55 \linewidth]{contract2.pdf}
+        \caption{\emph{Partial interleaving}: \\ the contract is not violated \\ ($ s $ \emph{started before}~$ r $)}
+        \label{fig:contract2}
+    \end{subfigure}
+%
+    \hfill
+%
+    \begin{subfigure}[t]{.31 \linewidth}
+        \centering
+        \includegraphics[width=.55 \linewidth]{contract3.pdf}
+        \caption{\emph{Partial interleaving}: \\ the contract is not violated \\ ($ s $ \emph{ended after}~$ r $)}
+        \label{fig:contract3}
+    \end{subfigure}
+
+    \caption{A~\emph{contract violation} demonstration with \emph{target and spoiler interleavings}. In each sub-figure, there is a~thread~$ t_1 $ that executes a~target sequence $ r = \mathtt{f\ g} $, and a~thread~$ t_2 $ that executes a~spoiler sequence $ s = \mathtt{x\ y} $. Consequently, there is the following contract: $ \mathtt{f\ g}\ \leftsquigarrow\ \mathtt{x\ y} $ ~\cite{muzikovskaBP}}
+\end{figure}
+
+\begin{example}
+    With the extension of spoilers, the contract from Example~\ref{ex:contractsBasic} can be refined with contextual information to forbid \emph{unsafe interleavings} as follows (all other interleavings, not captured by spoilers, are considered safe):
+    \begin{enumerate}[label={($ \varrho^{\prime\prime}_{\arabic*} $)}]
+        \tt
+    
+        \item contains index\_of\ $ \leftsquigarrow $\ remove\,|\,set
+
+        \item index\_of (\,get\,|\,set\,|\,remove\,) $ \leftsquigarrow $\ remove\,|\,set
+        
+        \item size (\,get\,|\,set\,|\,remove\,) $ \leftsquigarrow $\ remove
+        
+        \item add index\_of $ \leftsquigarrow $\ remove\,|\,set
+    \end{enumerate}
+\end{example}
+
+Finally, it is possible to combine the extension of contracts for concurrency with spoilers and with parameters. It can be demonstrated by the following clause:
+$$
+    \text{\texttt{Y\,=\,index\_of(X,\,\_) get(X,\,Y)}}\ \leftsquigarrow\ \text{\texttt{remove(X,\,\_)}}
+$$
+The clause requires sequences of \texttt{index\_of} and \texttt{get} to be executed atomically, but only when dealing with the same element~\texttt{X} and index~\texttt{Y}, and only w.r.t. the concurrent execution of \texttt{remove}. Note that the argument \texttt{index} of \texttt{remove} is not restricted, because any concurrent removal may cause atomicity violation\,---\,by either removing an element on index~\texttt{Y} or by shifting its position.
 
 
 
@@ -697,6 +626,9 @@ from Section~\ref{sec:contractsBasic} as follows:
 \label{chap:atomer}
 
 \todo{Říct, že Atomer není sound ani complete.}
+
+\cite{deadlockKroening}
+\cite{anaconda}
 
 This chapter describes the principles and limitations of the \emph{static
 analyser} \emph{Atomer} proposed as a~module of \emph{Facebook Infer}
@@ -1245,13 +1177,13 @@ handled analogically as in \textbf{Phase~1}. For detailed examples,
 see~\cite{harmimBP}.
 
 \begin{example}
-    To demonstrate the detection of an atomicity violation,
+    To demonstrate the detection of atomicity violation,
     assume the functions~\texttt{f} and~\texttt{g} from
     Listing~\ref{list:AtomerPhase2}. The set of atomic sequences
     of the function~\texttt{f} with the summary~$ \chi_\mathtt{f}
     = (\boldsymbol{B}, AB) $ is $ \boldsymbol{B} = {\{(\mathtt{b},
     \mathtt{c})\}} $, thus $ \Omega = {\{(\mathtt{b}, \mathtt{c})\}} $.
-    In the function~\texttt{g}, an atomicity violation is detected
+    In the function~\texttt{g}, atomicity violation is detected
     because the pair of functions~\texttt{b} and~\texttt{c} is not
     called atomically (under a~lock).
 \end{example}
@@ -1326,7 +1258,7 @@ more precise to consider as atomicity violations such sequences that could be
 violated only by particular (\uv{dangerous}) function calls, not by any calls.
 For example, assume that there is the following sequence of functions called
 atomically: \texttt{f(); g();}. While somewhere else, these functions are not
-called atomically, it does not necessarily mean that it is an atomicity
+called atomically, it does not necessarily mean that it is atomicity
 violation because, in this particular context, non of the \uv{dangerous}
 functions can be executed by any concurrent thread. The \emph{extended
 contracts with spoilers} formally describe these cases in
@@ -1968,7 +1900,7 @@ abstract state is changed as follows: $ s_\mathtt{g} =
     \texttt{b} that should be called atomically, i.e., $ \Omega =
     {\{(\mathtt{a}, \mathtt{b})\}} $. Before the extension of
     the distinguishment of multiple locks used, the analysis
-    would report an atomicity violation of these functions (line~6).
+    would report atomicity violation of these functions (line~6).
     That is because the locks are not distinguished, and the
     unlock of \texttt{lockA} (line~5) would unlock everything.
     On the other hand, after the extension, there are not reported

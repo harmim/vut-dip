@@ -1353,6 +1353,18 @@ Management}{\@fit@EN}%
 \newcommand{\phony}[1]{\textcolor{gray}{#1}}
 \newcommand{\blind}[1]{\iftodo\textcolor{gray}{\Blindtext[#1]}\fi}
 
+% Useful macros.
+\newcommand{\kw}[1]{\textcolor{bluekeywords}{#1}}
+
+% \leftsquigarrow
+\makeatletter
+\newcommand{\reflect@squig}[2]{%
+  \reflectbox{$\m@th#1\rightsquigarrow$}%
+}
+\providecommand{\leftsquigarrow}{%
+  \mathrel{\mathpalette\reflect@squig\relax}%
+}
+\makeatother
 
 % Left aligned column with a fixed width
 \newcolumntype{L}[1]{>{\RaggedRight\hspace{0pt}}p{#1}}
