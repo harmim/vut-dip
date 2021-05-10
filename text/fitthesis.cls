@@ -1310,7 +1310,7 @@ Management}{\@fit@EN}%
 }
 
 \lstdefinestyle{c++}{
-  language=c,
+  language=c++,
   showspaces=false,
   showtabs=false,
   breaklines=true,
@@ -1355,6 +1355,11 @@ Management}{\@fit@EN}%
 
 % Useful macros.
 \newcommand{\kw}[1]{\textcolor{bluekeywords}{#1}}
+\newcommand{\bA}[1]{\textcolor{blue}{#1}}
+\newcommand{\bB}[1]{\textcolor{violet}{#1}}
+\newcommand{\bC}[1]{\textcolor{red}{#1}}
+\newcommand{\bD}[1]{\textcolor{green}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
 
 % \leftsquigarrow
 \makeatletter

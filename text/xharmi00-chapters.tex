@@ -14,9 +14,9 @@ Recently, Facebook introduced \emph{Facebook Infer}: an \emph{open-source} tool 
 
 At the same time, in \emph{concurrent programs}, there are often \emph{atomicity requirements} for the execution of specific sequences of instructions. Violating these requirements may cause many kinds of problems, such as unexpected behaviour, exceptions, segmentation faults, or other failures. \emph{Atomicity violations} are usually not verified by compilers, unlike syntactic or some sorts of semantic rules. Moreover, atomicity requirements, in most cases, are not even documented at all. Therefore, in the end, programmers themselves must abide by these requirements and usually lack any tool support. Furthermore, in general, it is difficult to avoid errors in \emph{atomicity-dependent programs}, especially in large projects, and even more laborious and time-consuming is finding and fixing them. The papers~\cite{contracts2017, atomizer, contracts2015, atomicityOOP} discuss the importance of \emph{atomicity-related bugs}, and they also show some bugs in \emph{real-world programs}. Unfortunately, tool support for automatically discovering such kinds of errors is currently minimal.
 
-As already mentioned, within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}.} was proposed\,---\,a~\emph{static analyser} for finding some forms of \emph{atomicity violations} implemented as a~Facebook Infer's module. In particular, the stress is put on the \emph{atomic execution of sequences of function calls}, which is often required, e.g., when using specific library calls. For example, assume the function \texttt{replace} from Listing~\ref{list:exampleViolation} that replaces item~\texttt{a} in an array by item~\texttt{b}. It contains atomicity violation\,---\,the index obtained may be outdated when \texttt{set} is executed (because, e.g., a~\emph{concurrent thread} can modify the array), i.e., \texttt{index\_of} and \texttt{set} should be executed atomically. The analysis is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}. Hence, the checker naturally works with sequences. In fact, the idea of checking the atomicity of certain sequences of function calls is inspired by the works of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. In the terminology of~\cite{contracts2017, contracts2015}, the atomicity of specific sequences of calls is the most straightforward (yet very useful in practice) kind of contracts for concurrency. However, while the idea of using sequences in the given context is indeed natural and rather exact, it quite severely limits the \emph{scalability} of the analysis (indeed, even with a~few functions, there can appear numerous different orders in which they can be called). Moreover, the implementation of the first version of Atomer targets mainly \emph{C~programs} using \emph{PThread locks}. Consequently, there was no support for other languages and their locking mechanisms in the first version of Atomer.
+As already mentioned, within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}.} was proposed\,---\,a~\emph{static analyser} for finding some forms of \emph{atomicity violations} implemented as a~Facebook Infer's module. In particular, the stress is put on the \emph{atomic execution of sequences of function calls}, which is often required, e.g., when using specific library calls. For example, assume the function \texttt{replace} from Listing~\ref{list:exampleViolation} that replaces item~\texttt{a} in an array by item~\texttt{b}. It contains an atomicity violation\,---\,the index obtained may be outdated when \texttt{set} is executed (because, e.g., a~\emph{concurrent thread} can modify the array), i.e., \texttt{index\_of} and \texttt{set} should be executed atomically. The analysis is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}. Hence, the checker naturally works with sequences. In fact, the idea of checking the atomicity of certain sequences of function calls is inspired by the works of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. In the terminology of~\cite{contracts2017, contracts2015}, the atomicity of specific sequences of calls is the most straightforward (yet very useful in practice) kind of contracts for concurrency. However, while the idea of using sequences in the given context is indeed natural and rather exact, it quite severely limits the \emph{scalability} of the analysis (indeed, even with a~few functions, there can appear numerous different orders in which they can be called). Moreover, the implementation of the first version of Atomer targets mainly \emph{C~programs} using \emph{PThread locks}. Consequently, there was no support for other languages and their locking mechanisms in the first version of Atomer.
 
-\begin{lstlisting}[style=c, label={list:exampleViolation}, float=hbt, caption={An example of \emph{atomicity violation}}]
+\begin{lstlisting}[style=c, label={list:exampleViolation}, float=hbt, caption={An example of an \emph{atomicity violation}}]
 void replace(int *array, int a, int b) 
 {
     int index = index_of(array, a);
@@ -46,7 +46,7 @@ This chapter explains the theoretical background that the thesis builds on. It a
 The use of locks and access to shared data in parallel programs involves the risk of errors not known in sequential programming. Much previous work on checking \emph{thread interference} has focused on \emph{data races} (or, in general, on \emph{race conditions}). A~data race occurs when two threads simultaneously access the same data variable, and, at least, one of the access is a~write. In practice, data races are commonly avoided by guarding each data structure with a~lock. Unfortunately, the absence of data races is insufficient to guarantee the absence of errors due to unexpected interference between threads.~\cite{atomizer, atomicityOOP}
 
 \paragraph{Atomicity Violations~\cite{atomizer}}
-Another possible source of errors due to unexpected interference between threads are \emph{atomicity violations}. A~method (or, in general, a~code block) is \emph{atomic} iff, for every (arbitrarily interleaved) program execution, there is an equivalent execution with the same overall behaviour where the atomic method is executed serially. In other words, the method's execution is not interleaved with instructions of other threads. Also, atomicity provides a~powerful, indeed maximal, guarantee of non-interference among threads. In short, atomicity is a~generally applicable and fundamental \emph{correctness property} of multi-threaded code. Nevertheless, commonly used \emph{testing approaches} are deficient in verifying atomicity. While testing may reveal a~concrete interleaving in which atomicity violation causes erroneous behaviour, the exponentially large amount of possible interleavings does fundamentally impossible to get suitable \emph{test coverage}. Research results~\cite{contracts2017, atomizer, contracts2015, atomicityOOP} have shown that defects related to atomicity are common, even in well-tested libraries.
+Another possible source of errors due to unexpected interference between threads are \emph{atomicity violations}. A~method (or, in general, a~code block) is \emph{atomic} iff, for every (arbitrarily interleaved) program execution, there is an equivalent execution with the same overall behaviour where the atomic method is executed serially. In other words, the method's execution is not interleaved with instructions of other threads. Also, atomicity provides a~powerful, indeed maximal, guarantee of non-interference among threads. In short, atomicity is a~generally applicable and fundamental \emph{correctness property} of multi-threaded code. Nevertheless, commonly used \emph{testing approaches} are deficient in verifying atomicity. While testing may reveal a~concrete interleaving in which an atomicity violation causes erroneous behaviour, the exponentially large amount of possible interleavings does fundamentally impossible to get suitable \emph{test coverage}. Research results~\cite{contracts2017, atomizer, contracts2015, atomicityOOP} have shown that defects related to atomicity are common, even in well-tested libraries.
 
 It has to be described which blocks of code should be executed atomically to detect atomicity violations. Algorithms for the detection of this error often deal only with the atomicity of operations on variables. Examples of a~complex description of \emph{atomicity requirements} are \emph{contracts} that require atomicity of the execution of certain methods/functions (defined in Section~\ref{sec:contracts}).~\cite{muzikovskaBP}
 
@@ -92,10 +92,10 @@ $$
 $$
 The above, of course, can be decomposed into a~pair of implications:
 $$
-    \begin{cases}
-        \forall P \in \mathcal{L}: T(P) = true \Longrightarrow P \models \varphi \\
-        \forall P \in \mathcal{L}: T(P) = true \Longleftarrow P \models \varphi
-    \end{cases}
+\begin{cases}
+    \forall P \in \mathcal{L}: T(P) = true \Longrightarrow P \models \varphi \\
+    \forall P \in \mathcal{L}: T(P) = true \Longleftarrow P \models \varphi
+\end{cases}
 $$
 
 \paragraph{Soundness}
@@ -127,7 +127,7 @@ Testing has the following features. In general, it is simple to automate. It is 
 Other analysis techniques mentioned below use a~static approach. The significant difference between static and dynamic approaches is the following. It is well-known that testing may expose errors, but it cannot prove their absence. It was also famously stated by Edsger W. Dijkstra: \uv{\textit{Program testing can be used to show the presence of bugs, but never to show their absence!}}. However, static approaches may be able to prove their absence\,---\,with some \emph{approximation}\,---\,they can check \emph{all possible executions} of a~program and provide guarantees about its properties. Another static approaches' benefit is that the analysis can be performed during the development process, so the program does not have to be executable yet, and it already can be analysed. The biggest drawback of static approaches, in general, is that they can produce a~lot of false alarms (though this is not the case, e.g., for \emph{theorem proving}), which is often resolved by accepting unsoundness. Another crucial issue of static approaches (this is, however, also an issue of dynamic analyses) is ensuring sufficient scalability\,---\,in fact, typically, the more precise the analysis, the less scalable it becomes.
 
 \paragraph{Deductive Verification}
-The \emph{semi-automated} approach \emph{deductive verification} (or \emph{theorem proving}) uses \emph{inference systems} for inferring theorems about the analysed system from the facts known about the system and from general theorems of different logical theories. The approach falls under \emph{machine-assisted} techniques, which means that users may be required to provide extra information to the analysis (usually \emph{loop invariants}, procedure \emph{preconditions/postconditions}, assertions, or some other invariants). This can be demanding and require some level of expertise. However, a~substantial part of the verification can usually still be carried out in a~fully automated fashion. This approach is very general, but there is a~problem with generating diagnostic information for incorrect systems. There exist a~number of \emph{interactive theorem proving} tools like Coq, Isabelle/HOL, PVS, ACL2, etc. The user usually guides the inference process in these tools.
+The \emph{semi-automated} approach \emph{deductive verification} (or \emph{theorem proving}) uses \emph{inference systems} for inferring theorems about the analysed system from the facts known about the system and from general theorems of different logical theories. The approach falls under \emph{machine-assisted} techniques, which means that users may be required to provide extra information to the analysis (usually \emph{loop invariants}, procedure \emph{pre-conditions/post-conditions}, assertions, or some other invariants). This can be demanding and require some level of expertise. However, a~substantial part of the verification can usually still be carried out in a~fully automated fashion. This approach is very general, but there is a~problem with generating diagnostic information for incorrect systems. There exist a~number of \emph{interactive theorem proving} tools like Coq, Isabelle/HOL, PVS, ACL2, etc. The user usually guides the inference process in these tools.
 
 These techniques also involve \emph{automated decision procedures} (or \emph{satisfiability solvers}) for various logical theories. Such solvers are often used as back-end components for higher-level verification methods, such as \emph{symbolic execution} or \emph{predication abstraction} in model checking. Commonly used solvers are \emph{SAT-solvers} (e.g., CaDiCaL and Glucose) and \emph{SMT-solvers} (e.g., Z3 and CVC4). Various tools allow the user to provide some \emph{logical annotations} in a~code and then automatically attempt to prove specific properties using decision procedures. Examples of such tools are VCC and Dafny.
 
@@ -314,7 +314,7 @@ Using a~so-called \emph{Galois connection}~\cite{AILatticeModelCousot, wideningN
 \begin{definition}[\textbf{Galois Connection}]
     If $ \mathcal{P} = \langle P, \preceq \rangle $ and $ \mathcal{Q} = \langle Q, \sqsubseteq \rangle $ are \emph{partially-ordered sets}, then a~quadruple $ \pi = (\mathcal{P}, \alpha, \gamma, \mathcal{Q}) $ is a~\textbf{Galois connection}, written 
     $$ 
-        \langle P, \preceq \rangle \overset{\gamma}{\underset{\alpha}\leftrightarrows} \langle Q, \sqsubseteq \rangle,
+        \langle P, \preceq \rangle \overset{\gamma}{\underset{\alpha}\leftrightarrows} \langle Q, \sqsubseteq \rangle
     $$
     iff $ \alpha : P \rightarrow Q $ and $ \gamma : Q \rightarrow P $ are \emph{monotone} functions such that
     $$
@@ -340,11 +340,11 @@ Most program properties can be represented as \emph{fixpoints}\footnote{Consider
 The computation of the most precise abstract fixpoint is not generally guaranteed to \emph{terminate}, in particular, when a~given program contains a~loop (or recursion) and uses an infinite domain (or even finite but very large). In order to enforce or accelerate the convergence, the fixpoint is often over-approximated using the \emph{widening} operator~$ \triangledown $. The approximation may be later refined using the \emph{narrowing} operator~$ \vartriangle $. These two operators are defined below. In practice, the analysis is usually done by iterating the abstract transformers over the \emph{control flow graph}\footnote{A~\textbf{control flow graph} (\textbf{CFG}) is a~\emph{directed graph} in which the nodes represent \emph{basic blocks} of the program, and the edges represent control flow paths among them~\cite{controlFlowAnalysisAllen}. A~basic block is a~\emph{maximal sequence of statements} such that all transfers to it are to the first statement in the sequence, and all statements in the sequence are executed sequentially~\cite{programAnalysisNielson}.} (CFG). The join operator~$ \sqcup $ is applied at program locations where different branches come across. Moreover, the widening operator~$ \triangledown $ is applied at loop junctions (and afterwards, the narrowing operator~$ \vartriangle $ may be used).
 
 \begin{definition}[\textbf{Widening}]
-    Assume the abstract interpretation from Definition~\ref{def:AI}. The \textbf{widening operator} over the abstract domain~$ Q $ is a~binary operator~$ \triangledown : Q \times Q \rightarrow Q $ such that $ \forall x, y \in Q : x \sqcup y \sqsubseteq x\,\triangledown\,y $, and for all \emph{increasing chains} $ x_0 \sqsubseteq x_1 \sqsubseteq \ldots\ $, the increasing chain defined by $ y_0 = x_0,\ \ldots\ ,\ y_{i + 1} = y_i\,\triangledown\,x_{i + 1},\ \ldots $ is not \emph{strictly increasing}. Note that the chain eventually stabilises since the result of~$ \triangledown $ is an upper bound.
+    Assume the abstract interpretation from Definition~\ref{def:AI}. The \textbf{widening operator} over the abstract domain~$ Q $ is a~binary operator~$ \triangledown : Q \times Q \rightarrow Q $ such that $ \forall x, y \in Q : x \sqcup y \sqsubseteq x\,\triangledown\,y $, and for all \emph{increasing chains} $ x_0 \sqsubseteq x_1 \sqsubseteq \ldots\ $, the increasing chain defined by $ y_0 = x_0,\ \ldots\ ,\ y_{i + 1} = y_i\,\triangledown\,x_{i + 1},\ \ldots $ is not \emph{strictly increasing}. Note that the chain eventually stabilises since the result of~$ \triangledown $ is an \emph{upper bound}.
 \end{definition}
 
 \begin{definition}[\textbf{Narrowing}]
-    Assume the abstract interpretation from Definition~\ref{def:AI}. The \textbf{narrowing operator} over the abstract domain~$ Q $ is a~binary operator~$ \vartriangle : Q \times Q \rightarrow Q $ such that $ \forall x, y \in Q : y \sqsubseteq x \Longrightarrow y \sqsubseteq x \vartriangle y \sqsubseteq x $, and for all \emph{decreasing chains} $ x_0 \sqsupseteq x_1 \sqsupseteq \ldots\ $, the decreasing chain defined by $ y_0 = x_0,\ \ldots\ ,\ y_{i + 1} = y_i \vartriangle x_{i + 1},\ \ldots $ is not \emph{strictly decreasing}. Note that the chain eventually stabilises since the result of~$ \vartriangle $ is a~lower bound.
+    Assume the abstract interpretation from Definition~\ref{def:AI}. The \textbf{narrowing operator} over the abstract domain~$ Q $ is a~binary operator~$ \vartriangle : Q \times Q \rightarrow Q $ such that $ \forall x, y \in Q : y \sqsubseteq x \Longrightarrow y \sqsubseteq x \vartriangle y \sqsubseteq x $, and for all \emph{decreasing chains} $ x_0 \sqsupseteq x_1 \sqsupseteq \ldots\ $, the decreasing chain defined by $ y_0 = x_0,\ \ldots\ ,\ y_{i + 1} = y_i \vartriangle x_{i + 1},\ \ldots $ is not \emph{strictly decreasing}. Note that the chain eventually stabilises since the result of~$ \vartriangle $ is a~\emph{lower bound}.
 \end{definition}
 
 
@@ -369,7 +369,7 @@ Facebook Infer can analyse programs written in the following languages: C, C++, 
 
 Facebook Infer is a~general framework for static analysis of programs, and it is based on \emph{abstract interpretation}. Despite the original approach taken from~\cite{inferBiabduction}, Facebook Infer aims to find bugs rather than perform \emph{formal verification}. It is still possible to propose \emph{sound} and \emph{complete} analyses in the framework. However, the majority of the checkers already implemented in Facebook Infer are both unsound and incomplete.
 
-It can be used to develop new sorts of \emph{compositional} and \emph{incremental} analysers quickly (both \emph{intraprocedural} and \emph{interprocedural}~\cite{programAnalysisNielson}) based on the concept of function \emph{summaries}. In general, a~summary represents a~set of \emph{pre-condition}/\emph{post-condition} pairs for a~function. In particular, it records under which pre-condition a~function can be performed leading to a~given post-condition. Formally, it can be described using \emph{Hoare triples}~\cite{hoare}, because it can be viewed as a~triple $ \{P\}\ S\ \{R\} $, where~$ P $ is a~pre-condition, $ S $ is a~program (or a~single statement/command)\footnote{In Facebook Infer's summaries considered as Hoare triples, $ S $ is usually one function.}, and~$ R $ is a~description of the result of the execution of~$ C $ (i.e., a~post-condition). In theory, $ P $ and $ R $ are considered formulae in a~suitable logic. The triple may be interpreted as follows. Suppose~$ S $ is executed from a~state satisfying~$ P $, and the execution of~$ S $ terminates. In that case, the program state after~$ S $ terminates satisfies~$ R $. However, in practice, a~summary is a~custom data structure that may be used for storing any information resulting from the analysis of particular functions. Usually, a~summary consists of the relevant parts of \emph{abstract states} for a~particular analysis.
+It can be used to develop new sorts of \emph{compositional} and \emph{incremental} analysers quickly (both \emph{intraprocedural} and \emph{interprocedural}~\cite{programAnalysisNielson}) based on the concept of function \emph{summaries}. In general, a~summary~$ \chi $ represents a~set of \emph{pre-condition}/\emph{post-condition} pairs for a~function. In particular, it records under which pre-condition a~function can be performed leading to a~given post-condition. Formally, it can be described using \emph{Hoare triples}~\cite{hoare}, because it can be viewed as a~triple $ \{P\}\ S\ \{R\} $, where~$ P $ is a~pre-condition, $ S $ is a~program (or a~single statement/command)\footnote{In Facebook Infer's summaries considered as Hoare triples, $ S $ is usually one function.}, and~$ R $ is a~description of the result of the execution of~$ C $ (i.e., a~post-condition). In theory, $ P $ and $ R $ are considered formulae in a~suitable logic. The triple may be interpreted as follows. Suppose~$ S $ is executed from a~state satisfying~$ P $, and the execution of~$ S $ terminates. In that case, the program state after~$ S $ terminates satisfies~$ R $. However, in practice, a~summary is a~custom data structure that may be used for storing any information resulting from the analysis of particular functions. Usually, a~summary consists of the relevant parts of \emph{abstract states} for a~particular analysis.
 
 Facebook Infer generally does not compute the summaries during the analysis along the CFG as it is done in classical analyses based on the concepts from~\cite{DFAGraphReach, DFAApproaches}. Instead, Facebook Infer performs the analysis of a~program \emph{function-by-function along the call-tree}, starting from its leaves (demonstrated later in Example~\ref{ex:AIAnalysis}). Therefore, a~function is analysed, and a~summary is computed without knowledge of the call context. Then, the summary of the function is used at all its call sites. It is needed to deduce under which pre-conditions a~function can produce post-conditions appropriate for the given analysis. Since the summaries do not differ for different contexts, each function is analysed precisely once, and the analysis becomes more scalable, but it can lead to a~loss of accuracy. However, of course, it is more troublesome to propose such a~\emph{bottom-up} analysis.
 
@@ -522,7 +522,7 @@ The above definition of basic contracts for concurrency is quite limited in some
     It can be obtained from the composition of clauses~$ \varrho_1 $ and~$ \varrho_2 $. Nevertheless, this definition is too restrictive because the functions are required to be executed atomically only if \texttt{contains} and \texttt{index\_of} have the same arguments \texttt{array} and \texttt{element}; \texttt{index\_of} and \texttt{set} have the same argument \texttt{array}; and the returned value of \texttt{index\_of} is used as the argument \texttt{index} of the function \texttt{set}.
 \end{example}
 
-\begin{lstlisting}[style=c, label={list:contractsReplace}, float=hbt, caption={An example of atomicity violation with \emph{data dependencies}~\cite{contracts2017, contracts2015}}]
+\begin{lstlisting}[style=c, label={list:contractsReplace}, float=hbt, caption={An example of an atomicity violation with \emph{data dependencies}~\cite{contracts2017, contracts2015}}]
 void replace(int *array, int a, int b)
 {
     if (contains(array, a))
@@ -563,7 +563,7 @@ Interleaving a~sequence of function calls from a~contract clause (considering th
 
 The paper~\cite{contracts2017} proposes a~solution to the above issue\,---\,an extension of the basic contracts for concurrency with \emph{contextual information}\,---\,allowing one to describe in which context the contract clauses should be enforced. Each clause of the basic contract is now called \emph{target}. For each target, there is a~set of so-called \emph{spoilers} that restrict its application. That is, a~spoiler is a~sequence of function calls that can violate its target. In the end, it has to be ensured that each target is executed atomically w.r.t. its spoilers. Assuming the earlier example, let \texttt{contains index\_of} be the target clause. Then, a~possible spoiler is \texttt{remove}. The syntax for this description is as follows: \texttt{contains index\_of}\ $ \leftsquigarrow $\ \texttt{remove}.
 
-Formally, let~$ \Sigma_\mathbb{M} $ be a~set of all function names of a~software module~$ \mathbb{M} $. Further, let~$ \mathbb{R} $ be a~set of \emph{target clauses}, where each clause $ \varrho \in \mathbb{R} $ is a~star-free regular expression over~$ \Sigma_\mathbb{M} $. Let~$ \mathbb{S} $ be a~set of \emph{spoiler clauses}, where each clause $ \sigma \in \mathbb{S} $ is a~star-free regular expression over~$ \Sigma_\mathbb{M} $. Moreover, let $ \Sigma_\mathbb{R} \subseteq \Sigma_\mathbb{M} $ and $ \Sigma_\mathbb{S} \subseteq \Sigma_\mathbb{M} $ be the alphabets of function names used in the target or spoiler clauses, respectively. Then, a~contract is a~relation $ \mathbb{C} \subseteq \mathbb{R} \times \mathbb{S} $, which states for each target the spoilers that can cause atomicity violations. One spoiler may violate more than one target, and, on the contrary, one target may be violated by more than one spoiler. A~contract is violated iff any executed sequence expressed by a~target $ \varrho \in \mathbb{R} $ is \emph{completely interleaved} with the execution of the sequence representing its spoiler, i.e., $ \sigma \in \mathbb{C}(\varrho) $. A~target sequence~$ r $ is completely interleaved by a~spoiler sequence~$ s $ iff the execution of~$ r $ \emph{starts before} the execution of~$ s $, and the execution of~$ s $ \emph{ends before} the execution of~$ r $. \emph{Partial interleavings} of targets and spoilers are here not considered to cause an error. However, if needed, this can be resolved by adding a~new target clause with an appropriate spoiler. Whether a~sequence is executed before another one is, is defined using the so-called \emph{\uv{happened before} relation}~($ \xrightarrow{\mathtt{hb}} $)~\cite{lamportHb}. Complete interleaving is illustrated in Figure~\ref{fig:contract1}, and partial interleavings are shown in Figures~\ref{fig:contract2} and~\ref{fig:contract3}.
+Formally, let~$ \Sigma_\mathbb{M} $ be a~set of all function names of a~software module~$ \mathbb{M} $. Further, let~$ \mathbb{R} $ be a~set of \emph{target clauses}, where each clause $ \varrho \in \mathbb{R} $ is a~star-free regular expression over~$ \Sigma_\mathbb{M} $. Let~$ \mathbb{S} $ be a~set of \emph{spoiler clauses}, where each clause $ \sigma \in \mathbb{S} $ is a~star-free regular expression over~$ \Sigma_\mathbb{M} $. Moreover, let $ \Sigma_\mathbb{R} \subseteq \Sigma_\mathbb{M} $ and $ \Sigma_\mathbb{S} \subseteq \Sigma_\mathbb{M} $ be the alphabets of function names used in the target or spoiler clauses, respectively. Then, a~contract is a~relation $ \mathbb{C} \subseteq \mathbb{R} \times \mathbb{S} $, which states for each target the spoilers that can cause atomicity violations. One spoiler may violate more than one target, and, on the contrary, one target may be violated by more than one spoiler. A~contract is violated iff any executed sequence expressed by a~target $ \varrho \in \mathbb{R} $ is \emph{completely interleaved} with the execution of the sequence representing its spoiler, i.e., $ \sigma \in \mathbb{C}(\varrho) $. A~target sequence~$ r $ is completely interleaved by a~spoiler sequence~$ s $ iff the execution of~$ r $ \emph{starts before} the execution of~$ s $, and the execution of~$ s $ \emph{ends before} the execution of~$ r $. \emph{Partial interleavings} of targets and spoilers are here not taken into account to cause an error. However, if needed, this can be resolved by adding a~new target clause with an appropriate spoiler. Whether a~sequence is executed before another one is, is defined using the so-called \emph{\uv{happened before} relation}~($ \xrightarrow{\mathtt{hb}} $)~\cite{lamportHb}. Complete interleaving is illustrated in Figure~\ref{fig:contract1}, and partial interleavings are shown in Figures~\ref{fig:contract2} and~\ref{fig:contract3}.
 
 \begin{figure}[hbt]
     \centering
@@ -593,11 +593,11 @@ Formally, let~$ \Sigma_\mathbb{M} $ be a~set of all function names of a~software
         \label{fig:contract3}
     \end{subfigure}
 
-    \caption{A~\emph{contract violation} demonstration with \emph{target and spoiler interleavings}. In each sub-figure, there is a~thread~$ t_1 $ that executes a~target sequence $ r = \mathtt{f\ g} $, and a~thread~$ t_2 $ that executes a~spoiler sequence $ s = \mathtt{x\ y} $. Consequently, there is the following contract: $ \mathtt{f\ g}\ \leftsquigarrow\ \mathtt{x\ y} $ ~\cite{muzikovskaBP}}
+    \caption{A~\emph{contract violation} demonstration with \emph{target and spoiler interleavings}. In each sub-figure, a~thread~$ t_1 $ executes a~target sequence $ r = \mathtt{f\ g} $ and a~thread~$ t_2 $ executes a~spoiler sequence $ s = \mathtt{x\ y} $. Consequently, there is the following contract: $ \mathtt{f\ g}\ \leftsquigarrow\ \mathtt{x\ y} $~\cite{muzikovskaBP}}
 \end{figure}
 
 \begin{example}
-    With the extension of spoilers, the contract from Example~\ref{ex:contractsBasic} can be refined with contextual information to forbid \emph{unsafe interleavings} as follows (all other interleavings, not captured by spoilers, are considered safe):
+    With the extension of spoilers, the contract from Example~\ref{ex:contractsBasic} can be refined with contextual information to refuse \emph{unsafe interleavings} as follows (all other interleavings, not described by spoilers, are deemed  safe):
     \begin{enumerate}[label={($ \varrho^{\prime\prime}_{\arabic*} $)}]
         \tt
     
@@ -611,609 +611,250 @@ Formally, let~$ \Sigma_\mathbb{M} $ be a~set of all function names of a~software
     \end{enumerate}
 \end{example}
 
-Finally, it is possible to combine the extension of contracts for concurrency with spoilers and with parameters. It can be demonstrated by the following clause:
+Lastly, it is possible to combine the extension of contracts for concurrency with spoilers and with parameters. The following clause can demonstrate it:
 $$
     \text{\texttt{Y\,=\,index\_of(X,\,\_) get(X,\,Y)}}\ \leftsquigarrow\ \text{\texttt{remove(X,\,\_)}}
 $$
-The clause requires sequences of \texttt{index\_of} and \texttt{get} to be executed atomically, but only when dealing with the same element~\texttt{X} and index~\texttt{Y}, and only w.r.t. the concurrent execution of \texttt{remove}. Note that the argument \texttt{index} of \texttt{remove} is not restricted, because any concurrent removal may cause atomicity violation\,---\,by either removing an element on index~\texttt{Y} or by shifting its position.
+The clause requires sequences of \texttt{index\_of} and \texttt{get} to be performed atomically, but only when working with the same element~\texttt{X} and index~\texttt{Y}, and only w.r.t. the concurrent execution of \texttt{remove}. Note that the argument \texttt{index} of \texttt{remove} is not restricted because any concurrent removal may produce an atomicity violation\,---\,by either removing an element on index~\texttt{Y} or by shifting its position.
 
 
 
 %===============================================================================
-\chapter{\texorpdfstring{Atomer\,---\,Atomicity Violations Detector}{%
-    Atomer - Atomicity Violations Detector%
-}}
+
+
+
+\chapter{\texorpdfstring{Atomer\,---\,Atomicity Violations Detector}{Atomer - Atomicity Violations Detector}}
 \label{chap:atomer}
 
-\todo{Říct, že Atomer není sound ani complete.}
-
-\cite{deadlockKroening}
-\cite{anaconda}
-
-This chapter describes the principles and limitations of the \emph{static
-analyser} \emph{Atomer} proposed as a~module of \emph{Facebook Infer}
-(introduced in Section~\ref{sec:fbinfer}) for finding some forms of
-\emph{atomicity violations}. Atomer was proposed and in detail described in the
-bachelor's thesis of the author of this thesis~\cite{harmimBP}. Therefore,
-naturally, the following description in Section~\ref{sec:atomerDesing} is based
-on the mentioned thesis, and further, there is used information
-from~\cite{excel2021Harmim}.
-
-Already existing solutions in this area (besides Atomer)
-discusses Section~\ref{sec:atomerRelatedWork}. In particular, it deals with other existing
-approaches and tools for finding atomicity violations, their advantages,
-disadvantages, features, availability, and so on.
-
-In Section~\ref{sec:atomerLimits}, there are discussed \emph{limitations} and
-\emph{shortcomings} of Atomer. Again, some of the thoughts mentioned in this
-section are taken into consideration in~\cite{harmimBP, excel2021Harmim}.
+This chapter describes the principles and limitations of the basic version of the \emph{Atomer static analyser} proposed as a~module of \emph{Facebook Infer} (introduced in Section~\ref{sec:fbinfer}) for finding some forms of \emph{atomicity violations}. Atomer was proposed and in detail described in the bachelor's thesis~\cite{harmimBP} of the author of this thesis. Therefore, naturally, the following description in Section~\ref{sec:atomerDesing} is based on the mentioned thesis. Already existing solutions in this area (besides Atomer) are discussed in Section~\ref{sec:atomerRelatedWork}. In particular, it deals with other existing approaches and tools for finding atomicity violations, their advantages, disadvantages, features, availability, and so on. In Section~\ref{sec:atomerLimits}, there are discussed limitations and shortcomings of Atomer. Some of the thoughts mentioned in this section are taken into consideration already in~\cite{harmimBP}.
 
 
 \section{Related Work}
 \label{sec:atomerRelatedWork}
 
-Atomer is slightly inspired by ideas from~\cite{contracts2017, contracts2015}.
-In these papers, there is a~proposal and implementation of a~\emph{static
-validation} for finding some forms of \emph{atomicity violations} based on
-\emph{grammars} and \emph{parsing trees}. In the paper~\cite{contracts2017},
-there is also described and implemented a~\emph{dynamic} approach for the
-validation. The authors of these papers implemented a~stand-alone prototype
-tool called \emph{Gluon}\footnote{\textbf{Gluon} is a~tool for \emph{static
-verification} of \emph{contracts for concurrency}
-(see Section~\ref{sec:contracts}) in Java programs. It is available at
-\url{https://github.com/trxsys/gluon}.} for analysing programs written in Java.
-It led to some promising experimental results, but the \emph{scalability} of
-Gluon was still limited.\footnote{Some of the experiments performed by Gluon
-are also similarly performed by Atomer, which is mentioned in
-Sections~\ref{sec:expGluon} and~\ref{sec:expReal}.} Moreover, Gluon is no more
-actively developed. This fact inspired the decision that eventually led to
-Atomer, namely, to get inspired by the ideas of~\cite{contracts2017,
-contracts2015}, but reimplement them in \emph{Facebook Infer} redesigning it
-in accordance with the principles of Facebook Infer (described in
-Section~\ref{sec:fbinfer}), which should make the resulting tool more
-scalable. In the end, however, due to adapting the analysis for the context
-of Facebook Infer, the implementation of the analysis of Atomer is
-significantly different from~\cite{contracts2017, contracts2015}, as it is
-presented in Chapter~4 of~\cite{harmimBP}. Furthermore,
-unlike~\cite{contracts2017, contracts2015}, the implementation aims at
-programs written in the \emph{C~language} using \emph{PThread locks} to
-\emph{synchronise concurrent threads}.
+Atomer is slightly inspired by ideas from~\cite{contracts2017, contracts2015}. In these papers, there is described a~proposal and implementation of a~\emph{static} approach for finding \emph{atomicity violations of sequences of function calls}, which is based on \emph{grammars} and \emph{parsing trees}. Note that in the paper~\cite{contracts2017}, there is also described and implemented a~\emph{dynamic} approach for the validation. The authors of these papers implemented a~stand-alone prototype static analyser called \emph{Gluon}\footnote{\textbf{Gluon} is a~tool that implements a~\emph{static} approach for finding \emph{atomicity violations of sequences of function calls} in Java programs. It is available at \url{https://github.com/trxsys/gluon}.} for analysing programs written in Java. To the best author's knowledge, Gluon is the only static analyser that tries to go in a~similar direction as Atomer does. Gluon led to some promising experimental results, but the \emph{scalability} of Gluon was still limited.\footnote{Some of the experiments performed by Gluon are also similarly performed by Atomer, which is discussed in Sections~\ref{sec:expGluon}, \ref{sec:expReal}.} Moreover, Gluon is no more actively developed, and it is not easy to use. Despite all author's efforts, it was not put into operation. Above that, the authors themselves note that the code of Gluon is very ad hoc, and many things are hard-coded in it. These facts, in fact, inspired the decision that eventually led to the implementation of the first version of Atomer, namely, to get inspired by the ideas of~\cite{contracts2017, contracts2015} but reimplement them in \emph{Facebook Infer}, redesigning it in accordance with the principles of Facebook Infer, which should make the resulting tool more scalable. In the end, however, due to adapting the analysis to the context of Facebook Infer, the implementation of Atomer's analysis is significantly different from~\cite{contracts2017, contracts2015}, as is presented in Chapter~4 of~\cite{harmimBP}. Furthermore, unlike Gluon, the new version of Atomer is capable of analysing a~much wider range of programs because it also supports other languages than Java, and it supports more advanced \emph{locking mechanisms}. On the other hand, Gluon implements \emph{extended contracts for concurrency} (see Sections~\ref{sec:contractsParams}, \ref{sec:contractsSpoilers}) that consider \emph{data flow} within functions and \emph{contextual information}, while Atomer implements only the idea of \emph{basic contracts for concurrency} (see Section~\ref{sec:contractsBasic}). These extended contracts should improve the precision of the analysis. Nonetheless, it is the author's future work to implement the extended contracts in Atomer as well.
 
-In Facebook Infer, there was already implemented an analysis called \emph{Lock
-Consistency Violation}\footnote{\textbf{Lock Consistency Violation} is an
-\emph{atomicity violations} analysis implemented in \emph{Facebook Infer}. It
-is described at
-\url{https://fbinfer.com/docs/checkers-bug-types/\#lock-consistency-violation}%
-.}. It is a~part of \emph{RacerD}~\cite{racerD, staticRaceDetectorTruePositives,
-racerDOnline}. This analysis finds atomicity violations in C++ and Objective~C
-programs for reads/writes on single variables required to be executed
-atomically. Atomer is different; it finds atomicity violations for
-\emph{sequences of functions} required to be executed atomically, i.e., it
-checks whether \emph{contracts for concurrency}
-(see Section~\ref{sec:contracts}) hold. Moreover, it tries to automatically
-determine which sequences should indeed be executed atomically (hence, to
-\emph{derive the contracts automatically}).
+In Facebook Infer, there is already implemented analysis called \emph{Lock Consistency Violation}\footnote{\textbf{Lock Consistency Violation} is an \emph{atomicity violations} analysis implemented in \emph{Facebook Infer}. It is described at \url{https://fbinfer.com/docs/all-issue-types\#lock_consistency_violation}.}. It is a~part of \emph{RacerD}~\cite{racerD, racerDOnline, staticRaceDetectorTruePositives}. This analysis finds atomicity violations in C++ and Objective-C programs for \emph{reads/writes} on single variables required to be executed atomically. Atomer is different; it finds atomicity violations for \emph{sequences of functions} required to be executed atomically. Moreover, Atomer tries to automatically determine which sequences should indeed be executed atomically.
 
 
 \section{Design of Atomer and Its Principles}
 \label{sec:atomerDesing}
 
-\todo{Říct, že Atomer není sound ani complete.}
+Atomer concentrates on checking the \emph{atomicity of the execution of certain sequences of function calls}, which is often required for \emph{concurrent programs'} correct behaviour. In principle, Atomer is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}.
 
-Atomer concentrates on checking \emph{atomicity of execution of certain
-sequences of function calls}, which is often required for \emph{concurrent
-programs'} correct behaviour. Atomer's principle is based on the assumption
-that sequences of function calls executed \emph{atomically once}
-should probably be executed \emph{always atomically}.
+The proposal of Atomer is based on the concept of \emph{contracts for concurrency} described in Section~\ref{sec:contracts}. In particular, the proposal considers the \emph{basic contracts} described in Section~\ref{sec:contractsBasic}. Neither the contracts extended by \emph{parameters} explained in Section~\ref{sec:contractsParams} nor the contracts extended by \emph{spoilers} and \emph{targets} described in Section~\ref{sec:contractsSpoilers} are so far taken into account.
 
-Listings in the below sections are pieces of exemplary programs written
-in C~language (assuming \emph{POSIX thread}, i.e., \emph{PThread locks}
-and declared and initialised global variable \texttt{lock} of a~type
-\texttt{phtread\_mutex\_t}).
+In general, basic contracts for concurrency allow one to define sequences of functions required to be executed atomically, as explained in more detail in Section~\ref{sec:contracts}. Atomer is able to automatically derive candidates for such contracts and then verify whether the contracts are fulfilled. In other words, Atomer can both automatically derive those sequences that are sometimes executed atomically as well as subsequently check whether they are indeed always executed atomically. Both of these steps are done statically. The proposed analysis is thus divided into two parts (\emph{phases of the analysis} that are in-depth described in the sections below and illustrated in Figure~\ref{fig:atomerPhasesSequences}):
+\begin{enumerate}[label={\textbf{Phase~\arabic*}:}, leftmargin=6.5em]
+    \item Detection of (likely) \emph{atomic sequences}.
 
-As it has already been said, the proposal of Atomer is based on the concept
-of \emph{contracts for concurrency} described in Section~\ref{sec:contracts}.
-In particular, the proposal considers \emph{basic contracts} described in
-Section~\ref{sec:contractsBasic}. Neither the contracts extended to
-\emph{spoilers} and \emph{targets} (from Section~\ref{sec:contractsSpoilers})
-nor contracts extended by \emph{parameters} explained in
-Section~\ref{sec:contractsParams} are so far taken into account.
-
-In general, basic contracts for concurrency allow one to define \emph{sequences
-of functions} required to be \emph{executed atomically}, as explained in more
-detail in Section~\ref{sec:contracts}. Atomer is able to automatically derive
-candidates for such contracts and then verify whether the contracts are
-fulfilled. Both of these steps are done statically. The proposed analysis is
-divided into two parts (\emph{phases of the analysis}):
-\begin{enumerate}[label={\textbf{Phase~\arabic*}:}, leftmargin=5em]
-    \item
-        Detection of (likely) \emph{atomic sequences}.
-
-    \item
-        Detection of \emph{atomicity violations} (violations of the atomic
-        sequences).
+    \item Detection of \emph{atomicity violations} (violations of the atomic sequences).
 \end{enumerate}
-The phases are in-depth described in the sections below. Also, these phases of
-the analysis and its workflow are illustrated in
-Figure~\ref{fig:atomerPhasesSequences}.
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=.75 \linewidth]{analyser-proposal.pdf}
-    \caption{%
-        \emph{Phases} of the Atomer's analysis and the analysis
-        \emph{high-level process} illustration%
-    }
+    \includegraphics[width=.66 \linewidth]{analyser-proposal.pdf}
+    \caption{\emph{Phases} of the Atomer's analysis and the analysis \emph{high-level process} illustration~\cite{harmimBP}}
     \label{fig:atomerPhasesSequences}
 \end{figure}
 
-This section describes the proposal of Atomer in general. The concrete types
-of the \emph{abstract states} (i.e. elements of the \emph{abstract
-domain}~$ \boldsymbol{Q} $) and the \emph{summaries}~$ \chi $, along with the
-implementation of all necessary \emph{abstract interpretation operators}
-are stated in Chapter~4 of~\cite{harmimBP}. However, actually, the abstract
-states~$ s \in \boldsymbol{Q} $ of both phases of the analysis are proposed as
-\emph{sets}. So, in fact, the \emph{ordering operator}~$ \sqsubseteq $ is
-implemented using testing for a~\emph{subset} (i.e. $ s \sqsubseteq s^\prime
-\Leftrightarrow s \subseteq s^\prime $, where $ s, s^\prime \in
-\boldsymbol{Q} $), the \emph{join operator}~$ \sqcup $ is implemented as the
-\emph{set union} (i.e. $ s \sqcup s^\prime \Leftrightarrow s \cup s^\prime $),
-and the \emph{widening operator}~$ \triangledown $ is implemented using the
-join operator (i.e. $ s \triangledown s^\prime \Leftrightarrow s \sqcup
-s^\prime $).
+This section provides a~high-level view of the \emph{abstract interpretation} underlying Atomer. The concrete types of the \emph{abstract states} (i.e., elements of the \emph{abstract domain}~$ Q $) and the \emph{summaries}~$ \chi $, along with the implementation of all necessary \emph{abstract interpretation operators} are stated in Chapter~4 of~\cite{harmimBP}. However, actually, the abstract states~$ s \in Q $ of both phases of the analysis are proposed as \emph{sets}. So, in fact, the \emph{ordering operator}~$ \sqsubseteq $ is implemented using testing for a~\emph{subset} (i.e., $ s \sqsubseteq s^\prime \Longleftrightarrow s \subseteq s^\prime $, where $ s, s^\prime \in Q $), the \emph{join operator}~$ \sqcup $ is implemented as the \emph{set union} (i.e., $ s \sqcup s^\prime \Longleftrightarrow s \cup s^\prime $), and the \emph{widening operator}~$ \triangledown $ is implemented using the join operator (i.e., $ s\,\triangledown\,s^\prime \Longleftrightarrow s \sqcup s^\prime $) since the domains are \emph{finite}. Furthermore, it is essential to note that the proposed analysis is neither \emph{sound} nor \emph{complete}. Its goal is to effectively find bugs rather than formally verify the absence of atomicity violations.
 
-Function summaries are in below sections reduced to the output parts
-(\emph{postconditions}~$ R $) only. The input parts of summaries
-(\emph{preconditions}~$ P $) are in case of the proposed analysis always empty,
-because, so far, it is not necessary to have any preconditions for analysed
-functions. Thus, in this case, the Hoare triple ${ true\ \{Q\}\ R }$ holds,
-where~$ Q $ is an analysed program, i.e., $ P = true $.
+Function summaries are in the below sections reduced to the output parts only (\emph{post-conditions}~$ R $). The input parts of summaries (\emph{pre-conditions}~$ P $) are in case of the proposed analysis always empty because, so far, it is not necessary to have any pre-conditions for analysed functions. Thus, in this case, \emph{Hoare triples}\,---\,$ true\ S\ \{R\} $\,---\,are used, where~$ S $ is an analysed function, i.e., $ P = true $.
 
-\subsection{Phase~1: Detection of Atomic Sequences}
+Listings in the below sections are pieces of programs written in the C~language (assuming \texttt{lock}/\texttt{unlock} functions for \emph{mutual exclusion} to \emph{critical sections}).
 
-Before detecting \emph{atomicity violations} may begin, it is required to have
-\emph{contracts} introduced in Section~\ref{sec:contracts}. \textbf{Phase~1}
-of Atomer is able to produce such contracts, i.e., it detects \emph{sequences
-of functions} that should be \emph{executed atomically}. Intuitively, the
-detection is based on looking for sequences of functions executed atomically
-on some path through a~program. The assumption is that if it is \emph{once
-needed to execute a~sequence atomically}, it should probably be \emph{always
-executed atomically}.
+\subsection{Phase~1\,---\,Detection of Atomic Sequences}
 
-For a~description of the analysis, it is first needed to introduce a~notion
-of a~\emph{reduced sequence} of function calls. Such a~sequence denotes
-a~sequence in which the first appearance of each function is recorded only.
-The reason is to ensure the \emph{finiteness} of the sequences derived by the
-analysis, and hence the analysis's \emph{termination}. The detection of
-sequences of calls to be executed atomically is based on analysing all paths
-through the CFG of a~function and generating all pairs $ {(A, B)} \in
-{\Sigma^* \times \Sigma^*} $ (where~$ \Sigma^* $ is a~set of all possible
-sequences of functions from~$ \Sigma $ from a~given program) of reduced
-sequences of function calls for each path such
-that: Here, $ A $ is a~reduced sequence of function calls that appear between
-the beginning of the function being analysed and the first lock, between an
-unlock and a~subsequent lock, or between an unlock and the end of the function
-being analysed. $ B $ is a~reduced sequence of function calls that follow the
-calls from~$ A $, and that appear between a~lock and an unlock (or between
-a~lock and the end of the function being analysed). Thus, the \emph{abstract
-state} $ s \in \boldsymbol{Q} $ is defined as $ 2^{2^{\Sigma^* \times
-\Sigma^*}} $ (because there is a~set of the ${ (A, B) }$ pairs for each program
-path).
+Before detecting \emph{atomicity violations} may begin, it is required to have \emph{contracts for concurrency} introduced earlier. Phase~1 of Atomer is able to produce such contracts, i.e., it detects \emph{sequences of functions} that should be \emph{executed atomically}. Intuitively, the detection is based on looking for sequences of functions executed atomically, particularly, under some \emph{lock}, on some path through a~program. The assumption is that if it is \emph{once needed to execute a~sequence atomically}, it should probably be \emph{always executed atomically}.
 
-It would be more precise to generate longer sequences of type ${ A_1 B_1 A_2
-B_2 \ldots }$, instead of the sets of the pairs ${ (A, B) }$. Nevertheless,
-it would be more challenging to ensure the above longer sequences' finiteness
-and the sets of these sequences' finiteness. Moreover, there would be
-a~significantly larger \emph{state space explosion problem}~\cite{stateExpl}.
-So, the proposed representation of the sets of pairs of sequences has been
-chosen to compromise accuracy and efficiency. However, the experiments
-described in Chapter~5 of~\cite{harmimBP} show that it needs even more
-pronounced abstraction for appropriate \emph{scalability}.
+For a~description of the analysis, it is first needed to introduce a~notion of a~\emph{reduced sequence} of function calls. Such a~sequence denotes a~sequence in which the \emph{first appearance} of each function is recorded only. It is needed to ensure the \emph{finiteness} of the sequences derived by the analysis, and hence the analysis's \emph{termination}. The detection of sequences of calls to be executed atomically is based on analysing all paths through the CFG of a~function and generating all pairs $ (A, B) \in \Sigma^* \times \Sigma^* $ (where~$ \Sigma $ is the set of functions of a~given program) of reduced sequences of function calls for each path such that: $ A $ is a~reduced sequence of function calls that appear between the beginning of the function being analysed and the first lock; between an unlock and a~subsequent lock; or between an unlock and the end of the function being analysed. $ B $ is a~reduced sequence of function calls that follow the calls from~$ A $, and that appear between a~lock and unlock (or between a~lock and the end of the function being analysed). Thus, the abstract states of the analysis are elements of the set $ 2^{2^{\Sigma^* \times \Sigma^*}} $ because there is a~set of the $ (A, B) $ pairs for each program path.
 
-Formally, the \emph{initial abstract state} of a~function is defined as
-$ s_{init} = {\{\{(\varepsilon, \varepsilon)\}\}} $, where~$\varepsilon $
-indicates an empty sequence. To formalise the analysis of a~function,
-let~\texttt{f} be a~called leaf function. Further, let~$ s_\mathtt{g} $ be the
-abstract state of a~function~\texttt{g} being analysed before the
-function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state
-will be changed as follows: $ s_\mathtt{g} = \{p^\prime \in 2^{\Sigma^* \times
-\Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime =
-\textcolor{blue}{\{}{(A^\prime, B^\prime)} \in \Sigma^* \times \Sigma^*\ |\
-\exists\,{(A, B)} \in p : \textcolor{violet}{(}\neg actual(p, (A, B)) \wedge
-{(A^\prime, B^\prime)} = {(A, B)}\textcolor{violet}{)} \vee
-\textcolor{red}{[}{actual(p, {(A, B)})} \wedge \textcolor{green}{[}(lock
-\wedge {(A^\prime, B^\prime)} = {(A, B \cdot \mathtt{f})}) \vee (\neg lock
-\wedge {(A^\prime, B^\prime)} = {(A \cdot \mathtt{f},
-B)})\textcolor{green}{]}\textcolor{red}{]}\textcolor{blue}{\}}\} $,
-where $ actual $ is a~Boolean function that determines whether a~given
-${ (A, B) }$ pair is the most recent pair of sequences of the current program
-state for a~given program path. Furthermore, $ lock $ is a~predicate indicating
-whether the current program state is inside an atomic block. Furthermore,
-let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being
-analysed before an unlock is called. After the unlock is called, a~new ${ (A,
-B) }$ pair is created and labelled as an actual using the function
-$ setActual $ as follows: $ s_\mathtt{g} = \{p^\prime \in 2^{\Sigma^*
-\times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime =
-\textcolor{blue}{\{}{(A^\prime, B^\prime)} \in \Sigma^* \times \Sigma^*\
-|\ \textcolor{violet}{(}{(A^\prime, B^\prime)} = {(\varepsilon, \varepsilon)}
-\wedge setActual(p, {(A^\prime, B^\prime)})\textcolor{violet}{)} \vee
-{(A^\prime, B^\prime)} \in p\textcolor{blue}{\}}\} $.
+It would be more precise to generate longer sequences of type $ A_1 \cdot B_1 \cdot A_2 \cdot B_2 \cdot \ldots\ $ instead of the sets of the pairs $ (A, B) $. Nevertheless, it would be more challenging to ensure the above longer sequences' finiteness and the sets of these sequences' finiteness. Moreover, there would be a~significantly larger \emph{state space explosion problem}~\cite{stateExpl}. So, the proposed representation of the sets of pairs of sequences has been chosen to compromise accuracy and efficiency. However, the experiments described in Chapter~5 of~\cite{harmimBP} show that it needs even more pronounced abstraction for appropriate \emph{scalability}.
+
+Formally, the \emph{initial abstract state} of a~function is defined as $ s_{init} = \{\{(\varepsilon, \varepsilon)\}\} $, where~$\varepsilon $ indicates an empty sequence. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
+$$
+\begin{multlined}
+    s_\mathtt{g} = \{p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{} (A^\prime, B^\prime) \in \Sigma^* \times \Sigma^*\ |\ \exists\,(A, B) \in p : \\
+%
+    \bB{[}\neg actual(p, (A, B)) \wedge (A^\prime, B^\prime) = (A, B)\bB{]} \vee \bC{[}actual(p, {(A, B)}) \\
+%
+    \wedge \bD{[}(lock \wedge (A^\prime, B^\prime) = (A, B \cdot \mathtt{f})) \vee (\neg lock \wedge (A^\prime, B^\prime) = (A \cdot \mathtt{f}, B))%
+%
+    \bD{]}\bC{]}\bA{\}}\}
+\end{multlined}
+$$
+where $ actual $ is a~Boolean function that determines whether a~given $ (A, B) $ pair is the most recent pair of sequences of the current program state for a~given program path. Furthermore, $ lock $ is a~predicate indicating whether the current program state is inside an \emph{atomic block}. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before an unlock is called. After the unlock is called, a~new $ (A, B) $ pair is created and labelled as an actual using the function $ setActual $ as follows: 
+$$
+\begin{multlined}
+    s_\mathtt{g} = \{p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in \Sigma^* \times \Sigma^*\ | \\
+%
+    \bB{[}(A^\prime, B^\prime) = (\varepsilon, \varepsilon) \wedge setActual(p, (A^\prime, B^\prime))\bB{]} \vee (A^\prime, B^\prime) \in p%
+%
+    \bA{\}}\}
+\end{multlined}
+$$
 
 \begin{example}
-    For an explanation of the computation of the sets of the pairs ${ (A,
-    B) }$, assume that a~state of the analysis of a~program~$ Q $ is the
-    following sequence of function calls: \texttt{f,~g}; and a~state of the
-    analysis of a~program~$ Q^\prime $ is the following sequence of function
-    calls: \texttt{f,~g~[m,~n}. The square brackets are used to indicate an
-    \emph{atomic sequence} (the closing square bracket is missing in the case
-    of the program~$ Q^\prime $, which means that the program state is
-    currently inside an \emph{atomic block}). The computed abstract state for
-    the program~$ Q $ is $ s_Q = {\{\{((\mathtt{f, g}), \varepsilon)\}\}} $,
-    and for the program~$ Q^\prime $,
-    it is $ s_{Q^\prime} = {\{\{((\mathtt{f, g}), (\mathtt{m, n}))\}\}} $. Now,
-    if the next instruction is a~call of a~function~\texttt{x}, in the case of
-    the program~$ Q $, the call will be added to the first~$ A $ sequence, and
-    in the case of the program~$ Q^\prime $, the call will be added to the
-    first~$ B $ sequence as follows: $ s_Q = {\{\{((\mathtt{f, g, x}),
-    \varepsilon)\}\}} $, $ s_{Q^\prime} = {\{\{((\mathtt{f, g}), (\mathtt{m, n,
-    x}))\}\}} $. Subsequently, if the next step in the program~$ Q $ is a~lock
-    call, the next function calls will be added to the first~$ B $ sequence
-    of the set~$ s_Q $. And if the next step in the program~$ Q^\prime $ is an
-    unlock call, it will be created a~new element of the first set of the
-    set~$ s_{Q^\prime} $, and the next function calls will be added to
-    the~$ A $ sequence of this element. Finally, if a~function~\texttt{y} is
-    called, the resulting sets will look like follows: $ s_Q =
-    {\{\{((\mathtt{f, g, x}), (\mathtt{y}))\}\}} $, $ s_{Q^\prime} =
-    {\{\{((\mathtt{f, g}), (\mathtt{m, n, x})), ((\mathtt{y}),\
-    \varepsilon)\}\}} $. Note that the final sequences of function calls
-    look like follows: \texttt{f,~g,~x~[y} and \texttt{f,~g~[m,~n,~x]~y} for
-    the programs~$ Q $, and~$ Q^\prime $, respectively.
+    For an explanation of the computation of the sets of the pairs $ (A, B) $, assume that a~state of the analysis of a~program~$ S $ is the following sequence of function calls: $ \mathtt{f} \cdot \mathtt{g} $; and a~state of the analysis of a~program~$ S^\prime $ is the following sequence of function calls: $ \mathtt{f} \cdot \mathtt{g}\ [\mathtt{m} \cdot \mathtt{n} $. The square brackets are used to indicate an \emph{atomic sequence} (the closing square bracket is missing in the case of the program~$ S^\prime $, which means that the program state is currently inside an atomic block). The computed abstract state for the program~$ S $ is $ s_S = \{\{(\mathtt{f} \cdot \mathtt{g},\ \varepsilon)\}\} $, and for the program~$ S^\prime $, it is $ s_{S^\prime} = \{\{(\mathtt{f} \cdot \mathtt{g},\ \mathtt{m} \cdot \mathtt{n})\}\} $. Now, if the next instruction is a~call of a~function~\texttt{x}, in the case of the program~$ S $, the call will be added to the first~$ A $ sequence, and in the case of the program~$ S^\prime $, the call will be added to the first~$ B $ sequence as follows: $ s_S = \{\{(\mathtt{f} \cdot \mathtt{g} \cdot \mathtt{x},\ \varepsilon)\}\} $, $ s_{S^\prime} = \{\{(\mathtt{f} \cdot \mathtt{g},\ \mathtt{m} \cdot \mathtt{n} \cdot \mathtt{x})\}\} $. Subsequently, if the next step in the program~$ S $ is a~lock call, the next function calls will be added to the first~$ B $ sequence of the set~$ s_S $. And if the next step in the program~$ S^\prime $ is an unlock call, it will be created a~new element of the first set of the set~$ s_{S^\prime} $, and the next function calls will be added to the~$ A $ sequence of this element. Finally, if a~function~\texttt{y} is called, the resulting sets will look like follows: $ s_S = \{\{(\mathtt{f} \cdot \mathtt{g} \cdot \mathtt{x},\ \mathtt{y})\}\} $, $ s_{S^\prime} = \{\{(\mathtt{f} \cdot \mathtt{g},\ \mathtt{m} \cdot \mathtt{n} \cdot \mathtt{x}), (\mathtt{y},\ \varepsilon)\}\} $. Note that the final sequences of function calls look like follows: $ \mathtt{f} \cdot \mathtt{g} \cdot \mathtt{x}\ [\mathtt{y} $ and $ \mathtt{f} \cdot \mathtt{g}\ [\mathtt{m} \cdot \mathtt{n} \cdot \mathtt{x}]\ \mathtt{y} $ for the programs~$ S $ and~$ S^\prime $, respectively.
 \end{example}
 
-The \emph{summary}~$ \chi_\mathtt{f} \in 2^{\Sigma^*} \times \Sigma^* $ of
-a~function~\texttt{f} is then defined as $ \chi_\mathtt{f} = (\boldsymbol{B},
+A~\emph{summary}~$ \chi_\mathtt{f} \in 2^{\Sigma^*} \times \Sigma^* $ of
+a~function~\texttt{f} is then a~pair $ \chi_\mathtt{f} = (\mathcal{B},
 AB) $, where:
 \begin{itemize}
-    \item
-        $ \boldsymbol{B} $ is a~set constructed that contains all the~$ B $
-        sequences that appear on program paths through~\texttt{f}, i.e.,
-        $ \boldsymbol{B} = \{B^\prime \in \Sigma^*\ |\ \exists\,p \in
-        s_\mathtt{f} : \exists\,{(A, B)} \in p : B \neq \varepsilon \wedge
-        B^\prime = B\} $, where~$ s_\mathtt{f} $ is the abstract state at the
-        end of an interpretation of~\texttt{f}. In other words, this component
-        of the summary is a~set of sequences of atomic function calls appearing
-        in an analysed function.
+    \item $ \mathcal{B} $ is a~set constructed such that it contains all the~$ B $ sequences that appear on program paths through~\texttt{f}, i.e., those computed within the $ (A, B) $ pairs at the exit of~\texttt{f}. Formally, $ \mathcal{B} = \{B^\prime \in \Sigma^*\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B) \in p : B \neq \varepsilon \wedge B^\prime = B\} $, where~$ s_\mathtt{f} $ is the abstract state at the end of the abstract interpretation of~\texttt{f}. In other words, this component of the summary is a~set of sequences of atomic function calls appearing in~\texttt{f}.
 
-    \item
-        $ AB $ is a~\emph{concatenation} of all the~$ A $ and~$ B $
-        sequences with removed duplicates of function calls. In particular,
-        assume that there is the following computed set of ${ (A, B) }$
-        pairs: $ \{{(A_1, B_1)}, {(A_2, B_2)}, \ldots, {(A_n, B_n)}\} $,
-        then the result is concatenated sequence ${ A_1 \cdot B_1 \cdot A_2
-        \cdot B_2 \cdot \ldots \cdot A_n \cdot B_n }$ with removed
-        duplicates. Formally:
+    \item $ AB $ is a~\emph{concatenation} of all the~$ A $ and~$ B $ sequences with removed duplicates of function calls. In particular, assume that the following set of $ (A, B) $ pairs is computed at the exit of~\texttt{f}: $ \{(A_1, B_1), (A_2, B_2),\,\ldots\,, (A_n, B_n)\} $, then the result is the sequence $ A_1 \cdot B_1 \cdot A_2 \cdot B_2 \cdot \ldots \cdot A_n \cdot B_n $ with removed duplicates. Formally,
         $$
-            AB = reduce(\bigcup\limits_{ab \in AB^\prime}^\cdot ab)
+            AB = reduce(\bigcup\limits_{ab\,\in\,AB^\prime}^\cdot ab)
         $$
-        where $ AB^\prime = \{ab \in \Sigma^*\ |\ \exists\,p \in s_\mathtt{f}
-        : \exists\,(A, B) \in p: ab = {A \cdot B}\} $, $ reduce $ is a~function
-        that removes duplicates of function calls, and $ \dot\bigcup $
-        concatenates all sequences of a~set. Intuitively, in this component
-        of the summary, it is gathered  occurrences of all called functions
-        within an analysed function obtained by concatenation of all
-        the~$ A $ and~$ B $ sequences.
+        where $ AB^\prime = \{ab \in \Sigma^*\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B) \in p: ab = A \cdot B\} $, $ \dot\bigcup $ concatenates all sequences of a~set, and $ reduce $ is a~function that removes duplicates of function calls. Intuitively, in this component of the summary, the analysis gathers occurrences of all called functions within the analysed function obtained by a~concatenation of all the~$ A $ and~$ B $ sequences. $ AB $ is recorded to facilitate the derivation of atomic call sequences that show up higher in the \emph{call hierarchy}. Indeed, while locks/unlocks can appear in such a~\emph{higher-level} function, parts of the call sequences can appear lower in the call hierarchy.
 \end{itemize}
-$ AB $ is recorded to analyse functions higher in the \emph{call hierarchy}
-since locks/unlocks can appear in such a~\emph{higher-level} function.
 
 \begin{example}
-    For instance, the analysis of the function~\texttt{f} from
-    Listing~\ref{list:atomerPhase1} produces the following sequences:
+    For instance, the analysis of the function~\texttt{f} from Listing~\ref{list:atomerPhase1} produces the following sequences:
     $$
-        \overbrace{\text{\texttt{a,~\sout{a}}}}^{A_1}~%
-        \overbrace{\text{\texttt{[a,~\sout{a},~b]}}}^{B_1}~%
-        \overbrace{\text{\texttt{a,~\sout{a}}}}^{A_2}~%
-        \overbrace{\text{\texttt{[a,~c]}}}^{B_2}~%
-        \text{\sout{\ensuremath{%
-            \overbrace{\text{\texttt{a}}}^{\text{\sout{\ensuremath{A_3}}}}~%
-            \overbrace{\text{\texttt{[a,~c,~c]}}}%
-            ^{\text{\sout{\ensuremath{B_3}}}}%
-        }}}
+        \overbrace{\mathtt{x} \cdot \text{\texttt{\sout{x}}} \cdot \mathtt{y}}^{A_1} \overbrace{[\mathtt{a} \cdot \mathtt{b} \cdot \text{\texttt{\sout{b}}}]}^{B_1}
+        \overbrace{\mathtt{y} \cdot \text{\texttt{\sout{y}}}}^{A_2} \overbrace{[\mathtt{a} \cdot \mathtt{c}]}^{B_2}
+        \text{\sout{\ensuremath{\overbrace{\mathtt{y}}^{A_3} \overbrace{[\mathtt{a} \cdot \mathtt{a} \cdot \mathtt{c}]}^{B_3}}}}
     $$
-    The functions~\texttt{a, b, c} are not deeper analysed because it
-    is assumed that these functions are leaf nodes of the \emph{call
-    graph}. The strikethrough of the functions~\texttt{a} and~\texttt{c}
-    denotes removing already recorded function calls in the~$ A $
-    and~$ B $ sequences. The strikethrough of the entire sequence
-    \texttt{a~[a,~c,~c]} means discarding sequence already seen before.
-    For the above, the abstract state at the end of an interpretation
-    of the function~\texttt{f} is $ s_\mathtt{f} = \{\{{((\mathtt{a}),
-    (\mathtt{a, b}))}, {((\mathtt{a}), (\mathtt{a, c}))}, {(\varepsilon,
-    \varepsilon)}\}\} $. The derived summary~$ \chi_\mathtt{f} $ for the
-    function~\texttt{f} is $ \chi_\mathtt{f} = {(\boldsymbol{B}, AB)} $,
-    where:
-    \begin{itemize}
-        \item
-            $ \boldsymbol{B} = \{{(\mathtt{a, b})}, {(\mathtt{a, c})}\} $,
-            i.e., $ B_1 $ and~$ B_2 $;
-
-        \item
-            $ AB = {(\mathtt{a, b, c})} $, i.e., the concatenation
-            of~$ A_1 $, $ B_1 $, $ A_2 $, and $ B_2 $ from which
-            duplicate function calls were removed.
-    \end{itemize}
+    The functions~\texttt{a, b, c, x, y} are not deeper analysed because it is assumed that these functions are leaf nodes of the \emph{call graph}. The strikethrough of the functions~\texttt{b, x, y} denotes removing already recorded function calls in the~$ A $ and~$ B $ sequences to get the reduced form. The strikethrough of the entire sequence $ \mathtt{y}\ [\mathtt{a} \cdot \mathtt{a} \cdot \mathtt{c}] $ means discarding sequence already seen before. For the above, the abstract state at the end of the abstract interpretation of the function~\texttt{f} is $ s_\mathtt{f} = \{\{(\mathtt{x} \cdot \mathtt{y},\ \mathtt{a} \cdot \mathtt{b}), (\mathtt{y},\ \mathtt{a} \cdot \mathtt{c}), (\varepsilon,\ \varepsilon)\}\} $. The derived summary~$ \chi_\mathtt{f} $ for the function~\texttt{f} is $ \chi_\mathtt{f} = (\mathcal{B}, AB) $, where $ \mathcal{B} = \{\mathtt{a} \cdot \mathtt{b},\ \mathtt{a} \cdot \mathtt{c}\} $, i.e., $ B_1 $ and~$ B_2 $; and $ AB = \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} $, i.e., the concatenation of~$ A_1 $, $ B_1 $, $ A_2 $, $ B_2 $ from which duplicate function calls were removed.
 \end{example}
 
-\begin{lstlisting}[
-    style=c, label={list:atomerPhase1}, float=hbt,
-    caption={%
-        A~code snippet used for an illustration of the derivation of
-        \emph{sequences of functions called atomically}%
-    }
-]
+\begin{lstlisting}[style=c, label={list:atomerPhase1}, float=hbt, caption={A~code snippet used for an illustration of the derivation of \emph{sequences of functions called atomically}}]
 void f()
 {
-    a(); a();
-
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&lock); // (a, b)
-    a(); a(); b();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&lock);
-
-    a(); a();
-
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&lock); // (a, c)
+    x(); x(); y();
+    <@\red{lock}@>(&L); // a . b
+    a(); b(); b();
+    <@\red{unlock}@>(&L);
+    y(); y();
+    <@\red{lock}@>(&L); // a . c
     a(); c();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&lock);
-
-    a();
-
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&lock); // (a, c)
-    a(); c(); c();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&lock);
+    <@\red{unlock}@>(&L);
+    y();
+    <@\red{lock}@>(&L); // a . c
+    a(); a(); c();
+    <@\red{unlock}@>(&L);
 }
 \end{lstlisting}
 
-Further, it is demonstrated how the results of the analysis of \emph{nested
-functions} are used during the detection of atomic sequences. The result of
-the analysis of a~nested function is used as follows. When calling an already
-analysed function, one plugs the sequences from the second component of its
-summary (i.e. the $ AB $ sequence) into the most recent~$ A $ or~$ B $
-sequence of all the program paths (where a~program path corresponds to
-a~single element of an abstract state, i.e., a~set of the ${ (A, B) }$
-pairs). In particular, assume that ${ (A, B) }$ is the most recent pair
-of sequences of the program state of a~path being analysed. Subsequently, it
-is called a~function~\texttt{f} with a~\emph{non-empty summary} (i.e. $ AB
-\neq \varepsilon $). If the current program state of an analysed function is
-inside an atomic block, the analysis in this step will transform the
-pair~${ (A, B) }$ to a~new ${ (A^\prime, B^\prime) }$ pair as follows:
-$ {(A^\prime, B^\prime)} = {(A, B \cdot \mathtt{f} \cdot AB)} $. Otherwise,
-$ {(A^\prime, B^\prime)} = {(A \cdot \mathtt{f} \cdot AB, B)} $. In such cases
-where a~summary is empty, i.e., there are no function calls in a~called
-function, or it is a~leaf node of the call graph, it is appended just the
-function name to the most recent~$ A $ or~$ B $ sequences of all the program
-paths. To formalise this process, let~\texttt{f} be a~called function that was
-already analysed, and the second component of its summary is $ AB $. Further,
-let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being
-analysed before the function~\texttt{f} is called. After the call of~\texttt{f},
-the abstract state will be changed as follows: $ s_\mathtt{g} = \{p^\prime \in
-2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime =
-\textcolor{blue}{\{}{(A^\prime, B^\prime)} \in \Sigma^* \times \Sigma^*\ |\
-\exists\,{(A, B)} \in p : \textcolor{violet}{(}\neg actual(p, (A, B)) \wedge
-{(A^\prime, B^\prime)} = {(A, B)}\textcolor{violet}{)} \vee
-\textcolor{red}{[}{actual(p, {(A, B)})} \wedge \textcolor{green}{[}(lock
-\wedge {(A^\prime, B^\prime)} = {(A, B \cdot \mathtt{f} \cdot AB)}) \vee
-(\neg lock \wedge {(A^\prime, B^\prime)} = {(A \cdot \mathtt{f} \cdot AB,
-B)})\textcolor{green}{]}\textcolor{red}{]}\textcolor{blue}{\}}\} $.
+Further, it is demonstrated how the results of the analysis of \emph{nested functions} are used during the detection of atomic sequences. The result of the analysis of a~nested function is used as follows. When calling an already analysed function, one plugs the sequence from the second component of its summary (i.e., the $ AB $ sequence) into the most recent~$ A $ or~$ B $ sequence of all the program paths (where a~program path corresponds to a~single element of an abstract state, i.e., a~set of the $ (A, B) $ pairs). In particular, assume that $ (A, B) $ is the most recent pair of sequences of the program state of a~path being analysed. Subsequently, it is called a~function~\texttt{f} with a~non-empty summary (i.e., $ AB \neq \varepsilon $). If the current program state of the analysed function is inside an atomic block, the analysis in this step will transform the pair~$ (A, B) $ to a~new $ (A^\prime, B^\prime) $ pair as follows: $ (A^\prime, B^\prime) = (A, B \cdot \mathtt{f} \cdot AB) $. Otherwise, $ (A^\prime, B^\prime) = (A \cdot \mathtt{f} \cdot AB, B) $. In such cases where a~summary is empty, i.e., there are no function calls in a~called function, or it is a~leaf node of the call graph, just the function name is appended to the most recent~$ A $ or~$ B $ sequences of all the program paths. To formalise this process, let~\texttt{f} be a~called function that was already analysed, and the second component of its summary is $ AB $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
+$$
+\begin{multlined}
+    s_\mathtt{g} = \{p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in \Sigma^* \times \Sigma^*\ |\ \exists\,(A, B) \in p : \\
+%
+    \bB{[}\neg actual(p, (A, B)) \wedge (A^\prime, B^\prime) = (A, B)\bB{]} \vee \bC{[}actual(p, (A, B)) \\
+%
+    \wedge \bD{[}(lock \wedge {(A^\prime, B^\prime)} = {(A, B \cdot \mathtt{f} \cdot AB)}) \vee (\neg lock \wedge {(A^\prime, B^\prime)} = {(A \cdot \mathtt{f} \cdot AB, B)})%
+%
+    \bD{]}\bC{]}\bA{\}}\}
+\end{multlined}
+$$
 
 \begin{example}
-    This example shows how the function~\texttt{g} from
-    Listing~\ref{list:atomerPhase1Nested} would be analysed using the result
-    of the analysis of the function~\texttt{f}
-    from Listing~\ref{list:atomerPhase1}. So the analysis of the
-    function~\texttt{g} produces the following sequence:
+    This example shows how the function~\texttt{g} from Listing~\ref{list:atomerPhase1Nested} would be analysed using the result of the analysis of the function~\texttt{f} from Listing~\ref{list:atomerPhase1}. The second component of~$ \chi_\mathtt{f} $ is $ AB = \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} $. The analysis of the function~\texttt{g} produces the following sequence:
     $$
-        \text{\texttt{a,~f,~\sout{a},~b,~c}}~%
-        \text{\texttt{[f,~a,~b,~c]}}
+        \mathtt{x} \cdot \mathtt{f} \cdot \text{\texttt{\sout{x}}} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} \cdot \mathtt{z}\ [\mathtt{f} \cdot \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c}]
     $$
-    For the above, the abstract state at the end of an interpretation of the
-    function~\texttt{g} is $ s_\mathtt{g} = \{\{({(\mathtt{a,~f,~b,~c})},
-    {(\mathtt{f,~a,~b,~c})}), {(\varepsilon, \varepsilon)}\}\} $. The derived
-    summary~$ \chi_\mathtt{g} $ for the function~\texttt{g} is $
-    \chi_\mathtt{g} = ({\{(\mathtt{f,~a,~b,~c})\}},
-    {(\mathtt{a,~f,~b,~c})}) $.
+    For the above, the abstract state at the end of the abstract interpretation of the function~\texttt{g} is $ s_\mathtt{g} = \{\{(\mathtt{x} \cdot \mathtt{f} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} \cdot \mathtt{z},\ \mathtt{f} \cdot \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} \cdot), (\varepsilon,\ \varepsilon)\}\} $. The derived summary~$ \chi_\mathtt{g} $ for the function~\texttt{g} is $ \chi_\mathtt{g} = (\{\mathtt{f} \cdot \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} \cdot\},\ \mathtt{x} \cdot \mathtt{f} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} \cdot \mathtt{z}) $.
 \end{example}
 
-\begin{lstlisting}[
-    style=c, label={list:atomerPhase1Nested}, float=hbt,
-    caption={%
-        A~code snippet used to illustrate the derivation of
-        \emph{sequences of functions called atomically} with a~\emph{nested
-        function calls} (function~\texttt{f} is defined in
-        Listing~\ref{list:atomerPhase1})%
-    }
-]
+\begin{lstlisting}[style=c, label={list:atomerPhase1Nested}, float=hbt, caption={A~code snippet used to illustrate the derivation of sequences of functions called atomically with a~\emph{nested function call} (function~\texttt{f} is defined in Listing~\ref{list:atomerPhase1})}]
 void g()
 {
-    a(); f();
-
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&lock); // (f, a, b, c)
+    x(); f(); z();
+    <@\red{lock}@>(&L); // f . x . y . a . b . c
     f();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&lock);
+    <@\red{unlock}@>(&L);
 }
 \end{lstlisting}
 
-\paragraph{Cases Where Lock/Unlock Calls Are Not Paired in a~Function}
+\subsubsection{Cases Where Lock/Unlock Calls Are Not Paired in a~Function}
 
-For treating cases where \emph{lock/unlock calls are not paired} in
-a~function\,---\,as demonstrated in
-Listing~\ref{list:AtomerPhase1NotPairedLock}\,---\,in Atomer, the
-following solution is implemented.
+For treating cases where \emph{lock/unlock calls are not paired} in a~function\,---\,as demonstrated in Listing~\ref{list:AtomerPhase1NotPairedLock}\,---\,the following solution is implemented in the basic version of Atomer.
 
-\emph{Everything is unlocked} at the end of a~function, i.e.,
-one \emph{virtually} appends an unlock to the end of the function if it is
-necessary. Then, for the function~\texttt{x} from
-Listing~\ref{list:AtomerPhase1NotPairedLock}, the atomic section is
-virtually closed. Hence, there is detected an atomic sequence
-$ (\mathtt{a}) $. In particular, the summary is as follows:
-$ \chi_\mathtt{x} = (\{(\mathtt{a})\}, (\mathtt{a})) $.
+\emph{Everything is unlocked at the end} of a~function, i.e., one \emph{virtually appends} an unlock to the end of the function if it is necessary. Then, for the function~\texttt{m} from Listing~\ref{list:AtomerPhase1NotPairedLock}, the atomic section is virtually closed. Hence, there is detected an atomic sequence $ \mathtt{a} $. In particular, the summary is as follows: $ \chi_\mathtt{m} = (\{\mathtt{a}\},\ \mathtt{a}) $.
 
-Moreover, \emph{all unlock calls not preceded by a~lock are ignored}.
-Thus, in the function~\texttt{y} from
-Listing~\ref{list:AtomerPhase1NotPairedLock}, there are not detected
-any atomic sequences: $ \chi_\mathtt{y} = (\emptyset, (\mathtt{a})) $.
+Moreover, \emph{all unlock calls not preceded by a~lock are ignored}. Thus, in the function~\texttt{n} from Listing~\ref{list:AtomerPhase1NotPairedLock}, there are not detected any atomic sequences: $ \chi_\mathtt{n} = (\emptyset,\ \mathtt{a}) $.
 
-\begin{lstlisting}[
-    style=c, label={list:AtomerPhase1NotPairedLock}, float=hbt,
-    caption={%
-        A~code snippet used to illustrate treating cases where
-        \emph{lock/unlock calls are not paired} in a~function%
-    }
-]
-void x()
+\begin{lstlisting}[style=c, label={list:AtomerPhase1NotPairedLock}, float=hbt, caption={A~code snippet used to illustrate treating cases where \emph{lock/unlock calls are not paired} in a~function}]
+void m()
 {
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&lock); // (a)
+    <@\red{lock}@>(&L); // a
     a();
 }
-void y()
+void n()
 {
     a();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&lock);
+    <@\red{unlock}@>(&L);
 }
 \end{lstlisting}
 
-\paragraph{Summary of the Phase~1}
+\paragraph{Summary of Phase~1}
+The derived sequences of calls assumed to execute atomically\,---\,the~$ \mathcal{B} $ sequences\,---\,from the summaries of all analysed functions are stored into a~file used during Phase~2, which is described later on.
 
-The above detection of atomic sequences was implemented and also validated
-on a~set of sample programs created for testing purposes, which is described
-in~\cite{harmimBP}. The derived sequences of calls assumed to execute
-atomically\,---\,the~$ \boldsymbol{B} $ sequences\,---\,from the summaries
-of all analysed functions are stored into a~file used during \textbf{Phase~2},
-which is described below.
+\subsection{Phase~2\,---\,Detection of Atomicity Violations}
 
-\subsection{Phase~2: Detection of Atomicity Violations}
-
-In the second phase of the analysis, i.e., when \emph{detecting violations}
-of the atomic sequences obtained from \textbf{Phase~1}, the analysis looks
-for \emph{pairs of functions} that \emph{should be called atomically} (or
-just for single functions if there is only one function call in an atomic
-sequence) while this is not the case on some path through the CFG. The
-pairs of function calls to be checked for atomicity are obtained as
-follows: For each function~\texttt{f} with the
-\emph{summary}~$ \chi_\mathtt{f} = {(\boldsymbol{B}, AB)} $ in a~given
-program~$ Q $, it is taken the first component~$ \boldsymbol{B} $ of the
-summary~$ \chi_\mathtt{f} $, i.e., $ \boldsymbol{B} = {\{B_1, B_2,
-\ldots, B_n\}} $, and it is taken \emph{every pair} $ {(\mathtt{x},
-\mathtt{y})} \in \Sigma \times \Sigma $ of functions that appear as
-a~\emph{substring} in some of the~$ B_i $ sequences, i.e., $ B_i = w \cdot
-\mathtt{x} \cdot \mathtt{y} \cdot w^\prime $ for some sequences~$ w,
-w^\prime $. Note that~\texttt{x} could be~$ \varepsilon $ (an empty
-sequence) if some~$ B_i $ consists of a~single function. All these
-\uv{atomic pairs} are put into the set $ \Omega \in 2^{\Sigma \times
-\Sigma} $. More formally, $ \Omega = \{(\mathtt{x}, \mathtt{y}) \in
-\Sigma \times \Sigma\ |\ \exists\,{(\boldsymbol{B}, AB)} \in X_Q :
-\exists\,B \in \boldsymbol{B} : (|B| = 1 \wedge {(\mathtt{x}, \mathtt{y})}
-= {(\varepsilon, B)}) \vee (|B| > 1 \wedge \exists\,w, w^\prime \in
-\Sigma^* : B = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime \wedge
-{(\mathtt{x}, \mathtt{y})} \neq {(\varepsilon, \varepsilon)})\} $,
-where~$ \Sigma^* $ is a~set of all possible sequences of functions
-from~$ \Sigma $ from a~given program, and $ X_Q \in 2^{2^{\Sigma^*}
-\times \Sigma^*} $ is a~set of all summaries of the program~$ Q $.
+In the second phase of the analysis, i.e., when \emph{detecting violations} of the atomic sequences obtained from Phase~1, the analysis looks for \emph{pairs of functions} that \emph{should be called atomically} (or just for single functions if there is only one function call in an atomic sequence) and that are not executed atomically (i.e., under a~lock) on some path through the CFG. The pairs of function calls to be checked for atomicity are obtained as follows. For each function~\texttt{f} with a~summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ in a~given program~$ S $, where $ \mathcal{B} = \{B_1, B_2,\ \ldots\ , B_n\} $, the analysis considers \emph{every pair} $ (\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma $ of functions that appear as a~\emph{substring} in some of the~$ B_i $ sequences, i.e., $ B_i = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime $ for some sequences~$ w, w^\prime $. Note that~\texttt{x} could be~$ \varepsilon $ (an empty sequence) if some~$ B_i $ consists of a~single function. All these \uv{atomic pairs} are put into the set $ \Omega \in 2^{\Sigma \times \Sigma} $. More formally, 
+$$
+\begin{multlined}
+    \Omega = \{(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) = (\varepsilon, B)\bA{]} \\
+%
+    \vee \bB{[}|B| > 1 \wedge \exists\,w, w^\prime \in \Sigma^* : B = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime \wedge (\mathtt{x}, \mathtt{y}) \neq (\varepsilon, \varepsilon)
+%
+    \bB{]}\}
+\end{multlined}
+$$
+where~$ X_S \in 2^{2^{\Sigma^*} \times \Sigma^*} $ is a~set of all summaries of the program~$ S $.
 
 \begin{example}
-    For instance, assume that in \textbf{Phase~1}, there was analysed
-    a~function~\texttt{f}. Which produced the summary
-    $ \chi_\mathtt{f} = (\boldsymbol{B}, AB) $, where
-    $ \boldsymbol{B} = \{{(\mathtt{a}, \mathtt{b}, \mathtt{c})},
-    {(\mathtt{a}, \mathtt{c}, \mathtt{d})\}} $, i.e., a~set of
-    sequences of functions that should be called atomically. The
-    analysis will then look for the following pairs of functions that
-    are not called atomically: $ \Omega = \{{(\mathtt{a}, \mathtt{b})},
-    {(\mathtt{b}, \mathtt{c})}, {(\mathtt{a}, \mathtt{c})},
-    {(\mathtt{c}, \mathtt{d})}\} $.
+    For instance, assume that in Phase~1, there was analysed a~function~\texttt{f}. It produced the summary $ \chi_\mathtt{f} = (\mathcal{B}, AB) $, where $ \mathcal{B} = \{\mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c},\ \mathtt{a} \cdot \mathtt{c} \cdot \mathtt{d}\} $, i.e., a~set of sequences of functions that should be called atomically. The analysis will then look for the following pairs of functions that are not called atomically: $ \Omega = \{\mathtt{a} \cdot \mathtt{b},\ \mathtt{b} \cdot \mathtt{c},\ \mathtt{a} \cdot \mathtt{c},\ \mathtt{c} \cdot \mathtt{d}\} $.
 \end{example}
 
-An element of this phase's \emph{abstract state} is a~triple
-$ {(\mathtt{x}, \mathtt{y}, \Delta)} \in \Sigma \times \Sigma \times
-2^{\Sigma \times \Sigma} $, where $ {(\mathtt{x}, \mathtt{y})} $ is
-a~pair of the most recent function calls, and~$ \Delta $ is
-a~\emph{set of pairs that violate atomicity}. Thus, the abstract
-state $ s \in \boldsymbol{Q} $ is defined as $ 2^{\Sigma \times \Sigma
-\times 2^{\Sigma \times \Sigma}} $. Whenever a~function~\texttt{f} is
-called, it is created a~new pair ${ (\mathtt{x}^\prime,
-\mathtt{y}^\prime) }$ of the most recent function calls from the
-previous pair ${ (\mathtt{x}, \mathtt{y}) }$ (i.e. $ {(\mathtt{x}^\prime,
-\mathtt{y}^\prime)} = {(\mathtt{y}, \mathtt{f})} $). Further, when the
-current program state is not inside an atomic block, it is checked
-whether the new pair (or just the last call) violates atomicity (i.e.
-$ {(\mathtt{x}^\prime, \mathtt{y}^\prime)} \in \Omega \vee
-{(\varepsilon, \mathtt{y}^\prime)} \in \Omega $). When it does,
-it is added to the set~$ \Delta $ of pairs that violate atomicity.
+An element of this phase's abstract state is a~triple $ (\mathtt{x}, \mathtt{y}, \delta) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} $ where $ (\mathtt{x}, \mathtt{y}) $ is a~pair of the most recent calls of functions performed on the program path being explored, and~$ \delta $ is a~set of so far detected \emph{pairs that violate atomicity} on particular lines of code. Thus, the abstract states are elements of the set $ 2^{\Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}} $. Whenever a~function~\texttt{f} is called on some path that led to an abstract state $ (\mathtt{x}, \mathtt{y}, \delta) $, a~new pair $ (\mathtt{x}^\prime, \mathtt{y}^\prime) $ of the most recent function calls is created from the previous pair $ (\mathtt{x}, \mathtt{y}) $ such that $ (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) $. Further, when the current program state is not inside an atomic block, the analysis checks whether the new pair (or just the last call) violates atomicity (i.e., $ (\mathtt{x}^\prime, \mathtt{y}^\prime) \in \Omega \vee (\varepsilon, \mathtt{y}^\prime) \in \Omega $). When it does, it is added to the set~$ \delta $ of pairs that violate atomicity.
 
-Formally, the \emph{initial abstract state} of a~function is defined as
-$ s_{init} = {\{(\varepsilon, \varepsilon, \emptyset)\}} $.
-To formalise the analysis of a~function, let~\texttt{f} be a~called leaf
-function. Further, let~$ s_\mathtt{g} $ be the abstract state of
-a~function~\texttt{g} being analysed before the function~\texttt{f} is
-called. After the call of~\texttt{f}, the abstract state will be
-changed as follows: $ s_\mathtt{g} = \{{(\mathtt{x}^\prime,
-\mathtt{y}^\prime, \Delta^\prime)} \in \Sigma \times \Sigma \times
-2^{\Sigma \times \Sigma}\ |\ \exists\,{(\mathtt{x}, \mathtt{y}, \Delta)}
-\in s_\mathtt{g} : {(\mathtt{x}^\prime, \mathtt{y}^\prime)} = {(\mathtt{y},
-\mathtt{f})} \wedge \textcolor{orange}{[}\textcolor{green}{(}\neg lock
-\wedge \Delta^\prime = \textcolor{red}{\{}{(\mathtt{x}^{\prime\prime},
-\mathtt{y}^{\prime\prime})} \in \Sigma \times \Sigma\ |\
-{(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime})} \in \Delta \vee
-[\textcolor{violet}{(}{(\mathtt{x}^{\prime\prime},
-\mathtt{y}^{\prime\prime})} = {(\mathtt{x}^{\prime}, \mathtt{y}^\prime)}
-\vee {(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime})} =
-{(\varepsilon, \mathtt{y}^\prime)}\textcolor{violet}{)} \wedge
-{(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime})} \in
-\Omega]\textcolor{red}{\}}\textcolor{green}{)} \vee (lock
-\wedge \Delta^\prime = \Delta)\textcolor{orange}{]}\} $.
+Formally, the initial abstract state of a~function is defined as $ s_{init} = \{(\varepsilon, \varepsilon, \emptyset)\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ l $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows: 
+$$
+\begin{multlined}
+    s_\mathtt{g} = \{(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) \\
+%
+    \wedge \bA{[}\bB{(}\neg lock \wedge \delta^\prime = \bC{\{}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, l^\prime) \in \Sigma \times \Sigma \times \mathbb{N}\ |\ (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, l^\prime) \in \delta \\
+%
+    \vee [\bD{(}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\mathtt{x}^{\prime}, \mathtt{y}^\prime) \vee (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\varepsilon, \mathtt{y}^\prime)\bD{)} \wedge (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) \in \Omega \wedge l^\prime = l]\bC{\}}\bB{)} \vee (lock \wedge \delta^\prime = \delta)
+%
+    \bA{]}\}
+\end{multlined}
+$$
 
-The analysis of functions with \emph{nested function calls} and cases
-where \emph{lock/unlock calls not not paired} in functions are
-handled analogically as in \textbf{Phase~1}. For detailed examples,
-see~\cite{harmimBP}.
+A~\emph{summary} $ \chi_\mathtt{f} \in 2^{\Sigma \times \Sigma \times \mathbb{N}} $ of a~function~\texttt{f} is then $ \chi_\mathtt{f} = \Delta $, where~$ \Delta $ is a~set of pairs that violate atomicity within the function~\texttt{f}. $ \Delta $ is constructed such that it contains all the~$ \delta $ sets that appear on program paths through~\texttt{f}. Formally, $ \Delta = \{\delta^\prime \in 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(\mathtt{x}, \mathtt{y}, \delta) \in p : \delta \neq \emptyset \wedge \delta^\prime = \delta\} $, where~$ s_\mathtt{f} $ is the abstract state at the end of the abstract interpretation of~\texttt{f}.
+
+The analysis of functions with \emph{nested function calls} and cases where \emph{lock/unlock calls are not paired} within functions are handled analogically as in Phase~1. For a~detailed explanation, see~\cite{harmimBP}.
 
 \begin{example}
-    To demonstrate the detection of atomicity violation,
-    assume the functions~\texttt{f} and~\texttt{g} from
-    Listing~\ref{list:AtomerPhase2}. The set of atomic sequences
-    of the function~\texttt{f} with the summary~$ \chi_\mathtt{f}
-    = (\boldsymbol{B}, AB) $ is $ \boldsymbol{B} = {\{(\mathtt{b},
-    \mathtt{c})\}} $, thus $ \Omega = {\{(\mathtt{b}, \mathtt{c})\}} $.
-    In the function~\texttt{g}, atomicity violation is detected
-    because the pair of functions~\texttt{b} and~\texttt{c} is not
-    called atomically (under a~lock).
+    To demonstrate the detection of an atomicity violation, assume the functions~\texttt{f} and~\texttt{g} from Listing~\ref{list:AtomerPhase2}. The set of atomic sequences of the function~\texttt{f} with the first phase's summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ is $ \mathcal{B} = \{\mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c}\} $, thus, $ \Omega = \{(\mathtt{a}, \mathtt{b}), (\mathtt{b}, \mathtt{c})\} $. In the function~\texttt{g}, an atomicity violation is detected because the pair of functions~\texttt{b}, \texttt{c} is not called atomically on line~12. Consequently, the derived summary~$ \chi_\mathtt{g} $ for the function~\texttt{g} for the second phase of the analysis is $ \chi_\mathtt{g} = \{(\mathtt{b}, \mathtt{c}, 12)\} $.
 \end{example}
 
-\begin{lstlisting}[
-    style=c, label={list:AtomerPhase2}, float=hbt,
-    caption={Example of an \emph{atomicity violation}}
-]
+\begin{lstlisting}[style=c, label={list:AtomerPhase2}, float=hbt, caption={An example of an \emph{atomicity violation}}]
 void f()
 {
-    a();
-
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&lock); // (b, c)
-    b(); c();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&lock);
-
-    d();
+    x();
+    <@\red{lock}@>(&L); // a . b . c
+    a(); b(); c();
+    <@\red{unlock}@>(&L);
+    y();
 }
 void g()
 {
-    a(); b(); c(); d(); // <@\textcolor{red}{ATOMICITY\_VIOLATION:}@> (b, c)
+    x();
+    b(); c(); // <@\red{ATOMICITY\_VIOLATION:}@> (b, c)
+    y();
 }
 \end{lstlisting}
 
-\paragraph{Summary of the Phase~2}
-
-Like in the first phase of the analysis, \textbf{Phase~2} was implemented
-and validated on a~set of purposeful sample programs, as it is described
-in~\cite{harmimBP}. The sets of atomicity violations~$ \Delta $ from individual
-functions are the final reported atomicity violations seen by a~user.
+\paragraph{Summary of Phase~2}
+The sets of pairs that violate atomicity\,---\,the~$ \Delta $ sets\,---\,from the summaries of all analysed functions are finally reported to the user.
 
 
 \section{Atomer's Limitations}
@@ -1249,7 +890,7 @@ of function calls must be atomic only if they \emph{handle the same data}.
 Assume that there are functions~\texttt{f, g} manipulating with the same
 container~\texttt{c} as follows: \texttt{f(c); g(c);}. These are called
 atomically. Somewhere else\,---\,where~\texttt{f, g} are not called
-atomically\,---\,it does not necessarily mean atomicity violation because they
+atomically\,---\,it does not necessarily mean an atomicity violation because they
 can be invoked with different arguments, which could be valid. This behaviour
 corresponds to the \emph{extended contracts with parameters} (see
 Section~\ref{sec:contractsParams}). Another, a~more complex limitation is that
@@ -1258,7 +899,7 @@ more precise to consider as atomicity violations such sequences that could be
 violated only by particular (\uv{dangerous}) function calls, not by any calls.
 For example, assume that there is the following sequence of functions called
 atomically: \texttt{f(); g();}. While somewhere else, these functions are not
-called atomically, it does not necessarily mean that it is atomicity
+called atomically, it does not necessarily mean that it is an atomicity
 violation because, in this particular context, non of the \uv{dangerous}
 functions can be executed by any concurrent thread. The \emph{extended
 contracts with spoilers} formally describe these cases in
@@ -1273,7 +914,7 @@ version of Atomer can analyse C~programs with other types of locks, these locks
 are not recognised as locks. Thus, the analysis would not work as expected. Of
 course, it would be useful also to analyse other languages than just~C. As
 described in Section~\ref{sec:fbinfer}; \emph{Facebook Infer} is capable of
-analysing programs written in C, C++, Objective~C, and Java (and C\#). An
+analysing programs written in C, C++, Objective-C, and Java (and C\#). An
 analysis algorithm could then be the same for all these languages because the
 Infer's \emph{intermediate language} is analysed, instead of directly
 analysing the input languages. Again, Atomer should be able to analyse the
@@ -1331,6 +972,8 @@ Atomer, detailed in Chapter~\ref{chap:implement}.
 \chapter{Proposal of Enhancements for Atomer}
 \label{chap:proposal}
 
+\cite{anaconda}
+
 This chapter describes the proposed solutions for Atomer's limitations
 stated in Section~\ref{sec:atomerLimits}, i.e., solutions that enhance
 \emph{precision} and \emph{scalability} of the analysis performed by Atomer.
@@ -1377,7 +1020,7 @@ Figure~\ref{fig:atomerPhasesSequences}).
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=.75 \linewidth]{analyser-proposal-sets.pdf}
+    \includegraphics[width=.66 \linewidth]{analyser-proposal-sets.pdf}
     \caption{%
         An illustration of the \emph{phases} of the Atomer's analysis
         and the \emph{high-level analysis process} with an
@@ -1900,7 +1543,7 @@ abstract state is changed as follows: $ s_\mathtt{g} =
     \texttt{b} that should be called atomically, i.e., $ \Omega =
     {\{(\mathtt{a}, \mathtt{b})\}} $. Before the extension of
     the distinguishment of multiple locks used, the analysis
-    would report atomicity violation of these functions (line~6).
+    would report an atomicity violation of these functions (line~6).
     That is because the locks are not distinguished, and the
     unlock of \texttt{lockA} (line~5) would unlock everything.
     On the other hand, after the extension, there are not reported
@@ -1974,6 +1617,7 @@ void f()
 \label{chap:exp}
 
 \todo{Některé věci převzít z~Excelu a~z~projektové praxe.}
+\cite{deadlockKroening}
 
 
 \section{Testing on Hand-Crafted Examples}
