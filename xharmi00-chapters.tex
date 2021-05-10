@@ -722,6 +722,7 @@ AB) $, where:
     The functions~\texttt{a, b, c, x, y} are not deeper analysed because it is assumed that these functions are leaf nodes of the \emph{call graph}. The strikethrough of the functions~\texttt{b, x, y} denotes removing already recorded function calls in the~$ A $ and~$ B $ sequences to get the reduced form. The strikethrough of the entire sequence $ \mathtt{y}\ [\mathtt{a} \cdot \mathtt{a} \cdot \mathtt{c}] $ means discarding sequence already seen before. For the above, the abstract state at the end of the abstract interpretation of the function~\texttt{f} is $ s_\mathtt{f} = \{\{(\mathtt{x} \cdot \mathtt{y},\ \mathtt{a} \cdot \mathtt{b}), (\mathtt{y},\ \mathtt{a} \cdot \mathtt{c}), (\varepsilon,\ \varepsilon)\}\} $. The derived summary~$ \chi_\mathtt{f} $ for the function~\texttt{f} is $ \chi_\mathtt{f} = (\mathcal{B}, AB) $, where $ \mathcal{B} = \{\mathtt{a} \cdot \mathtt{b},\ \mathtt{a} \cdot \mathtt{c}\} $, i.e., $ B_1 $ and~$ B_2 $; and $ AB = \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} $, i.e., the concatenation of~$ A_1 $, $ B_1 $, $ A_2 $, $ B_2 $ from which duplicate function calls were removed.
 \end{example}
 
+%~-
 \begin{lstlisting}[style=c, label={list:atomerPhase1}, float=hbt, caption={A~code snippet used for an illustration of the derivation of \emph{sequences of functions called atomically}}]
 void f()
 {
@@ -739,6 +740,7 @@ void f()
     <@\red{unlock}@>(&L);
 }
 \end{lstlisting}
+%~+
 
 Further, it is demonstrated how the results of the analysis of \emph{nested functions} are used during the detection of atomic sequences. The result of the analysis of a~nested function is used as follows. When calling an already analysed function, one plugs the sequence from the second component of its summary (i.e., the $ AB $ sequence) into the most recent~$ A $ or~$ B $ sequence of all the program paths (where a~program path corresponds to a~single element of an abstract state, i.e., a~set of the $ (A, B) $ pairs). In particular, assume that $ (A, B) $ is the most recent pair of sequences of the program state of a~path being analysed. Subsequently, it is called a~function~\texttt{f} with a~non-empty summary (i.e., $ AB \neq \varepsilon $). If the current program state of the analysed function is inside an atomic block, the analysis in this step will transform the pair~$ (A, B) $ to a~new $ (A^\prime, B^\prime) $ pair as follows: $ (A^\prime, B^\prime) = (A, B \cdot \mathtt{f} \cdot AB) $. Otherwise, $ (A^\prime, B^\prime) = (A \cdot \mathtt{f} \cdot AB, B) $. In such cases where a~summary is empty, i.e., there are no function calls in a~called function, or it is a~leaf node of the call graph, just the function name is appended to the most recent~$ A $ or~$ B $ sequences of all the program paths. To formalise this process, let~\texttt{f} be a~called function that was already analysed, and the second component of its summary is $ AB $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
 $$
@@ -761,6 +763,7 @@ $$
     For the above, the abstract state at the end of the abstract interpretation of the function~\texttt{g} is $ s_\mathtt{g} = \{\{(\mathtt{x} \cdot \mathtt{f} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} \cdot \mathtt{z},\ \mathtt{f} \cdot \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} \cdot), (\varepsilon,\ \varepsilon)\}\} $. The derived summary~$ \chi_\mathtt{g} $ for the function~\texttt{g} is $ \chi_\mathtt{g} = (\{\mathtt{f} \cdot \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} \cdot\},\ \mathtt{x} \cdot \mathtt{f} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c} \cdot \mathtt{z}) $.
 \end{example}
 
+%~-
 \begin{lstlisting}[style=c, label={list:atomerPhase1Nested}, float=hbt, caption={A~code snippet used to illustrate the derivation of sequences of functions called atomically with a~\emph{nested function call} (function~\texttt{f} is defined in Listing~\ref{list:atomerPhase1})}]
 void g()
 {
@@ -770,6 +773,7 @@ void g()
     <@\red{unlock}@>(&L);
 }
 \end{lstlisting}
+%~+
 
 \subsubsection{Cases Where Lock/Unlock Calls Are Not Paired in a~Function}
 
@@ -779,6 +783,7 @@ For treating cases where \emph{lock/unlock calls are not paired} in a~function\,
 
 Moreover, \emph{all unlock calls not preceded by a~lock are ignored}. Thus, in the function~\texttt{n} from Listing~\ref{list:AtomerPhase1NotPairedLock}, there are not detected any atomic sequences: $ \chi_\mathtt{n} = (\emptyset,\ \mathtt{a}) $.
 
+%~-
 \begin{lstlisting}[style=c, label={list:AtomerPhase1NotPairedLock}, float=hbt, caption={A~code snippet used to illustrate treating cases where \emph{lock/unlock calls are not paired} in a~function}]
 void m()
 {
@@ -791,6 +796,7 @@ void n()
     <@\red{unlock}@>(&L);
 }
 \end{lstlisting}
+%~+
 
 \paragraph{Summary of Phase~1}
 The derived sequences of calls assumed to execute atomically\,---\,the~$ \mathcal{B} $ sequences\,---\,from the summaries of all analysed functions are stored into a~file used during Phase~2, which is described later on.
@@ -836,6 +842,7 @@ The analysis of functions with \emph{nested function calls} and cases where \emp
     To demonstrate the detection of an atomicity violation, assume the functions~\texttt{f} and~\texttt{g} from Listing~\ref{list:AtomerPhase2}. The set of atomic sequences of the function~\texttt{f} with the first phase's summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ is $ \mathcal{B} = \{\mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c}\} $, thus, $ \Omega = \{(\mathtt{a}, \mathtt{b}), (\mathtt{b}, \mathtt{c})\} $. In the function~\texttt{g}, an atomicity violation is detected because the pair of functions~\texttt{b}, \texttt{c} is not called atomically on line~12. Consequently, the derived summary~$ \chi_\mathtt{g} $ for the function~\texttt{g} for the second phase of the analysis is $ \chi_\mathtt{g} = \{(\mathtt{b}, \mathtt{c}, 12)\} $.
 \end{example}
 
+%~-
 \begin{lstlisting}[style=c, label={list:AtomerPhase2}, float=hbt, caption={An example of an \emph{atomicity violation}}]
 void f()
 {
@@ -852,6 +859,7 @@ void g()
     y();
 }
 \end{lstlisting}
+%~+
 
 \paragraph{Summary of Phase~2}
 The sets of pairs that violate atomicity\,---\,the~$ \Delta $ sets\,---\,from the summaries of all analysed functions are finally reported to the user.
