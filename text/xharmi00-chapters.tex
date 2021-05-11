@@ -626,7 +626,7 @@ The clause requires sequences of \texttt{index\_of} and \texttt{get} to be perfo
 \chapter{\texorpdfstring{Atomer\,---\,Atomicity Violations Detector}{Atomer - Atomicity Violations Detector}}
 \label{chap:atomer}
 
-This chapter describes the principles and limitations of the basic version of the \emph{Atomer static analyser} proposed as a~module of \emph{Facebook Infer} (introduced in Section~\ref{sec:fbinfer}) for finding some forms of \emph{atomicity violations}. Atomer was proposed and in detail described in the bachelor's thesis~\cite{harmimBP} of the author of this thesis. Therefore, naturally, the following description in Section~\ref{sec:atomerDesing} is based on the mentioned thesis. Already existing solutions in this area (besides Atomer) are discussed in Section~\ref{sec:atomerRelatedWork}. In particular, it deals with other existing approaches and tools for finding atomicity violations, their advantages, disadvantages, features, availability, and so on. In Section~\ref{sec:atomerLimits}, there are discussed limitations and shortcomings of Atomer. Some of the thoughts mentioned in this section are taken into consideration already in~\cite{harmimBP}.
+This chapter describes the principles and limitations of the basic version of the \emph{Atomer static analyser} proposed as a~module of \emph{Facebook Infer} (introduced in Section~\ref{sec:fbinfer}) for finding some forms of \emph{atomicity violations}. Atomer was proposed and in detail described in the bachelor's thesis~\cite{harmimBP} of the author of this thesis. Therefore, naturally, the description in Section~\ref{sec:atomerDesing} is based on the mentioned thesis. Already existing solutions in this area (besides Atomer) are discussed in Section~\ref{sec:atomerRelatedWork}. In particular, it deals with other existing approaches and tools for finding atomicity violations, their advantages, disadvantages, features, availability, and so on. In Section~\ref{sec:atomerLimits}, there are discussed limitations and shortcomings of Atomer. Some of the thoughts mentioned in this section are taken into consideration already in~\cite{harmimBP}.
 
 
 \section{Related Work}
@@ -803,7 +803,7 @@ The derived sequences of calls assumed to execute atomically\,---\,the~$ \mathca
 
 \subsection{Phase~2\,---\,Detection of Atomicity Violations}
 
-In the second phase of the analysis, i.e., when \emph{detecting violations} of the atomic sequences obtained from Phase~1, the analysis looks for \emph{pairs of functions} that \emph{should be called atomically} (or just for single functions if there is only one function call in an atomic sequence) and that are not executed atomically (i.e., under a~lock) on some path through the CFG. The pairs of function calls to be checked for atomicity are obtained as follows. For each function~\texttt{f} with a~summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ in a~given program~$ S $, where $ \mathcal{B} = \{B_1, B_2,\ \ldots\ , B_n\} $, the analysis considers \emph{every pair} $ (\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma $ of functions that appear as a~\emph{substring} in some of the~$ B_i $ sequences, i.e., $ B_i = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime $ for some sequences~$ w, w^\prime $. Note that~\texttt{x} could be~$ \varepsilon $ (an empty sequence) if some~$ B_i $ consists of a~single function. All these \uv{atomic pairs} are put into the set $ \Omega \in 2^{\Sigma \times \Sigma} $. More formally, 
+In the second phase of the analysis, i.e., when \emph{detecting violations} of the atomic sequences obtained from Phase~1, the analysis looks for \emph{pairs of functions} that \emph{should be called atomically} (or just for single functions if there is only one function call in an atomic sequence) and that are not executed atomically (i.e., under a~lock) on some path through the CFG. The pairs of function calls to be checked for atomicity are obtained as follows. For each function~\texttt{f} with a~Phase~1 summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ in a~given program~$ S $, where $ \mathcal{B} = \{B_1, B_2,\ \ldots\ , B_n\} $, the analysis considers \emph{every pair} $ (\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma $ of functions that appear as a~\emph{substring} in some of the~$ B_i $ sequences, i.e., $ B_i = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime $ for some sequences~$ w, w^\prime $. Note that~\texttt{x} could be~$ \varepsilon $ (an empty sequence) if some~$ B_i $ consists of a~single function. All these \uv{atomic pairs} are put into the set $ \Omega \in 2^{\Sigma \times \Sigma} $. More formally, 
 $$
 \begin{multlined}
     \Omega = \{(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) = (\varepsilon, B)\bA{]} \\
@@ -813,7 +813,7 @@ $$
     \bB{]}\}
 \end{multlined}
 $$
-where~$ X_S \in 2^{2^{\Sigma^*} \times \Sigma^*} $ is a~set of all summaries of the program~$ S $.
+where~$ X_S \in 2^{2^{\Sigma^*} \times \Sigma^*} $ is a~set of all Phase~1 summaries of the program~$ S $.
 
 \begin{example}
     For instance, assume that in Phase~1, there was analysed a~function~\texttt{f}. It produced the summary $ \chi_\mathtt{f} = (\mathcal{B}, AB) $, where $ \mathcal{B} = \{\mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c},\ \mathtt{a} \cdot \mathtt{c} \cdot \mathtt{d}\} $, i.e., a~set of sequences of functions that should be called atomically. The analysis will then look for the following pairs of functions that are not called atomically: $ \Omega = \{\mathtt{a} \cdot \mathtt{b},\ \mathtt{b} \cdot \mathtt{c},\ \mathtt{a} \cdot \mathtt{c},\ \mathtt{c} \cdot \mathtt{d}\} $.
@@ -821,7 +821,7 @@ where~$ X_S \in 2^{2^{\Sigma^*} \times \Sigma^*} $ is a~set of all summaries of 
 
 An element of this phase's abstract state is a~triple $ (\mathtt{x}, \mathtt{y}, \delta) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} $ where $ (\mathtt{x}, \mathtt{y}) $ is a~pair of the most recent calls of functions performed on the program path being explored, and~$ \delta $ is a~set of so far detected \emph{pairs that violate atomicity} on particular lines of code. Thus, the abstract states are elements of the set $ 2^{\Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}} $. Whenever a~function~\texttt{f} is called on some path that led to an abstract state $ (\mathtt{x}, \mathtt{y}, \delta) $, a~new pair $ (\mathtt{x}^\prime, \mathtt{y}^\prime) $ of the most recent function calls is created from the previous pair $ (\mathtt{x}, \mathtt{y}) $ such that $ (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) $. Further, when the current program state is not inside an atomic block, the analysis checks whether the new pair (or just the last call) violates atomicity (i.e., $ (\mathtt{x}^\prime, \mathtt{y}^\prime) \in \Omega \vee (\varepsilon, \mathtt{y}^\prime) \in \Omega $). When it does, it is added to the set~$ \delta $ of pairs that violate atomicity.
 
-Formally, the initial abstract state of a~function is defined as $ s_{init} = \{(\varepsilon, \varepsilon, \emptyset)\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ l $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows: 
+Formally, the initial abstract state (in this phase) of a~function is defined as $ s_{init} = \{(\varepsilon, \varepsilon, \emptyset)\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ l $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows: 
 $$
 \begin{multlined}
     s_\mathtt{g} = \{(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) \\
@@ -834,12 +834,12 @@ $$
 \end{multlined}
 $$
 
-A~\emph{summary} $ \chi_\mathtt{f} \in 2^{\Sigma \times \Sigma \times \mathbb{N}} $ of a~function~\texttt{f} is then $ \chi_\mathtt{f} = \Delta $, where~$ \Delta $ is a~set of pairs that violate atomicity within the function~\texttt{f}. $ \Delta $ is constructed such that it contains all the~$ \delta $ sets that appear on program paths through~\texttt{f}. Formally, $ \Delta = \{\delta^\prime \in 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(\mathtt{x}, \mathtt{y}, \delta) \in p : \delta \neq \emptyset \wedge \delta^\prime = \delta\} $, where~$ s_\mathtt{f} $ is the abstract state at the end of the abstract interpretation of~\texttt{f}.
+A~\emph{summary} of the second phase of the analysis\,---\,$ \chi_\mathtt{f} \in 2^{\Sigma \times \Sigma \times \mathbb{N}} $\,---\,of a~function~\texttt{f} is then $ \chi_\mathtt{f} = \Delta $, where~$ \Delta $ is a~set of pairs that violate atomicity within the function~\texttt{f}. $ \Delta $ is constructed such that it contains all the~$ \delta $ sets that appear on program paths through~\texttt{f}. Formally, $ \Delta = \{\delta^\prime \in 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(\mathtt{x}, \mathtt{y}, \delta) \in p : \delta \neq \emptyset \wedge \delta^\prime = \delta\} $, where~$ s_\mathtt{f} $ is the abstract state at the end of the abstract interpretation of~\texttt{f}.
 
 The analysis of functions with \emph{nested function calls} and cases where \emph{lock/unlock calls are not paired} within functions are handled analogically as in Phase~1. For a~detailed explanation, see~\cite{harmimBP}.
 
 \begin{example}
-    To demonstrate the detection of an atomicity violation, assume the functions~\texttt{f} and~\texttt{g} from Listing~\ref{list:AtomerPhase2}. The set of atomic sequences of the function~\texttt{f} with the first phase's summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ is $ \mathcal{B} = \{\mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c}\} $, thus, $ \Omega = \{(\mathtt{a}, \mathtt{b}), (\mathtt{b}, \mathtt{c})\} $. In the function~\texttt{g}, an atomicity violation is detected because the pair of functions~\texttt{b}, \texttt{c} is not called atomically on line~12. Consequently, the derived summary~$ \chi_\mathtt{g} $ for the function~\texttt{g} for the second phase of the analysis is $ \chi_\mathtt{g} = \{(\mathtt{b}, \mathtt{c}, 12)\} $.
+    To demonstrate the detection of an atomicity violation, assume the functions~\texttt{f} and~\texttt{g} from Listing~\ref{list:AtomerPhase2}. The set of atomic sequences of the function~\texttt{f} with the first phase's summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ is $ \mathcal{B} = \{\mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c}\} $, thus, $ \Omega = \{(\mathtt{a}, \mathtt{b}), (\mathtt{b}, \mathtt{c})\} $. In the function~\texttt{g}, an atomicity violation is detected because the pair of functions~\texttt{b}, \texttt{c} is not called atomically on line~12, i.e., $ (\mathtt{b}, \mathtt{c}) \in \Omega $. Consequently, the derived summary~$ \chi_\mathtt{g} $ for the function~\texttt{g} for the second phase of the analysis is $ \chi_\mathtt{g} = \{(\mathtt{b}, \mathtt{c}, 12)\} $.
 \end{example}
 
 %~-
@@ -868,111 +868,30 @@ The sets of pairs that violate atomicity\,---\,the~$ \Delta $ sets\,---\,from th
 \section{Atomer's Limitations}
 \label{sec:atomerLimits}
 
-Atomer was proposed as it is detailed in Section~\ref{sec:atomerDesing}. The
-analyser was implemented, and it is working as expected. Moreover, it can
-be used in practice to analyse various kinds of programs, and it may find
-\emph{real atomicity related bugs}. Nevertheless, there are still several
-limitations and cases where Atomer would not work correctly, i.e., cases not
-considered during the original proposal. Some of these cases were briefly
-discussed in~\cite{harmimBP}, and further described in~\cite{excel2021Harmim}.
+The basic version of Atomer has been proposed as it is detailed in Section~\ref{sec:atomerDesing}. The analyser has also been implemented in~\cite{harmimBP}, and it works as expected. Moreover, it can be used in practice to analyse various kinds of programs, and it may find \emph{real-world atomicity related bugs}. Nevertheless, there are still several \emph{limitations} and cases where the first version of Atomer would not work correctly, i.e., cases not considered during the original proposal. Some of these cases are briefly discussed already in~\cite{harmimBP} and further described in~\cite{excel2021Harmim}.
 
-So far, Atomer does not work with \emph{nested locks}, i.e., it does not
-distinguish \emph{different locks} used in a~program. Only calls of
-locks/unlocks are identified, and parameters of these calls (\emph{lock
-objects}) are not considered. So, if there are several lock objects used, the
-analysis does not work correctly. Although this may happen in \emph{real-life
-programs}, insomuch as one could have another (smaller) atomic section inside
-a~current atomic section (this does not have to be evident at first because
-the \emph{inner atomic section} could be, e.g., included via a~macro). For
-instance: \texttt{lock(A); lock(B); \ldots\ unlock(B); unlock(A);}. Another
-possibility is an \emph{alternating sequence of locks}, e.g., two locks are
-locked at first, and then, they are unlocked in the same order, i.e.,
-\texttt{lock(A); lock(B); \ldots\ unlock(A); unlock(B);}.
+So far, Atomer does not distinguish \emph{different lock instances} used simultaneously in a~program. Only calls of locks/unlocks are identified, and the parameters of these calls\,---\,\emph{lock objects}\,---\,are not considered at all. Therefore, if there are several lock objects used, the analysis does not work correctly. Although this may happen in \emph{real-life programs}, insomuch as one could have, e.g., another (smaller) atomic section inside a~current atomic section (this does not have to be evident at first because the \emph{inner atomic section} could be, e.g., inside a~nested function). For example,
+$$
+    \mathtt{\ldots\ lock(L1);\ \ldots\ lock(L2);\ \ldots\ unlock(L2);\ \ldots\ unlock(L1);\ \ldots}
+$$
+Another possibility is an \emph{alternating sequence of locks}, e.g., two locks are locked at first, and then, they are unlocked in the same order, i.e.,
+$$
+    \mathtt{\ldots\ lock(L1);\ \ldots\ lock(L2);\ \ldots\ unlock(L1);\ \ldots\ unlock(L2);\ \ldots}
+$$
 
-Atomer considers only \emph{basic contracts for concurrency}, which are defined
-in Section~\ref{sec:contractsBasic}. It is quite limited in some circumstances
-and therefore, Atomer can report \emph{false alarms}. The basic contracts do
-not take into consideration the \emph{data flow} within function calls.
-However, actually, a~better idea is to work with the assumption that a~sequence
-of function calls must be atomic only if they \emph{handle the same data}.
-Assume that there are functions~\texttt{f, g} manipulating with the same
-container~\texttt{c} as follows: \texttt{f(c); g(c);}. These are called
-atomically. Somewhere else\,---\,where~\texttt{f, g} are not called
-atomically\,---\,it does not necessarily mean an atomicity violation because they
-can be invoked with different arguments, which could be valid. This behaviour
-corresponds to the \emph{extended contracts with parameters} (see
-Section~\ref{sec:contractsParams}). Another, a~more complex limitation is that
-basic contracts do not consider any \emph{contextual information}. It would be
-more precise to consider as atomicity violations such sequences that could be
-violated only by particular (\uv{dangerous}) function calls, not by any calls.
-For example, assume that there is the following sequence of functions called
-atomically: \texttt{f(); g();}. While somewhere else, these functions are not
-called atomically, it does not necessarily mean that it is an atomicity
-violation because, in this particular context, non of the \uv{dangerous}
-functions can be executed by any concurrent thread. The \emph{extended
-contracts with spoilers} formally describe these cases in
-Section~\ref{sec:contractsSpoilers}.
+Another limitation of Atomer's basic version is that it supports only the analysis of programs written in the \emph{C~language} that use \emph{PThread} locks to \emph{synchronise concurrent threads}. Of course, in practice, many other \emph{types of locks} for synchronisation of concurrent threads or even synchronisation of \emph{concurrent processes} are used. Although the first version of Atomer can analyse C~programs with other types of locks, these locks are not recognised as locks. Thus, the analysis would not work as expected. It would definitely be helpful also to analyse other languages than just~C. As described in Section~\ref{sec:fbinfer}, Facebook Infer is capable of analysing programs written in C, C++, Objective-C, Java, and C\#. The analysis algorithm could then be the same for all these languages because Facebook Infer's \emph{intermediate language} is analysed instead of directly analysing the input languages. Again, the first version of Atomer should be able to analyse the above languages, but it has not been tested within~\cite{harmimBP}. However, most importantly, other languages may use \emph{very different lock types}, which would not be recognised. Examples of some advanced locking mechanisms (not supported by the basic version of Atomer) are \emph{lock guards}, \emph{re-entrant locks}, or \emph{try-locks}.
 
-Another limitation of Atomer is that it supports only the analysis of programs
-written in the \emph{C~language} that uses \emph{PThread} locks to
-\emph{synchronise concurrent threads}. Naturally, in practice, many other
-\emph{types of locks} for synchronisation of concurrent threads or even
-\emph{synchronisation of concurrent processes} are used. Although the first
-version of Atomer can analyse C~programs with other types of locks, these locks
-are not recognised as locks. Thus, the analysis would not work as expected. Of
-course, it would be useful also to analyse other languages than just~C. As
-described in Section~\ref{sec:fbinfer}; \emph{Facebook Infer} is capable of
-analysing programs written in C, C++, Objective-C, and Java (and C\#). An
-analysis algorithm could then be the same for all these languages because the
-Infer's \emph{intermediate language} is analysed, instead of directly
-analysing the input languages. Again, Atomer should be able to analyse the
-above languages, but it was not tested in~\cite{harmimBP}. However, most
-importantly, other languages might use \emph{very different locks types}, and
-these would not be recognised.
+Regarding \emph{scalability}, the basic version of Atomer can have problems with more \emph{extensive} and \emph{complex} programs, as mentioned in~\cite{harmimBP} (problems with \emph{memory} as well as problems with the \emph{analysis time}). The problem is working with the sets of $ (A, B) $ pairs of \emph{sequences} in the abstract states of Phase~1 and working with \emph{sequences} of calls in the summaries of this phase. It may be necessary to store many of these sequences, and they can be very long (due to all different paths through the CFG of an analysed program). It may lead to the \emph{state space explosion problem}~\cite{stateExpl}.
 
-One of the main reasons that Atomer reports \emph{false alarms} is that in
-\emph{critical sections}, in practice, there are sometimes called
-\emph{generic functions} that do not influence atomicity violations (such as
-functions for printing to the standard output, functions for recasting variable
-to different types, functions related to iterators, and whatever other \uv{safe}
-functions for particular program types). Often, to find some atomicity
-violations, it is sufficient to focus only on certain \uv{critical} functions.
-In practice, another issue is that in an analysed program, there could be
-\uv{large} critical sections or critical sections in which appear function calls
-with a~\emph{deep hierarchy of nested function calls}. All the above cases could
-cause massive and \uv{imprecise} atomic sequences that are the source of false
-alarms. However, regardless of the above issues, Atomer can still report quite
-some false alarms. It is due to the assumption that \emph{sequences called
-atomically once} should \emph{always be called atomically}, but this does not
-always have to hold. None of the above reasons that could generate false alarms
-is resolved in the first version of Atomer.
+One of the main reasons that Atomer's first version reports \emph{false alarms} is that in \emph{critical sections}, in real-world programs, there are sometimes called \emph{generic functions} that do not influence atomicity violations (such as functions for printing to the standard output, functions for recasting variables to different types, functions related to iterators, and whatever other \uv{safe} functions for particular program types). Often, to find some atomicity violations, it is sufficient to focus only on certain \uv{critical} functions. In practice, another issue is that in an analysed program, there can be \uv{large} critical sections or critical sections in which appear function calls with a~\emph{deep hierarchy of nested function calls}. All the above cases may cause massive and \uv{imprecise} atomic sequences that are the source of false alarms. However, regardless of the above issues, Atomer can still report quite some false alarms. It is due to the assumption that \emph{sequences called atomically once} should \emph{always be called atomically}, but this does not always have to hold. None of the above reasons that can generate false alarms is resolved in the first version of Atomer.
 
-A~remarkable problem (though it is not directly a~problem of Atomer) is
-identifying whether a~reported atomicity violation is a~\emph{real bug} or
-whether it is just a~false alarm. It could be really challenging, especially
-in \emph{extensive real-life} programs.
+The next source of false alarms is something that the author of this work calls \emph{local atomicity violations}. Imagine a~function~\texttt{f} that contains non-atomic calls of functions~\texttt{a, b}, and these functions should always be invoked atomically. Obviously, this is an atomicity violation. However, suppose that~\texttt{f} is called exclusively from atomic sections of other functions higher in the call hierarchy. In this case, in effect, that is not a~real atomicity violation (it can be considered as a~local atomicity violation within a~single function, but globally, it is not). As a~consequence, a~false alarm would be reported by the basic version of Atomer. In real-life programs, this situation may be fairly common due to \emph{complicated call graphs}.
 
-Furthermore, Atomer does not consider a~locking using \emph{trylock} functions,
-i.e., functions equivalent to lock functions, except that if the lock object
-is currently locked, the call of the trylock shall return immediately, i.e.,
-no waiting. It can be determined from the return value of the trylock whether
-the lock succeeded or not. These types of locks are used (though not so often)
-in practice as well. In Atomer, trylocks are so far not identified as locks.
-The question is how to propose an extension of Atomer that would opportunely
-handle trylocks.
+Atomer considers only the \emph{basic contracts for concurrency}, defined in Section~\ref{sec:contractsBasic}. It is pretty limited in some circumstances, and therefore, Atomer can report \emph{false alarms}. The basic contracts do not take into consideration the \emph{data flow} within function calls. However, a~better idea is to work with the assumption that a~sequence of function calls must be atomic only if it \emph{handles the same data}. Assume that functions~\texttt{f, g} are manipulating with the same container~\texttt{C} as follows: \texttt{f(C); g(C);}. These are called atomically. Somewhere else\,---\,where~\texttt{f, g} are not called atomically\,---\,it does not necessarily cause an atomicity violation because they can be invoked with different arguments, which could be valid. This behaviour corresponds to the \emph{extended contracts with parameters} (see Section~\ref{sec:contractsParams}). Another (more complex) limitation is that basic contracts do not consider any \emph{contextual information}. It would be more precise to consider as atomicity violations such sequences that could be violated only by particular (\uv{dangerous}) function calls, not by any calls. For example, suppose that there is the following sequence of functions called atomically: \texttt{f(); g();}. While somewhere else, these functions are not called atomically, it does not necessarily cause that it is an atomicity violation because, in this particular context, none of the \uv{dangerous} functions can be executed by any concurrent thread. The \emph{extended contracts with spoilers} formally describe these scenarios in Section~\ref{sec:contractsSpoilers}.
 
-Regarding the \emph{scalability}, Atomer can have problems with more
-\emph{extensive} and \emph{complex} programs (problems with the \emph{memory}
-as well as problems with the \emph{analysis time}). A~problem is working with
-the sets of ${ (A, B) }$ pairs of \emph{sequences} in abstract states, and
-working with \emph{sequences} of atomic calls in summaries. It may be
-necessary to store many of these sequences, and they could be very long (due
-to all different paths through the CFG of an analysed program). This leads to
-the \emph{state space explosion problem}~\cite{stateExpl}.
+A~remarkable problem (though it is not directly a~problem of Atomer) is identifying whether a~reported atomicity violation is a~\emph{real bug} or whether it is just a~false alarm. It could be really challenging, especially in \emph{extensive real-life} programs.
 
-Solutions for some of the above problems and limitations were proposed in
-Chapter~\ref{chap:proposal} and further implemented in a~new version of
-Atomer, detailed in Chapter~\ref{chap:implement}.
+Solutions for some of the above issues and limitations are proposed in Chapter~\ref{chap:proposal} and further implemented in a~new version of Atomer, detailed in Chapter~\ref{chap:implement}.
 
 
 

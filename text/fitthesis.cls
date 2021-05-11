@@ -1115,8 +1115,7 @@ Management}{\@fit@EN}%
 %-------------------------------------------------------------------------------
 
 
-\def\uv#1{\iflanguage{british}{``#1''}%
-                              {\quotedblbase #1\textquotedblleft}}%
+\def\uv#1{\iflanguage{british}{``#1''}{\quotedblbase#1\textquotedblleft}}
 
 % Now, switch on what is appropriate for czech:
 
@@ -1363,12 +1362,8 @@ Management}{\@fit@EN}%
 
 % \leftsquigarrow
 \makeatletter
-\newcommand{\reflect@squig}[2]{%
-  \reflectbox{$\m@th#1\rightsquigarrow$}%
-}
-\providecommand{\leftsquigarrow}{%
-  \mathrel{\mathpalette\reflect@squig\relax}%
-}
+\newcommand{\reflect@squig}[2]{\reflectbox{$\m@th#1\rightsquigarrow$}}
+\providecommand{\leftsquigarrow}{\mathrel{\mathpalette\reflect@squig\relax}}
 \makeatother
 
 % Left aligned column with a fixed width
