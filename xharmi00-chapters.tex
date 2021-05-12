@@ -654,7 +654,7 @@ In general, basic contracts for concurrency allow one to define sequences of fun
 \begin{figure}[hbt]
     \centering
     \includegraphics[width=.66 \linewidth]{analyser-proposal.pdf}
-    \caption{\emph{Phases} of the Atomer's analysis and the analysis \emph{high-level process} illustration~\cite{harmimBP}}
+    \caption{\emph{Phases} of the analysis of the Atomer's first version and the analysis \emph{high-level process} illustration~\cite{harmimBP}}
     \label{fig:atomerPhasesSequences}
 \end{figure}
 
@@ -808,7 +808,7 @@ $$
 \begin{multlined}
     \Omega = \{(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) = (\varepsilon, B)\bA{]} \\
 %
-    \vee \bB{[}|B| > 1 \wedge \exists\,w, w^\prime \in \Sigma^* : B = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime \wedge (\mathtt{x}, \mathtt{y}) \neq (\varepsilon, \varepsilon)
+    \vee \bB{[}|B| > 1 \wedge \exists\,w, w^\prime \in \Sigma^* : B = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime \wedge (\mathtt{x}, \mathtt{y}) \neq (\varepsilon, \varepsilon)%
 %
     \bB{]}\}
 \end{multlined}
@@ -828,7 +828,7 @@ $$
 %
     \wedge \bA{[}\bB{(}\neg lock \wedge \delta^\prime = \bC{\{}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, l^\prime) \in \Sigma \times \Sigma \times \mathbb{N}\ |\ (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, l^\prime) \in \delta \\
 %
-    \vee [\bD{(}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\mathtt{x}^{\prime}, \mathtt{y}^\prime) \vee (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\varepsilon, \mathtt{y}^\prime)\bD{)} \wedge (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) \in \Omega \wedge l^\prime = l]\bC{\}}\bB{)} \vee (lock \wedge \delta^\prime = \delta)
+    \vee [\bD{(}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\mathtt{x}^{\prime}, \mathtt{y}^\prime) \vee (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\varepsilon, \mathtt{y}^\prime)\bD{)} \wedge (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) \in \Omega \wedge l^\prime = l]\bC{\}}\bB{)} \vee (lock \wedge \delta^\prime = \delta)%
 %
     \bA{]}\}
 \end{multlined}
@@ -868,7 +868,7 @@ The sets of pairs that violate atomicity\,---\,the~$ \Delta $ sets\,---\,from th
 \section{Atomer's Limitations}
 \label{sec:atomerLimits}
 
-The basic version of Atomer has been proposed as it is detailed in Section~\ref{sec:atomerDesing}. The analyser has also been implemented in~\cite{harmimBP}, and it works as expected. Moreover, it can be used in practice to analyse various kinds of programs, and it may find \emph{real-world atomicity related bugs}. Nevertheless, there are still several \emph{limitations} and cases where the first version of Atomer would not work correctly, i.e., cases not considered during the original proposal. Some of these cases are briefly discussed already in~\cite{harmimBP} and further described in~\cite{excel2021Harmim}.
+The basic version of Atomer has been proposed as it is detailed in Section~\ref{sec:atomerDesing}. The first version of the analyser has also been implemented in~\cite{harmimBP}, and it works as expected. Moreover, it can be used in practice to analyse various kinds of programs, and it may find \emph{real-world atomicity related bugs}. Nevertheless, there are still several \emph{limitations} and cases where the original version of Atomer would not work correctly, i.e., cases not addressed during the original proposal. Some of these cases are briefly discussed already in~\cite{harmimBP} and further described in~\cite{excel2021Harmim}.
 
 So far, Atomer does not distinguish \emph{different lock instances} used simultaneously in a~program. Only calls of locks/unlocks are identified, and the parameters of these calls\,---\,\emph{lock objects}\,---\,are not considered at all. Therefore, if there are several lock objects used, the analysis does not work correctly. Although this may happen in \emph{real-life programs}, insomuch as one could have, e.g., another (smaller) atomic section inside a~current atomic section (this does not have to be evident at first because the \emph{inner atomic section} could be, e.g., inside a~nested function). For example,
 $$
@@ -896,276 +896,123 @@ Solutions for some of the above issues and limitations are proposed in Chapter~\
 
 
 %===============================================================================
+
+
+
 \chapter{Proposal of Enhancements for Atomer}
 \label{chap:proposal}
 
-\cite{anaconda}
+In this chapter, the author proposes solutions for some of Atomer's limitations stated in Section~\ref{sec:atomerLimits}. The solutions enhance the analysis's \emph{precision} and \emph{scalability}. In order to formally define these enhancements, the notions and symbols introduced in Section~\ref{sec:atomerDesing} are used. Some of the enhancements were briefly discussed already in~\cite{excel2021Harmim}.
 
-This chapter describes the proposed solutions for Atomer's limitations
-stated in Section~\ref{sec:atomerLimits}, i.e., solutions that enhance
-\emph{precision} and \emph{scalability} of the analysis performed by Atomer.
-To formally define these enhancements, notions and symbols introduced in
-Section~\ref{sec:atomerDesing} are used. Some of the enhancements were
-described already in~\cite{excel2021Harmim}.
+Section~\ref{sec:proposalSets} proposes an optimisation of Atomer's scalability. The following Sections~\ref{sec:proposalAdvancedLocks}, \ref{sec:proposalParametr}, \ref{sec:proposalLocalGlobalViols} cover precision improvements, i.e., an extension of Atomer with additional features that improve its ability to cope with cases that were not supported in the first version of Atomer, and that can be seen in \emph{real-life code}. Furthermore, Chapter~\ref{chap:implement} provides an overview of the implementation of all the below improvements in a~new version of Atomer.
 
-In the following sections, to give an intuition, there are used listings with
-C~programs that use \emph{PThread locks} and assume declared and initialised
-global variables \texttt{lock}, \texttt{lockA}, \texttt{lockB}, \ldots\,(of
-a~type \texttt{phtread\_mutex\_lock}).
-
-Section~\ref{sec:proposalSets} proposes an optimisation of Atomer's
-scalability. The following sections~\ref{sec:proposalAdvancedLocks},
-\ref{sec:proposalParametr}, and \ref{sec:proposalLocalGlobalViols} covers
-precision improvements, i.e., an extension of Atomer by additional
-features that improve its ability to cope with cases that were not supported
-in the first version of Atomer, and that can be seen in \emph{real-life
-code}. A~description of the implementation of all the below improvements is 
-available in Chapter~\ref{chap:implement}.
-
-In the description in the below Sections, the enhancements stated in the
-preceding Sections of a~given Section are considered.
+In the following sections, to give an intuition, there are used listings with pieces of C~programs (assuming \texttt{lock/unlock} functions for \emph{mutual exclusion} to \emph{critical sections}). In addition, there are used C++ and Java programs to illustrate the \emph{locking mechanisms} in these languages.
 
 
 \section{Approximation of Sequences by Sets}
 \label{sec:proposalSets}
 
-Because Atomer can have \emph{scalability} problems when analysing
-more \emph{extensive} and \emph{complex} programs (problems with the
-\emph{memory} as well as problems with the \emph{analysis time}), it was
-proposed the following optimisation. It seems promising to
-\emph{approximate} (\emph{abstraction refinement}) working with the
-sets of ${ (A, B) }$ pairs of \emph{sequences} of function calls in
-\emph{abstract states} (during \textbf{Phase~1}) by working with the sets
-of ${ (A, B) }$ pairs of \textbf{sets} of function calls. Elements of
-these pairs are also occurring in \emph{summaries} of the first phase,
-and they are used during \textbf{Phase~2}. Thus, it is needed to make
-a~certain approximation in these structures and algorithms likewise.
-The approximated phases of the analysis and its collaboration are
-illustrated in Figure~\ref{fig:atomerPhasesSets} (one can compare that
-with the illustration of the first version of Atomer in
-Figure~\ref{fig:atomerPhasesSequences}).
+Regarding \emph{scalability}, the basic version of Atomer can have problems with more \emph{extensive} and \emph{complex} programs, which can manifest both in its \emph{time} and \emph{memory} consumption. The problems arise primarily due to working with the sets of $ (A, B) $ pairs of \textbf{sequences} of function calls in \emph{abstract states} (during Phase~1). It may be necessary to store many of these sequences, and they could be very long (due to all different paths through the CFG of an analysed program). The author's idea is to \emph{approximate} these sets by working with sets of $ (A, B) $ pairs of \textbf{sets} of function calls. Apart from representing the abstract states of the first phase of the analysis, elements of these pairs do also appear in the first phase's \emph{summaries}, and they are then used during Phase~2 as well. Thus, it is needed to make a~certain approximation in the summaries and their subsequent usage too. The approximated phases of the analysis and their collaboration are illustrated in Figure~\ref{fig:atomerPhasesSets} (one can compare that with the illustration of the first version of Atomer in Figure~\ref{fig:atomerPhasesSequences}).
 
 \begin{figure}[hbt]
     \centering
     \includegraphics[width=.66 \linewidth]{analyser-proposal-sets.pdf}
-    \caption{%
-        An illustration of the \emph{phases} of the Atomer's analysis
-        and the \emph{high-level analysis process} with an
-        \emph{approximation} of working with \emph{sequences} by
-        working with \emph{sets} (moreover, it can be visible that
-        Atomer now accepts programs also written in \emph{C++} and
-        \emph{Java} languages, which is described in
-        Section~\ref{sec:implementLanguages})%
-    }
+    \caption{An illustration of the \emph{phases} of the Atomer's analysis and the \emph{high-level analysis process} with an \emph{approximation} of working with \emph{sequences} by working with \emph{sets} (moreover, note that a~new version of Atomer accepts programs also written in C++ and Java languages, which is described in Section~\ref{sec:implementLanguages})}
     \label{fig:atomerPhasesSets}
 \end{figure}
 
-In particular, this proposed solution is more scalable because the order
-of stored function calls is not relevant anymore while working with
-sets. Therefore, less memory is required because the same sets of
-function calls are not stored multiple times. The analysis is also faster
-since there are stored fewer sets of function calls to work with. On the
-other hand, the analysis is less accurate because the new approach
-causes some loss of information. In practice, this loss of information
-could eventually lead to \emph{false alarms}. However, the number of
-such false alarms should not often be so significant. Moreover, later,
-there are presented some techniques that try to rid of these false
-alarms.
+In particular, the proposed solution is more scalable because the ordering of function calls that appear in the pairs is not relevant anymore. Therefore, less memory is required because different sequences of function calls can map the same set. The analysis is also faster since there are stored fewer sets of function calls to work with. On the other hand, the analysis is less accurate because the new approach causes some loss of information. In practice, this loss of information could eventually lead to \emph{false alarms}. However, the number of such false alarms is typically not that high as this thesis's experimental evidence shows. Moreover, later, there are discussed some techniques that may rid of these false alarms.
 
-\subsection{%
-    Approximation of the Abstract State and the Summary in Phase~1%
-}
+\subsection{Approximation with Sets in Phase~1}
 
-The \emph{detection of sequences of calls to be executed atomically} is now
-based on analysing all paths through the CFG of a~function and generating
-all pairs $ {(A, B)} \in 2^\Sigma \times 2^\Sigma $ (where~$ \Sigma $ is
-a~set of all function names in a~given program) of \textbf{sets} of
-function calls for each path. Here,~$ A, B $ are not \emph{reduced
-sequences} (the notion of a~reduced sequence is not needed anymore), but sets,
-and their semantics is preserved. So, the \emph{abstract state} $ s \in
-\boldsymbol{Q} $ is redefined as $ 2^{2^{2^\Sigma \times 2^\Sigma}} $.
-
-Further, in all the defined algorithms and definitions, it is
-sufficient to work with:
+The \emph{detection of sequences of calls to be executed atomically} now generates all $ (A, B) $ pairs of \textbf{sets} of function calls for each path instead of pairs of \textbf{sequences}, i.e., $ (A, B) \in 2^\Sigma \times 2^\Sigma $. Here,~$ A $, $ B $ are not \emph{reduced sequences} (the notion of a~reduced sequence is not needed anymore) but sets. The purpose of the pairs is preserved. Hence, the abstract states are elements of the set $ 2^{2^{2^\Sigma \times 2^\Sigma}} $. In all the implemented algorithms and definitions, it is sufficient to work with:
 \begin{itemize}
-    \item 
-        \emph{sets} of functions~$ 2^\Sigma $, instead of \emph{sequences}
-        of functions~$ \Sigma^* $;
-        
-    \item
-        \emph{empty sets}~$ \emptyset $, instead of \emph{empty
-        sequences}~$ \varepsilon $;
-        
-    \item
-        and \emph{union} of sets~$ \cup $, instead of a~\emph{concatenation}
-        of sequences~$ \cdot $.
+    \item \emph{sets}~$ 2^\Sigma $ of functions, instead of \emph{sequences}~$ \Sigma^* $ of functions;
+
+    \item the \emph{empty sets}~$ \emptyset $, instead of the \emph{empty sequences}~$ \varepsilon $;
+
+    \item and \emph{unions}~$ \cup $ of sets, instead of the \emph{concatenation}~$ \cdot $ of sequences.
 \end{itemize}
-The above implies that the \emph{initial abstract state} of a~function is
-changed to $ s_{init} = {\{\{{(\emptyset, \emptyset)}\}\}} $.
-During the analysis of a~function~\texttt{g} with an abstract
-state~$ s_\mathtt{g} $, when a~leaf function~\texttt{f} is called, the
-abstract state's transformation is changed as follows:
-$ s_\mathtt{g} = \{p^\prime \in 2^{2^\Sigma \times
-2^\Sigma}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime =
-\textcolor{blue}{\{}{(A^\prime, B^\prime)} \in 2^\Sigma \times 2^\Sigma\ |\
-\exists\,{(A, B)} \in p : \textcolor{violet}{(}\neg actual(p, (A, B)) \wedge
-{(A^\prime, B^\prime)} = {(A, B)}\textcolor{violet}{)} \vee
-\textcolor{red}{[}{actual(p, {(A, B)})} \wedge \textcolor{green}{[}(lock
-\wedge {(A^\prime, B^\prime)} = {(A, B \cup \{\mathtt{f}\})}) \vee
-(\neg lock \wedge {(A^\prime, B^\prime)} = {(A \cup \{\mathtt{f}\},
-B)})\textcolor{green}{]}\textcolor{red}{]}\textcolor{blue}{\}}\} $. Further,
-when an unlock is called, a~new ${ (A, B) }$ pair is created as follows:
-$ s_\mathtt{g} = \{p^\prime \in 2^{2^\Sigma \times 2^\Sigma}\ |\ \exists\,p
-\in s_\mathtt{g} : p^\prime = \textcolor{blue}{\{}{(A^\prime, B^\prime)}
-\in 2^\Sigma \times 2^\Sigma\ |\ \textcolor{violet}{(}{(A^\prime, B^\prime)}
-= {(\emptyset, \emptyset)} \wedge setActual(p, {(A^\prime,
-B^\prime)})\textcolor{violet}{)} \vee {(A^\prime, B^\prime)} \in
-p\textcolor{blue}{\}}\} $. Other definitions (e.g. calling an already
-analysed \emph{nested} function) will be modified analogically.
 
-Another approximation was made in \emph{summaries}. The first component
-of the summary has to be changed to a~set of sets of function calls
-because it is constructed from the~$ B $ items from abstract states,
-which are now sets. The second component of the summary can be changed
-to a~set of function calls, because even before, it was a~reduced
-sequence of all the ${ (A, B) }$ pairs. Therefore, the order of function calls
-was significantly approximated even so. Moreover, it is used to analyse
-functions higher in the \emph{call hierarchy} where it is appended to~$ A $
-or~$ B $, which are now sets. Thus, it would make no sense to store it in 
-summaries as a~sequence. Formally, the summary~$ \chi_\mathtt{f} \in
-2^{2^\Sigma} \times 2^\Sigma $ of a~function~\texttt{f} is redefined as
-$ \chi_\mathtt{f} = (\boldsymbol{B}, AB) $, where:
+The above implies that the \emph{initial abstract state} of a~function is changed to $ s_{init} = \{\{(\emptyset, \emptyset)\}\} $. During the analysis of a~function~\texttt{g} with an abstract state~$ s_\mathtt{g} $, when a~leaf function~\texttt{f} is called, the abstract state's transformation is changed as follows: 
+$$
+\begin{multlined}
+    s_\mathtt{g} = \{p^\prime \in 2^{2^\Sigma \times 2^\Sigma}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in 2^\Sigma \times 2^\Sigma\ |\ \exists\,(A, B) \in p : \\
+%
+    \bB{[}\neg actual(p, (A, B)) \wedge (A^\prime, B^\prime) = (A, B)\bB{]} \vee \bC{[}actual(p, (A, B)) \\
+%
+    \wedge \bD{[}(lock \wedge (A^\prime, B^\prime) = (A, B \cup \{\mathtt{f}\})) \vee (\neg lock \wedge (A^\prime, B^\prime) = (A \cup \{\mathtt{f}\}, B))%
+%
+    \bD{]}\bC{]}\bA{\}}\}
+\end{multlined}
+$$
+Further, when an unlock is called, a~new $ (A, B) $ pair is created as follows: 
+$$
+\begin{multlined}
+    s_\mathtt{g} = \{p^\prime \in 2^{2^\Sigma \times 2^\Sigma}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in 2^\Sigma \times 2^\Sigma\ |\ \\
+%
+    \bB{[}(A^\prime, B^\prime) = (\emptyset, \emptyset) \wedge setActual(p, (A^\prime, B^\prime))\bB{]} \vee (A^\prime, B^\prime) \in p%
+%
+    \bA{\}}\}
+\end{multlined}
+$$
+Other algorithms (e.g., calling an already analysed \emph{nested} function) are modified analogically.
+
+Another approximation was made in the summaries. The first component of the summary has to be changed to a~set of sets of function calls because it is constructed from the~$ B $ items from the abstract states, which are now sets. The second component of the summary can be changed to a~set of function calls because even before, it was a~reduced sequence of all the $ (A, B) $ pairs. Therefore, the ordering of function calls was significantly approximated even so. Moreover, it is used to analyse functions higher in the \emph{call hierarchy} where it is appended to~$ A $ or~$ B $, which are now sets. Thus, it would make no sense to store it in summaries as a~sequence. Formally, the form of summaries~$ \chi $ changes from $ 2^{\Sigma^*} \times \Sigma^* $ to $ 2^{2^\Sigma} \times 2^\Sigma $. In particular, a~summary~$ \chi_\mathtt{f} \in 2^{2^\Sigma} \times 2^\Sigma $ of a~function~\texttt{f} is redefined as $ \chi_\mathtt{f} = (\mathcal{B}, AB) $, where:
 \begin{itemize}
-    \item 
-        $ \boldsymbol{B} = \{B^\prime \in 2^\Sigma\ |\ \exists\,p \in
-        s_\mathtt{f} : \exists\,{(A, B)} \in p : B \neq \emptyset \wedge
-        B^\prime = B\} $, where~$ s_\mathtt{f} $ is the abstract state at
-        the end of an interpretation of~\texttt{f}.
+    \item $ \mathcal{B} = \{B^\prime \in 2^\Sigma\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B) \in p : B \neq \emptyset \wedge B^\prime = B\} $, where~$ s_\mathtt{f} $ is the abstract state at the end of the abstract interpretation of~\texttt{f}.
         
-    \item
-        $ AB = \bigcup\limits_{ab \in AB^\prime} ab $,
-        where $ AB^\prime = \{ab \in 2^\Sigma\ |\ \exists\,p \in
-        s_\mathtt{f} : \exists\,(A, B) \in p: ab = {A \cup B}\} $.
+    \item $ AB = \bigcup\limits_{ab\,\in\,AB^\prime} ab $, where $ AB^\prime = \{ab \in 2^\Sigma\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B) \in p: ab = A \cup B\} $.
 \end{itemize}
 
 \begin{example}
-    For demonstrating the approximation of the analysis with sets,
-    assume functions~\texttt{f} and~\texttt{g} from
-    Listing~\ref{list:atomerPhase1Sets}. Further assume,
-    that~\texttt{a}, \texttt{b}, \texttt{x}, \texttt{y} are leaf
-    nodes of the \emph{call graph}. Before the approximation,
-    when the analysis was working with sequences of function calls,
-    \textbf{Phase~1} of the analysis produced the following
-    abstract states and summaries while analysing the functions:
+    For demonstrating the approximation of the analysis to sets, assume functions~\texttt{f} and~\texttt{g} from Listing~\ref{list:atomerPhase1Sets}. Further, assume that~\texttt{a}, \texttt{b}, \texttt{x}, \texttt{y} are leaf nodes of the call graph. Before the approximation, when the analysis was working with sequences of function calls, Phase~1 of the analysis produced the following abstract states and summaries while analysing the functions:
     \begin{itemize}
-        \item 
-            $ s_\mathtt{f} = \{\{({(\mathtt{a}, \mathtt{b})}, {(\mathtt{x},
-            \mathtt{y})}), ({(\mathtt{b}, \mathtt{a})}, {(\mathtt{y},
-            \mathtt{x})}), {(\varepsilon, \varepsilon)}\}\} $,
-            $ \chi_\mathtt{f} = (\{{(\mathtt{x}, \mathtt{y})},
-            {(\mathtt{y}, \mathtt{x})}\}, (\mathtt{a}, \mathtt{b},
-            \mathtt{x}, \mathtt{y})) $;
+        \item $ s_\mathtt{f} = \{\{(\mathtt{x} \cdot \mathtt{y},\ \mathtt{a} \cdot \mathtt{b}), (\mathtt{y} \cdot \mathtt{x},\ \mathtt{b} \cdot \mathtt{a}), (\varepsilon,\ \varepsilon)\}\} $, $ \chi_\mathtt{f} = (\{\mathtt{a} \cdot \mathtt{b},\ \mathtt{b} \cdot \mathtt{a}\},\ \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b}) $;
             
-        \item
-            $ s_\mathtt{g} = \{\{({(\mathtt{b}, \mathtt{a})},
-            {(\mathtt{y}, \mathtt{x})}), {(\varepsilon,
-            \varepsilon)}\}\} $, $ \chi_\mathtt{g} = (\{{(\mathtt{y},
-            \mathtt{x})}\}, {(\mathtt{b}, \mathtt{a}, \mathtt{y},
-            \mathtt{x})}) $.
+        \item $ s_\mathtt{g} = \{\{(\mathtt{y} \cdot \mathtt{x},\ \mathtt{b} \cdot \mathtt{a}), (\varepsilon,\ \varepsilon)\}\} $, $ \chi_\mathtt{g} = (\{\mathtt{b} \cdot \mathtt{a}\},\ \mathtt{y} \cdot \mathtt{x} \cdot \mathtt{b} \cdot \mathtt{a}) $.
     \end{itemize}
-    Whereas, after the approximation, the produced abstract states
-    and summaries are as follows (i.e. there is only one \uv{atomic set},
-    and the summaries and abstract states are the same for both functions
-    because there are the same locked/unlocked function calls, only the
-    order of calls is different):
-    \begin{itemize}
-        \item 
-            $ s_\mathtt{f} = \{\{({\{\mathtt{a}, \mathtt{b}\}},
-            {\{\mathtt{x}, \mathtt{y}\}}), {(\emptyset, \emptyset)}\}\} $,
-            $ \chi_\mathtt{f} = ({\{\{\mathtt{x}, \mathtt{y}\}\}},
-            {\{\mathtt{a}, \mathtt{b}, \mathtt{x}, \mathtt{y}\}}) $;
-            
-        \item
-            $ s_\mathtt{g} = \{\{({\{\mathtt{a}, \mathtt{b}\}},
-            {\{\mathtt{x}, \mathtt{y}\}}), {(\emptyset, \emptyset)}\}\} $,
-            $ \chi_\mathtt{g} = ({\{\{\mathtt{x}, \mathtt{y}\}\}},
-            {\{\mathtt{a}, \mathtt{b}, \mathtt{x}, \mathtt{y}\}}) $.
-    \end{itemize}
+    Whereas, after the approximation, the produced abstract states and summaries are as follows: $ s_\mathtt{f} = s_\mathtt{g} = \{\{(\{\mathtt{x}, \mathtt{y}\}, \{\mathtt{a}, \mathtt{b}\}), (\emptyset, \emptyset)\}\} $, $ \chi_\mathtt{f} = \chi_\mathtt{g} = (\{\{\mathtt{a}, \mathtt{b}\}\}, \{\mathtt{a}, \mathtt{b}, \mathtt{x}, \mathtt{y}\}) $. They are the same for both functions because there are the same locked/unlocked function calls; only the order of calls differs.
 \end{example}
 
-\begin{lstlisting}[
-    style=c, label={list:atomerPhase1Sets}, float=hbt,
-    caption={%
-        A~code snippet used to illustrate the Atomer's
-        \textbf{Phase~1} \emph{approximation} of the analysis with
-        \emph{sets of function calls}%
-    }
-]
+%~-
+\begin{lstlisting}[style=c, label={list:atomerPhase1Sets}, float=hbt, caption={A~code snippet used to illustrate the proposed \emph{approximation} of the first phase of the analysis in the new version of Atomer using \emph{sets of function calls}}]
 void f()
 {
-    a(); b();
-
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&lock); // (x, y) -> {x, y}
     x(); y();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&lock);
-    
-    b(); a();
-
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&lock); // (y, x) -> {x, y}
+    <@\red{lock}@>(&L); // a . b -> {a, b}
+    a(); b();
+    <@\red{unlock}@>(&L);
     y(); x();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&lock);
+    <@\red{lock}@>(&L); // b . a -> {a, b}
+    b(); a();
+    <@\red{unlock}@>(&L);
 }
 void g()
 {
-    b(); a();
-
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&lock); // (y, x) -> {x, y}
     y(); x();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&lock);
+    <@\red{lock}@>(&L); // b . a -> {a, b}
+    b(); a();
+    <@\red{unlock}@>(&L);
 }
 \end{lstlisting}
+%~+
 
 \subsection{Approximation with Sets in Phase~2}
 
-\emph{Detecting violations of atomicity} works almost the same way as
-before the approximation. There is only one difference. Before the
-approximation, it was detected violations of atomic sequences obtained
-from \textbf{Phase~1}. Now, \textbf{atomic sets} are obtained; hence,
-detection of violations of atomic sets is performed. Again, the analysis
-looks for \emph{pairs of functions that should be called atomically} while
-this is not the case on some path through the CFG. This algorithm is
-identical to the algorithm before the approximation.
+The \emph{detection of atomicity violations} in Phase~2 then works almost the same way as before the approximation. However, there is one difference. Before, the analysis implemented in the second phase looked for violations of atomic sequences obtained from Phase~1. Now, \textbf{atomic sets} are obtained from Phase~1; hence, the detection of atomicity violations needs to work with sets too. Again, the analysis looks for \emph{pairs of functions that should be called atomically}, while this is not the case on some path through the CFG. This algorithm is identical to the algorithm before the approximation.
 
-Nevertheless, it is needed to propose a~new algorithm that derives the
-pairs of function calls (from the atomic sets) to be checked for atomicity
-(i.e. the set~$ \Omega \in 2^{\Sigma \times \Sigma} $). In order to obtain the
-pairs, it is taken a~union of sets that contain all 2-element \emph{variations}
-of single atomic sets (i.e. all the possible pairs). Formally, let~$ Q $ be
-an analysed program, and let $ X_Q \in 2^{2^{2^\Sigma} \times 2^\Sigma} $ be
-a~set of all \emph{summaries} of the program~$ Q $. Then, all the atomic pairs
-(the first item of a~pair may be empty if an atomic set consists of a~single
-function) are obtained as follows: $ \Omega = \{{(\mathtt{x}, \mathtt{y})}
-\in \Sigma \times \Sigma\ |\ \exists\,{(\boldsymbol{B}, AB)} \in X_Q :
-\exists\,B \in \boldsymbol{B} : (|B| = 1 \wedge {(\mathtt{x}, \mathtt{y})} \in
-\{\varepsilon\} \times B) \vee (|B| > 1 \wedge {(\mathtt{x}, \mathtt{y})} \in
-B \times B \wedge \mathtt{x} \neq \mathtt{y})\} $.
+Nevertheless, it is needed to propose a~new algorithm that derives the pairs of function calls (from the atomic sets) to be checked for atomicity (i.e., the set~$ \Omega \in 2^{\Sigma \times \Sigma} $). Intuitively, the second phase of the analysis now looks for non-atomic execution of any pair of functions~\texttt{f, g} such that $ \{\mathtt{f, g}\} $ is a~\emph{subset} of some set of functions that were found to be executed atomically. In order to obtain the pairs, all possible pairs of functions are taken from atomic sets from Phase~1, i.e., all \emph{2-element variations}. Formally, let~$ S $ be an analysed program, and let $ X_S \in 2^{2^{2^\Sigma} \times 2^\Sigma} $ be a~set of all \emph{summaries} of the program~$ S $. Then, all the atomic pairs (the first item of a~pair may be empty if an atomic set consists of a~single function) are obtained as follows: 
+$$
+\begin{multlined}
+    \Omega = \{(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) \in \{\varepsilon\} \times B\bA{]} \\
+%
+    \vee \bB{[}|B| > 1 \wedge (\mathtt{x}, \mathtt{y}) \in B \times B \wedge \mathtt{x} \neq \mathtt{y}\bB{]}\}
+\end{multlined}
+$$
 
 \begin{example}
-    For example, assume that in \textbf{Phase~1}, there was analysed
-    a~function~\texttt{f}, which produced the summary $ \chi_f =
-    {(\boldsymbol{B}, AB)} $. Assume that before the approximation,
-    a~set of sequences of functions that should be called atomically was
-    as follows: $ \boldsymbol{B} = \{{(\mathtt{a}, \mathtt{b},
-    \mathtt{c})}\} $. Then, the analysis looked for the following
-    pairs of functions that are not called atomically: $ \Omega =
-    \{{(\mathtt{a, b})}, {(\mathtt{b, c})}\} $. Since the result of the
-    first component of the summary was changed to the following set of
-    sets: $ \boldsymbol{B} = \{{\{\mathtt{a}, \mathtt{b}, \mathtt{c}\}}\} $,
-    the analysis now looks for the following pairs  of functions that are not
-    called atomically (all 2-element variations): $ \Omega = \{{(\mathtt{a},
-    \mathtt{b})}, {(\mathtt{a}, \mathtt{c})}, {(\mathtt{b}, \mathtt{a})},
-    {(\mathtt{b}, \mathtt{c})}, {(\mathtt{c}, \mathtt{a})}, {(\mathtt{c},
-    \mathtt{b})}\} $.
+    For example, assume that Phase~1 analysed a~function~\texttt{f}, which produced the summary $ \chi_\mathtt{f} = (\mathcal{B}, AB) $. Assume that before the approximation, a~set of sequences of functions that should be called atomically was as follows: $ \mathcal{B} = \{\mathtt{a} \cdot \mathtt{b} \cdot \mathtt{c}\} $. Then, the analysis looked for the following pairs of functions that are not called atomically: $ \Omega = \{(\mathtt{a, b}), (\mathtt{b, c})\} $. Since the result of the first component of the summary was changed to the set~$ \mathcal{B} $ of sets of functions that should be called atomically as follows: $ \mathcal{B} = \{\{\mathtt{a}, \mathtt{b}, \mathtt{c}\}\} $, the analysis now looks for the following pairs of functions that are not called atomically (all 2-element variations): $ \Omega = \{(\mathtt{a}, \mathtt{b}), (\mathtt{a}, \mathtt{c}), (\mathtt{b}, \mathtt{a}), (\mathtt{b}, \mathtt{c}), (\mathtt{c}, \mathtt{a}), (\mathtt{c}, \mathtt{b})\} $.
 \end{example}
 
 
@@ -1503,6 +1350,8 @@ void f()
 
 \section{Analysis's Parametrisation}
 \label{sec:proposalParametr}
+
+\cite{anaconda}
 
 
 \section{Local/Global Atomicity Violations}
