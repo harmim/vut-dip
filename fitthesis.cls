@@ -1344,6 +1344,23 @@ Management}{\@fit@EN}%
   morekeywords={Some, None}
 }
 
+\lstdefinestyle{java}{
+  language=java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=true,
+  breakatwhitespace=true,
+  escapeinside={<@}{@>},
+  commentstyle=\color{greencomments},
+  keywordstyle=\color{bluekeywords},
+  stringstyle=\color{redstrings},
+  basicstyle=\ttfamily,
+  captionpos=b,
+  numbers=left,
+  frame=trBL
+}
+
 % END Jan Pluskal (ipluskal), Dominik Harmim (xharmi00) listings
 
 
@@ -1354,10 +1371,11 @@ Management}{\@fit@EN}%
 
 % Useful macros.
 \newcommand{\kw}[1]{\textcolor{bluekeywords}{#1}}
-\newcommand{\bA}[1]{\textcolor{blue}{#1}}
-\newcommand{\bB}[1]{\textcolor{violet}{#1}}
-\newcommand{\bC}[1]{\textcolor{red}{#1}}
-\newcommand{\bD}[1]{\textcolor{green}{#1}}
+\newcommand{\bb}[1]{\boldsymbol#1}
+\newcommand{\bA}[1]{\textcolor{bluekeywords}{\boldsymbol#1}}
+\newcommand{\bB}[1]{\textcolor{orange}{\boldsymbol#1}}
+\newcommand{\bC}[1]{\textcolor{red}{\boldsymbol#1}}
+\newcommand{\bD}[1]{\textcolor{green}{\boldsymbol#1}}
 \newcommand{\red}[1]{\textcolor{red}{#1}}
 
 % \leftsquigarrow
