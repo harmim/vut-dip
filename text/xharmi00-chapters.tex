@@ -17,7 +17,7 @@ At the same time, in \emph{concurrent programs}, there are often \emph{atomicity
 As already mentioned, within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}.} was proposed\,---\,a~\emph{static analyser} for finding some forms of \emph{atomicity violations} implemented as a~Facebook Infer's module. In particular, the stress is put on the \emph{atomic execution of sequences of function calls}, which is often required, e.g., when using specific library calls. For example, assume the function \texttt{replace} from Listing~\ref{list:exampleViolation} that replaces item~\texttt{a} in an array by item~\texttt{b}. It contains an atomicity violation\,---\,the index obtained may be outdated when \texttt{set} is executed (because, e.g., a~\emph{concurrent thread} can modify the array), i.e., \texttt{index\_of} and \texttt{set} should be executed atomically. The analysis is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}. Hence, the checker naturally works with sequences. In fact, the idea of checking the atomicity of certain sequences of function calls is inspired by the works of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. In the terminology of~\cite{contracts2017, contracts2015}, the atomicity of specific sequences of calls is the most straightforward (yet very useful in practice) kind of contracts for concurrency. However, while the idea of using sequences in the given context is indeed natural and rather exact, it quite severely limits the \emph{scalability} of the analysis (indeed, even with a~few functions, there can appear numerous different orders in which they can be called). Moreover, the implementation of the first version of Atomer targets mainly \emph{C~programs} using \emph{PThread locks}. Consequently, there was no support for other languages and their locking mechanisms in the first version of Atomer.
 
 \begin{lstlisting}[style=c, label={list:exampleViolation}, float=hbt, caption={An example of an \emph{atomicity violation}}]
-void replace(int *array, int a, int b) 
+void replace(int *array, int a, int b)
 {
     int index = index_of(array, a);
     if (index >= 0) set(array, index, b);
@@ -145,16 +145,16 @@ The last technique (and the most important one for the thesis) is \emph{static a
 
 According to~\cite{staticAnalysisMoller}, static analysis of programs is reasoning about the behaviour of computer programs without really executing them. It has been used since the 1960s in \emph{optimising compilers} for generating efficient code. More recently, it has proven valuable also for automatic error detection, verification of the correctness of programs, and it is used in other tools that can help programmers. Intuitively, a~static program analyser is a~program that reasons about the behaviour of other programs by looking for some \emph{syntactic patterns} in the code and/or by assigning the program statements some \emph{abstract semantics} and then deriving a~characterisation of the behaviour in terms of the abstract semantics. Nowadays, static analysis is one of the leading concepts in \emph{formal verification}. It can even automatically answer considerably complicated questions about a~given program, such as~\cite{staticAnalysisMoller}:
 \begin{itemize}
-    \item Does the program \emph{terminate} on every input?    
+    \item Does the program \emph{terminate} on every input?
 
     \item Do two pointers refer to \emph{disjoint data structures} in memory?
-    
+
     \item Are \emph{data races} possible? Can the program \emph{deadlock}?
-    
+
     \item Does there exist an input that leads to a~\emph{null-pointer dereference}, \emph{division-by-zero}, or \emph{arithmetic overflow}?
-    
+
     \item Are arrays always accessed \emph{within their bounds}?
-    
+
     \item \textbf{Are certain operations executed \emph{atomically}?}
 \end{itemize}
 
@@ -169,7 +169,7 @@ The above explanation of static analysis is quite general. Thus, even model chec
     \item \emph{Constraint-based analysis}, \emph{type-based analysis} (type and effect systems).
 
     \item \emph{Symbolic execution}\,---\,implemented, e.g., in KLEE, Pex, Symbiotic.
-    
+
     \item \emph{Abstract interpretation} (see Section~\ref{sec:AI})\,---\,examples of sound tools are Polyspace, AbsInt/Astrée, or Sparrow. State-of-the-art frameworks that allow creating sound analysers include Facebook Infer (see Section~\ref{sec:fbinfer}), Facebook SPARTA, or Frama-C. These tools also offer already implemented sound as well as unsound checkers.
 \end{itemize}
 
@@ -244,9 +244,9 @@ Before the formal definition of abstract interpretation is given, below are intu
     \item \textbf{Abstract Domain}~$ \boldsymbol{Q} $:
         \begin{itemize}
             \item An abstraction of the possible concrete program states (or their parts) in the form of \emph{abstract properties}\footnote{\textbf{Abstract properties} approximate \emph{concrete properties} behaviours.~\cite{AIBasedFormalMethodsCousot}}.
-                
+
             \item In other words, it is a~set of \emph{abstract states} (or \emph{abstract contexts}), where an abstract state represents a~set of program states reachable at a~particular program location.
-            
+
             \item For instance, several practical domains have been defined: numerical intervals, polyhedra, octagons, congruences, or various heap domains.
         \end{itemize}
 
@@ -285,24 +285,24 @@ The definitions below consider notions from \emph{lattice theory}. More informat
 \begin{definition}[\textbf{Abstract Interpretation}]
     \label{def:AI}
     According to~\cite{AILatticeModelCousot, savAI}, \textbf{abstract interpretation}~$ I $~of a~program~$ P $~with the instruction set $ Instr $~is a~tuple
-    $$ 
+    $$
         I = (Q, \sqcup, \sqsubseteq, \top, \bot, \tau)
     $$
     where
     \begin{itemize}
         \item $ Q $~is the \emph{abstract domain} (the set of \emph{abstract states}),
-    
+
         \item $ \sqcup : Q \times Q \rightarrow Q $ is the \emph{join operator} for accumulation of abstract states,
-    
+
         \item $ \sqsubseteq\ \subseteq Q \times Q $ is an \emph{ordering} defined as $ x \sqsubseteq y \Longleftrightarrow x \sqcup y = y $ where
             \begin{itemize}
                 \item $ \langle Q, \sqsubseteq \rangle $ is a~\emph{complete $ \sqcup $-semilattice},
             \end{itemize}
-    
+
         \item $ \top \in Q $ is the \emph{supremum} of~$ \langle Q, \sqsubseteq \rangle $,
-    
+
         \item $ \bot \in Q $ is the \emph{infimum} of~$ \langle Q, \sqsubseteq \rangle $\,---\,thus, $ \langle Q, \sqsubseteq \rangle $ is, in fact, a~\emph{complete lattice},
-    
+
         \item $ \tau : Instr \times Q \rightarrow Q $ defines the \emph{abstract transformers} for specific instructions,
             \begin{itemize}
                 \item $ \tau $~must be \emph{monotone}\footnote{Assume two \emph{partially-ordered sets}~$ \langle E, \preceq_E \rangle $ and~$ \langle F, \preceq_F \rangle $, and a~function $ f : E \rightarrow F $. $ f $~is \textbf{monotone} iff $ \forall x, y \in E : x \preceq_E y \Longrightarrow f(x) \preceq_F f(y) $.~\cite{staticAnalysisRival}} on~$ Q $ for each instruction from $ Instr $.
@@ -312,8 +312,8 @@ The definitions below consider notions from \emph{lattice theory}. More informat
 
 Using a~so-called \emph{Galois connection}~\cite{AILatticeModelCousot, wideningNarrowingCousot, savAI, staticAnalysisMoller, programAnalysisNielson, staticAnalysisRival}, one can ensure the \emph{soundness} of the abstract interpretation, i.e., the correspondence between the \emph{concrete semantics} and its \emph{abstract semantics} can be formalised by a~Galois connection (also a~so-called pair of \emph{adjoined functions}).
 \begin{definition}[\textbf{Galois Connection}]
-    If $ \mathcal{P} = \langle P, \preceq \rangle $ and $ \mathcal{Q} = \langle Q, \sqsubseteq \rangle $ are \emph{partially-ordered sets}, then a~quadruple $ \pi = (\mathcal{P}, \alpha, \gamma, \mathcal{Q}) $ is a~\textbf{Galois connection}, written 
-    $$ 
+    If $ \mathcal{P} = \langle P, \preceq \rangle $ and $ \mathcal{Q} = \langle Q, \sqsubseteq \rangle $ are \emph{partially-ordered sets}, then a~quadruple $ \pi = (\mathcal{P}, \alpha, \gamma, \mathcal{Q}) $ is a~\textbf{Galois connection}, written
+    $$
         \langle P, \preceq \rangle \overset{\gamma}{\underset{\alpha}\leftrightarrows} \langle Q, \sqsubseteq \rangle
     $$
     iff $ \alpha : P \rightarrow Q $ and $ \gamma : Q \rightarrow P $ are \emph{monotone} functions such that
@@ -404,7 +404,7 @@ The frontend compiles input programs into the \emph{Smallfoot Intermediate Langu
     \item \texttt{LOAD}\,---\,reading into a~temporary variable;
 
     \item \texttt{STORE}\,---\,writing to a~program variable, field of a~structure, or array;
-    
+
     \item \texttt{CALL}\,---\,a~function call;
 
     \item \texttt{PRUNE~e}\,---\,the evaluation of an expression~\texttt{e} in a~condition, cycle, etc.
@@ -516,7 +516,7 @@ The above definition of basic contracts for concurrency is quite limited in some
         \item and the acquired index can be obsolete when \texttt{set} is executed.
     \end{enumerate}
     A~basic contract could cover this scenario by the following clause:
-    $$ 
+    $$
         (\varrho_5)\ \text{\texttt{contains index\_of set}}
     $$
     It can be obtained from the composition of clauses~$ \varrho_1 $ and~$ \varrho_2 $. Nevertheless, this definition is too restrictive because the functions are required to be executed atomically only if \texttt{contains} and \texttt{index\_of} have the same arguments \texttt{array} and \texttt{element}; \texttt{index\_of} and \texttt{set} have the same argument \texttt{array}; and the returned value of \texttt{index\_of} is used as the argument \texttt{index} of the function \texttt{set}.
@@ -545,13 +545,13 @@ $$
     With the extension described above, it is possible to extend the contract from Example~\ref{ex:contractsBasic} to capture the dependencies between function calls as follows:
     \begin{enumerate}[label={($ \varrho^\prime_{\arabic*} $)}]
         \tt
-    
+
         \item contains(X,\,Y) index\_of(X,\,Y)
 
         \item Y\,=\,index\_of(X,\,\_) (\,get(X,\,Y)\,|\,set(X,\,Y,\,\_)\,|\,remove(X,\,Y)\,)
-        
+
         \item size(X) (\,get(X,\,\_)\,|\,set(X,\,\_,\,\_)\,|\,remove(X,\,\_)\,)
-        
+
         \item add(X,\,Y) index\_of(X,\,Y)
     \end{enumerate}
 \end{example}
@@ -600,13 +600,13 @@ Formally, let~$ \Sigma_\mathbb{M} $ be a~set of all function names of a~software
     With the extension of spoilers, the contract from Example~\ref{ex:contractsBasic} can be refined with contextual information to refuse \emph{unsafe interleavings} as follows (all other interleavings, not described by spoilers, are deemed  safe):
     \begin{enumerate}[label={($ \varrho^{\prime\prime}_{\arabic*} $)}]
         \tt
-    
+
         \item contains index\_of\ $ \leftsquigarrow $\ remove\,|\,set
 
         \item index\_of (\,get\,|\,set\,|\,remove\,) $ \leftsquigarrow $\ remove\,|\,set
-        
+
         \item size (\,get\,|\,set\,|\,remove\,) $ \leftsquigarrow $\ remove
-        
+
         \item add index\_of $ \leftsquigarrow $\ remove\,|\,set
     \end{enumerate}
 \end{example}
@@ -684,7 +684,7 @@ $$
     \bD{]}\bC{]}\bA{\}}\bb{\}}
 \end{multlined}
 $$
-where $ actual $ is a~Boolean function that determines whether a~given $ (A, B) $ pair is the most recent pair of sequences of the current program state for a~given program path. Furthermore, $ lock $ is a~predicate indicating whether the current program state is inside an \emph{atomic block}. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before an unlock is called. After the unlock is called, a~new $ (A, B) $ pair is created and labelled as an actual using the function $ setActual $ as follows: 
+where $ actual $ is a~Boolean function that determines whether a~given $ (A, B) $ pair is the most recent pair of sequences of the current program state for a~given program path. Furthermore, $ lock $ is a~predicate indicating whether the current program state is inside an \emph{atomic block}. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before an unlock is called. After the unlock is called, a~new $ (A, B) $ pair is created and labelled as an actual using the function $ setActual $ as follows:
 $$
 \begin{multlined}
     s_\mathtt{g} = \bb{\{}p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A, B) \in \Sigma^* \times \Sigma^*\ | \\
@@ -803,7 +803,7 @@ The derived sequences of calls assumed to execute atomically\,---\,the~$ \mathca
 
 \subsection{Phase~2\,---\,Detection of Atomicity Violations}
 
-In the second phase of the analysis, i.e., when \emph{detecting violations} of the atomic sequences obtained from Phase~1, the analysis looks for \emph{pairs of functions} that \emph{should be called atomically} (or just for single functions if there is only one function call in an atomic sequence) and that are not executed atomically (i.e., under a~lock) on some path through the CFG. The pairs of function calls to be checked for atomicity are obtained as follows. For each function~\texttt{f} with a~Phase~1 summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ in a~given program~$ S $, where $ \mathcal{B} = \{B_1, B_2,\ \ldots\ , B_n\} $, the analysis considers \emph{every pair} $ (\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma $ of functions that appear as a~\emph{substring} in some of the~$ B_i $ sequences, i.e., $ B_i = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime $ for some sequences~$ w, w^\prime $. Note that~\texttt{x} could be~$ \varepsilon $ (an empty sequence) if some~$ B_i $ consists of a~single function. All these \uv{atomic pairs} are put into the set $ \Omega \in 2^{\Sigma \times \Sigma} $. More formally, 
+In the second phase of the analysis, i.e., when \emph{detecting violations} of the atomic sequences obtained from Phase~1, the analysis looks for \emph{pairs of functions} that \emph{should be called atomically} (or just for single functions if there is only one function call in an atomic sequence) and that are not executed atomically (i.e., under a~lock) on some path through the CFG. The pairs of function calls to be checked for atomicity are obtained as follows. For each function~\texttt{f} with a~Phase~1 summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ in a~given program~$ S $, where $ \mathcal{B} = \{B_1, B_2,\ \ldots\ , B_n\} $, the analysis considers \emph{every pair} $ (\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma $ of functions that appear as a~\emph{substring} in some of the~$ B_i $ sequences, i.e., $ B_i = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime $ for some sequences~$ w, w^\prime $. Note that~\texttt{x} could be~$ \varepsilon $ (an empty sequence) if some~$ B_i $ consists of a~single function. All these \uv{atomic pairs} are put into the set $ \Omega \in 2^{\Sigma \times \Sigma} $. More formally,
 $$
 \begin{multlined}
     \Omega = \bb{\{}(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) = (\varepsilon, B)\bA{]} \\
@@ -821,7 +821,7 @@ where~$ X_S \in 2^{2^{\Sigma^*} \times \Sigma^*} $ is a~set of all Phase~1 summa
 
 An element of this phase's abstract state is a~triple $ (\mathtt{x}, \mathtt{y}, \delta) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} $ where $ (\mathtt{x}, \mathtt{y}) $ is a~pair of the most recent calls of functions performed on the program path being explored, and~$ \delta $ is a~set of so far detected \emph{pairs that violate atomicity} on particular lines of code. Thus, the abstract states are elements of the set $ 2^{\Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}} $. Whenever a~function~\texttt{f} is called on some path that led to an abstract state $ (\mathtt{x}, \mathtt{y}, \delta) $, a~new pair $ (\mathtt{x}^\prime, \mathtt{y}^\prime) $ of the most recent function calls is created from the previous pair $ (\mathtt{x}, \mathtt{y}) $ such that $ (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) $. Further, when the current program state is not inside an atomic block, the analysis checks whether the new pair (or just the last call) violates atomicity (i.e., $ (\mathtt{x}^\prime, \mathtt{y}^\prime) \in \Omega \vee (\varepsilon, \mathtt{y}^\prime) \in \Omega $). When it does, it is added to the set~$ \delta $ of pairs that violate atomicity.
 
-Formally, the initial abstract state (in this phase) of a~function is defined as $ s_{init} = \{(\varepsilon, \varepsilon, \emptyset)\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ c $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows: 
+Formally, the initial abstract state (in this phase) of a~function is defined as $ s_{init} = \{(\varepsilon, \varepsilon, \emptyset)\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ c $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
 $$
 \begin{multlined}
     s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) \\
@@ -934,7 +934,7 @@ The \emph{detection of sequences of calls to be executed atomically} now generat
     \item and \emph{unions}~$ \cup $ of sets, instead of the \emph{concatenation}~$ \cdot $ of sequences.
 \end{itemize}
 
-The above implies that the \emph{initial abstract state} of a~function is changed to $ s_{init} = \{\{(\emptyset, \emptyset)\}\} $. During the analysis of a~function~\texttt{g} with an abstract state~$ s_\mathtt{g} $, when a~leaf function~\texttt{f} is called, the abstract state's transformation is changed as follows: 
+The above implies that the \emph{initial abstract state} of a~function is changed to $ s_{init} = \{\{(\emptyset, \emptyset)\}\} $. During the analysis of a~function~\texttt{g} with an abstract state~$ s_\mathtt{g} $, when a~leaf function~\texttt{f} is called, the abstract state's transformation is changed as follows:
 $$
 \begin{multlined}
     s_\mathtt{g} = \bb{\{}p^\prime \in 2^{2^\Sigma \times 2^\Sigma}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in 2^\Sigma \times 2^\Sigma\ |\ \exists\,(A, B) \in p : \\
@@ -946,7 +946,7 @@ $$
     \bD{]}\bC{]}\bA{\}}\bb{\}}
 \end{multlined}
 $$
-Further, when an unlock is called, a~new $ (A, B) $ pair is created as follows: 
+Further, when an unlock is called, a~new $ (A, B) $ pair is created as follows:
 $$
 \begin{multlined}
     s_\mathtt{g} = \bb{\{}p^\prime \in 2^{2^\Sigma \times 2^\Sigma}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A, B) \in 2^\Sigma \times 2^\Sigma\ |\ \\
@@ -961,7 +961,7 @@ Other algorithms (e.g., calling an already analysed \emph{nested} function) are 
 Another approximation was made in the summaries. The first component of the summary has to be changed to a~set of sets of function calls because it is constructed from the~$ B $ items from the abstract states, which are now sets. The second component of the summary can be changed to a~set of function calls because even before, it was a~reduced sequence of all the $ (A, B) $ pairs. Therefore, the ordering of function calls was significantly approximated even so. Moreover, it is used to analyse functions higher in the \emph{call hierarchy} where it is appended to~$ A $ or~$ B $, which are now sets. Thus, it would make no sense to store it in summaries as a~sequence. Formally, the form of summaries~$ \chi $ changes from $ 2^{\Sigma^*} \times \Sigma^* $ to $ 2^{2^\Sigma} \times 2^\Sigma $. In particular, a~summary~$ \chi_\mathtt{f} \in 2^{2^\Sigma} \times 2^\Sigma $ of a~function~\texttt{f} is redefined as $ \chi_\mathtt{f} = (\mathcal{B}, AB) $, where:
 \begin{itemize}
     \item $ \mathcal{B} = \{B^\prime \in 2^\Sigma\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B) \in p : B \neq \emptyset \wedge B^\prime = B\} $, where~$ s_\mathtt{f} $ is the abstract state at the end of the abstract interpretation of~\texttt{f}.
-        
+
     \item $ AB = \bigcup\limits_{ab\,\in\,AB^\prime} ab $, where $ AB^\prime = \{ab \in 2^\Sigma\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B) \in p: ab = A \cup B\} $.
 \end{itemize}
 
@@ -969,7 +969,7 @@ Another approximation was made in the summaries. The first component of the summ
     For demonstrating the approximation of the analysis to sets, assume functions~\texttt{f} and~\texttt{g} from Listing~\ref{list:atomerPhase1Sets}. Further, assume that~\texttt{a}, \texttt{b}, \texttt{x}, \texttt{y} are leaf nodes of the call graph. Before the approximation, when the analysis was working with sequences of function calls, Phase~1 of the analysis produced the following abstract states and summaries while analysing the functions:
     \begin{itemize}
         \item $ s_\mathtt{f} = \{\{(\mathtt{x} \cdot \mathtt{y},\ \mathtt{a} \cdot \mathtt{b}), (\mathtt{y} \cdot \mathtt{x},\ \mathtt{b} \cdot \mathtt{a}), (\varepsilon,\ \varepsilon)\}\} $, $ \chi_\mathtt{f} = (\{\mathtt{a} \cdot \mathtt{b},\ \mathtt{b} \cdot \mathtt{a}\},\ \mathtt{x} \cdot \mathtt{y} \cdot \mathtt{a} \cdot \mathtt{b}) $;
-            
+
         \item $ s_\mathtt{g} = \{\{(\mathtt{y} \cdot \mathtt{x},\ \mathtt{b} \cdot \mathtt{a}), (\varepsilon,\ \varepsilon)\}\} $, $ \chi_\mathtt{g} = (\{\mathtt{b} \cdot \mathtt{a}\},\ \mathtt{y} \cdot \mathtt{x} \cdot \mathtt{b} \cdot \mathtt{a}) $.
     \end{itemize}
     Whereas, after the approximation, the produced abstract states and summaries are as follows: $ s_\mathtt{f} = s_\mathtt{g} = \{\{(\{\mathtt{x}, \mathtt{y}\}, \{\mathtt{a}, \mathtt{b}\}), (\emptyset, \emptyset)\}\} $, $ \chi_\mathtt{f} = \chi_\mathtt{g} = (\{\{\mathtt{a}, \mathtt{b}\}\}, \{\mathtt{a}, \mathtt{b}, \mathtt{x}, \mathtt{y}\}) $. They are the same for both functions because there are the same locked/unlocked function calls; only the order of calls differs.
@@ -1002,7 +1002,7 @@ void g()
 
 The \emph{detection of atomicity violations} in Phase~2 then works almost the same way as before the approximation. However, there is one difference. Before, the analysis implemented in the second phase looked for violations of atomic sequences obtained from Phase~1. Now, \textbf{atomic sets} are obtained from Phase~1; hence, the detection of atomicity violations needs to work with sets too. Again, the analysis looks for \emph{pairs of functions that should be called atomically}, while this is not the case on some path through the CFG. This algorithm is identical to the algorithm before the approximation.
 
-Nevertheless, it is needed to propose a~new algorithm that derives the pairs of function calls (from the atomic sets) to be checked for atomicity (i.e., the set~$ \Omega \in 2^{\Sigma \times \Sigma} $). Intuitively, the second phase of the analysis now looks for non-atomic execution of any pair of functions~\texttt{f, g} such that $ \{\mathtt{f, g}\} $ is a~\emph{subset} of some set of functions that were found to be executed atomically. In order to obtain the pairs, all possible pairs of functions are taken from atomic sets from Phase~1, i.e., all \emph{2-element variations}. Formally, let~$ S $ be an analysed program, and let $ X_S \in 2^{2^{2^\Sigma} \times 2^\Sigma} $ be a~set of all summaries of the program~$ S $. Then, all the atomic pairs (the first item of a~pair may be empty if an atomic set consists of a~single function) are obtained as follows: 
+Nevertheless, it is needed to propose a~new algorithm that derives the pairs of function calls (from the atomic sets) to be checked for atomicity (i.e., the set~$ \Omega \in 2^{\Sigma \times \Sigma} $). Intuitively, the second phase of the analysis now looks for non-atomic execution of any pair of functions~\texttt{f, g} such that $ \{\mathtt{f, g}\} $ is a~\emph{subset} of some set of functions that were found to be executed atomically. In order to obtain the pairs, all possible pairs of functions are taken from atomic sets from Phase~1, i.e., all \emph{2-element variations}. Formally, let~$ S $ be an analysed program, and let $ X_S \in 2^{2^{2^\Sigma} \times 2^\Sigma} $ be a~set of all summaries of the program~$ S $. Then, all the atomic pairs (the first item of a~pair may be empty if an atomic set consists of a~single function) are obtained as follows:
 $$
 \begin{multlined}
     \Omega = \bb{\{}(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) \in \{\varepsilon\} \times B\bA{]} \\
@@ -1102,7 +1102,7 @@ $$
     \bB{)}\bD{]}\bC{]}\bA{\}}\bb{\}}
 \end{multlined}
 $$
-Furthermore, when an unlock identified by the access path~$ \pi_i $ is called, the abstract state changes as follows: 
+Furthermore, when an unlock identified by the access path~$ \pi_i $ is called, the abstract state changes as follows:
 $$
 \begin{multlined}
     s_\mathtt{g} = \bb{\{}p^\prime \in 2^{2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{} (A, B, \pi, l) \in 2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top\ |\ \\
@@ -1119,7 +1119,7 @@ Other algorithms (e.g., calling an already analysed \emph{nested} function) are 
 A~\emph{summary} $ \chi_\mathtt{f} \in 2^{2^\Sigma} \times 2^\Sigma $ of a~function~\texttt{f} is the same as earlier. Only access paths and lock counters from abstract states are ignored. This is, $ \chi_\mathtt{f} = (\mathcal{B}, AB) $, where:
 \begin{itemize}
     \item $ \mathcal{B} = \{B^\prime \in 2^\Sigma\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B, \pi, l) \in p : B \neq \emptyset \wedge B^\prime = B\} $, where~$ s_\mathtt{f} $ is the abstract state at the end of the abstract interpretation of~\texttt{f}.
-        
+
     \item $ AB = \bigcup\limits_{ab\,\in\,AB^\prime} ab $, where $ AB^\prime = \{ab \in 2^\Sigma\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B, \pi, l) \in p : ab = A \cup B\} $.
 \end{itemize}
 
@@ -1162,7 +1162,7 @@ $$
     \bC{]}\bD{\}}\bb{\}}
 \end{multlined}
 $$
-Further, when a~lock identified by an access path~$ \pi_i $ is called, the abstract state is changed as follows: 
+Further, when a~lock identified by an access path~$ \pi_i $ is called, the abstract state is changed as follows:
 $$
 \begin{multlined}
     s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime, \lambda^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} \times 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta, \lambda) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) = \\
@@ -1177,7 +1177,7 @@ $$
 Furthermore, when an unlock identified by the access path~$ \pi_i $ is called, the abstract state is changed as follows:
 $$
 \begin{multlined}
-    s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime, \lambda^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} \times 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta, \lambda) \in s_\mathtt{g} : \\ 
+    s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime, \lambda^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} \times 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta, \lambda) \in s_\mathtt{g} : \\
 %
     (\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) = (\mathtt{x}, \mathtt{y}, \delta) \wedge \lambda^\prime = \bA{\{}(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) \in \Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top\ |\ l > 0 \\
 %
