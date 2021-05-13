@@ -675,23 +675,23 @@ It would be more precise to generate longer sequences of type $ A_1 \cdot B_1 \c
 Formally, the \emph{initial abstract state} of a~function is defined as $ s_{init} = \{\{(\varepsilon, \varepsilon)\}\} $, where~$\varepsilon $ indicates an empty sequence. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
 $$
 \begin{multlined}
-    s_\mathtt{g} = \{p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{} (A^\prime, B^\prime) \in \Sigma^* \times \Sigma^*\ |\ \exists\,(A, B) \in p : \\
+    s_\mathtt{g} = \bb{\{}p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{} (A^\prime, B^\prime) \in \Sigma^* \times \Sigma^*\ |\ \exists\,(A, B) \in p : \\
 %
     \bB{[}\neg actual(p, (A, B)) \wedge (A^\prime, B^\prime) = (A, B)\bB{]} \vee \bC{[}actual(p, {(A, B)}) \\
 %
     \wedge \bD{[}(lock \wedge (A^\prime, B^\prime) = (A, B \cdot \mathtt{f})) \vee (\neg lock \wedge (A^\prime, B^\prime) = (A \cdot \mathtt{f}, B))%
 %
-    \bD{]}\bC{]}\bA{\}}\}
+    \bD{]}\bC{]}\bA{\}}\bb{\}}
 \end{multlined}
 $$
 where $ actual $ is a~Boolean function that determines whether a~given $ (A, B) $ pair is the most recent pair of sequences of the current program state for a~given program path. Furthermore, $ lock $ is a~predicate indicating whether the current program state is inside an \emph{atomic block}. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before an unlock is called. After the unlock is called, a~new $ (A, B) $ pair is created and labelled as an actual using the function $ setActual $ as follows: 
 $$
 \begin{multlined}
-    s_\mathtt{g} = \{p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in \Sigma^* \times \Sigma^*\ | \\
+    s_\mathtt{g} = \bb{\{}p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A, B) \in \Sigma^* \times \Sigma^*\ | \\
 %
-    \bB{[}(A^\prime, B^\prime) = (\varepsilon, \varepsilon) \wedge setActual(p, (A^\prime, B^\prime))\bB{]} \vee (A^\prime, B^\prime) \in p%
+    \bB{[}(A, B) = (\varepsilon, \varepsilon) \wedge setActual(p, (A, B))\bB{]} \vee (A, B) \in p%
 %
-    \bA{\}}\}
+    \bA{\}}\bb{\}}
 \end{multlined}
 $$
 
@@ -745,13 +745,13 @@ void f()
 Further, it is demonstrated how the results of the analysis of \emph{nested functions} are used during the detection of atomic sequences. The result of the analysis of a~nested function is used as follows. When calling an already analysed function, one plugs the sequence from the second component of its summary (i.e., the $ AB $ sequence) into the most recent~$ A $ or~$ B $ sequence of all the program paths (where a~program path corresponds to a~single element of an abstract state, i.e., a~set of the $ (A, B) $ pairs). In particular, assume that $ (A, B) $ is the most recent pair of sequences of the program state of a~path being analysed. Subsequently, it is called a~function~\texttt{f} with a~non-empty summary (i.e., $ AB \neq \varepsilon $). If the current program state of the analysed function is inside an atomic block, the analysis in this step will transform the pair~$ (A, B) $ to a~new $ (A^\prime, B^\prime) $ pair as follows: $ (A^\prime, B^\prime) = (A, B \cdot \mathtt{f} \cdot AB) $. Otherwise, $ (A^\prime, B^\prime) = (A \cdot \mathtt{f} \cdot AB, B) $. In such cases where a~summary is empty, i.e., there are no function calls in a~called function, or it is a~leaf node of the call graph, just the function name is appended to the most recent~$ A $ or~$ B $ sequences of all the program paths. To formalise this process, let~\texttt{f} be a~called function that was already analysed, and the second component of its summary is $ AB $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
 $$
 \begin{multlined}
-    s_\mathtt{g} = \{p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in \Sigma^* \times \Sigma^*\ |\ \exists\,(A, B) \in p : \\
+    s_\mathtt{g} = \bb{\{}p^\prime \in 2^{\Sigma^* \times \Sigma^*}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in \Sigma^* \times \Sigma^*\ |\ \exists\,(A, B) \in p : \\
 %
     \bB{[}\neg actual(p, (A, B)) \wedge (A^\prime, B^\prime) = (A, B)\bB{]} \vee \bC{[}actual(p, (A, B)) \\
 %
     \wedge \bD{[}(lock \wedge {(A^\prime, B^\prime)} = {(A, B \cdot \mathtt{f} \cdot AB)}) \vee (\neg lock \wedge {(A^\prime, B^\prime)} = {(A \cdot \mathtt{f} \cdot AB, B)})%
 %
-    \bD{]}\bC{]}\bA{\}}\}
+    \bD{]}\bC{]}\bA{\}}\bb{\}}
 \end{multlined}
 $$
 
@@ -806,11 +806,11 @@ The derived sequences of calls assumed to execute atomically\,---\,the~$ \mathca
 In the second phase of the analysis, i.e., when \emph{detecting violations} of the atomic sequences obtained from Phase~1, the analysis looks for \emph{pairs of functions} that \emph{should be called atomically} (or just for single functions if there is only one function call in an atomic sequence) and that are not executed atomically (i.e., under a~lock) on some path through the CFG. The pairs of function calls to be checked for atomicity are obtained as follows. For each function~\texttt{f} with a~Phase~1 summary~$ \chi_\mathtt{f} = (\mathcal{B}, AB) $ in a~given program~$ S $, where $ \mathcal{B} = \{B_1, B_2,\ \ldots\ , B_n\} $, the analysis considers \emph{every pair} $ (\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma $ of functions that appear as a~\emph{substring} in some of the~$ B_i $ sequences, i.e., $ B_i = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime $ for some sequences~$ w, w^\prime $. Note that~\texttt{x} could be~$ \varepsilon $ (an empty sequence) if some~$ B_i $ consists of a~single function. All these \uv{atomic pairs} are put into the set $ \Omega \in 2^{\Sigma \times \Sigma} $. More formally, 
 $$
 \begin{multlined}
-    \Omega = \{(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) = (\varepsilon, B)\bA{]} \\
+    \Omega = \bb{\{}(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) = (\varepsilon, B)\bA{]} \\
 %
     \vee \bB{[}|B| > 1 \wedge \exists\,w, w^\prime \in \Sigma^* : B = w \cdot \mathtt{x} \cdot \mathtt{y} \cdot w^\prime \wedge (\mathtt{x}, \mathtt{y}) \neq (\varepsilon, \varepsilon)%
 %
-    \bB{]}\}
+    \bB{]}\bb{\}}
 \end{multlined}
 $$
 where~$ X_S \in 2^{2^{\Sigma^*} \times \Sigma^*} $ is a~set of all Phase~1 summaries of the program~$ S $.
@@ -821,16 +821,16 @@ where~$ X_S \in 2^{2^{\Sigma^*} \times \Sigma^*} $ is a~set of all Phase~1 summa
 
 An element of this phase's abstract state is a~triple $ (\mathtt{x}, \mathtt{y}, \delta) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} $ where $ (\mathtt{x}, \mathtt{y}) $ is a~pair of the most recent calls of functions performed on the program path being explored, and~$ \delta $ is a~set of so far detected \emph{pairs that violate atomicity} on particular lines of code. Thus, the abstract states are elements of the set $ 2^{\Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}} $. Whenever a~function~\texttt{f} is called on some path that led to an abstract state $ (\mathtt{x}, \mathtt{y}, \delta) $, a~new pair $ (\mathtt{x}^\prime, \mathtt{y}^\prime) $ of the most recent function calls is created from the previous pair $ (\mathtt{x}, \mathtt{y}) $ such that $ (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) $. Further, when the current program state is not inside an atomic block, the analysis checks whether the new pair (or just the last call) violates atomicity (i.e., $ (\mathtt{x}^\prime, \mathtt{y}^\prime) \in \Omega \vee (\varepsilon, \mathtt{y}^\prime) \in \Omega $). When it does, it is added to the set~$ \delta $ of pairs that violate atomicity.
 
-Formally, the initial abstract state (in this phase) of a~function is defined as $ s_{init} = \{(\varepsilon, \varepsilon, \emptyset)\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ l $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows: 
+Formally, the initial abstract state (in this phase) of a~function is defined as $ s_{init} = \{(\varepsilon, \varepsilon, \emptyset)\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ c $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows: 
 $$
 \begin{multlined}
-    s_\mathtt{g} = \{(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) \\
+    s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) \\
 %
-    \wedge \bA{[}\bB{(}\neg lock \wedge \delta^\prime = \bC{\{}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, l^\prime) \in \Sigma \times \Sigma \times \mathbb{N}\ |\ (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, l^\prime) \in \delta \\
+    \wedge \bA{[}\bB{(}\neg lock \wedge \delta^\prime = \bC{\{}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, c^\prime) \in \Sigma \times \Sigma \times \mathbb{N}\ |\ (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, c^\prime) \in \delta \\
 %
-    \vee [\bD{(}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\mathtt{x}^{\prime}, \mathtt{y}^\prime) \vee (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\varepsilon, \mathtt{y}^\prime)\bD{)} \wedge (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) \in \Omega \wedge l^\prime = l]\bC{\}}\bB{)} \vee (lock \wedge \delta^\prime = \delta)%
+    \vee [\bD{(}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\mathtt{x}^{\prime}, \mathtt{y}^\prime) \vee (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\varepsilon, \mathtt{y}^\prime)\bD{)} \wedge (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) \in \Omega \wedge c^\prime = c]\bC{\}}\bB{)} \vee (lock \wedge \delta^\prime = \delta)%
 %
-    \bA{]}\}
+    \bA{]}\bb{\}}
 \end{multlined}
 $$
 
@@ -902,9 +902,9 @@ Solutions for some of the above issues and limitations are proposed in Chapter~\
 \chapter{Proposal of Enhancements for Atomer}
 \label{chap:proposal}
 
-In this chapter, the author proposes solutions for some of Atomer's limitations stated in Section~\ref{sec:atomerLimits}. The solutions enhance the analysis's \emph{precision} and \emph{scalability}. In order to formally define these enhancements, the notions and symbols introduced in Section~\ref{sec:atomerDesing} are used. Some of the enhancements were briefly discussed already in~\cite{excel2021Harmim}.
+In this chapter, the author proposes solutions for some of the Atomer's limitations stated in Section~\ref{sec:atomerLimits}. The solutions enhance the analysis's \emph{precision} and \emph{scalability}. In order to formally define these enhancements, the notions and symbols introduced in Section~\ref{sec:atomerDesing} are used. Some of the enhancements were briefly discussed already in~\cite{excel2021Harmim}.
 
-Section~\ref{sec:proposalSets} proposes an optimisation of Atomer's scalability. The following Sections~\ref{sec:proposalAdvancedLocks}, \ref{sec:proposalParametr}, \ref{sec:proposalLocalGlobalViols} cover precision improvements, i.e., an extension of Atomer with additional features that improve its ability to cope with cases that were not supported in the first version of Atomer, and that can be seen in \emph{real-life code}. Furthermore, Chapter~\ref{chap:implement} provides an overview of the implementation of all the below improvements in a~new version of Atomer.
+Section~\ref{sec:proposalSets} proposes an optimisation of Atomer's scalability. The following Sections~\ref{sec:proposalAdvancedLocks}, \ref{sec:proposalParametr}, \ref{sec:proposalLocalGlobalViols} cover precision improvements, i.e., extensions of Atomer with additional features that improve its ability to cope with cases that were not supported in the first version of Atomer, and that can be seen in \emph{real-life code}. Furthermore, Chapter~\ref{chap:implement} provides an overview of the implementation of all the below improvements in a~new version of Atomer.
 
 In the following sections, to give an intuition, there are used listings with pieces of C~programs (assuming \texttt{lock/unlock} functions for \emph{mutual exclusion} to \emph{critical sections}). In addition, there are used C++ and Java programs to illustrate the \emph{locking mechanisms} in these languages.
 
@@ -937,23 +937,23 @@ The \emph{detection of sequences of calls to be executed atomically} now generat
 The above implies that the \emph{initial abstract state} of a~function is changed to $ s_{init} = \{\{(\emptyset, \emptyset)\}\} $. During the analysis of a~function~\texttt{g} with an abstract state~$ s_\mathtt{g} $, when a~leaf function~\texttt{f} is called, the abstract state's transformation is changed as follows: 
 $$
 \begin{multlined}
-    s_\mathtt{g} = \{p^\prime \in 2^{2^\Sigma \times 2^\Sigma}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in 2^\Sigma \times 2^\Sigma\ |\ \exists\,(A, B) \in p : \\
+    s_\mathtt{g} = \bb{\{}p^\prime \in 2^{2^\Sigma \times 2^\Sigma}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in 2^\Sigma \times 2^\Sigma\ |\ \exists\,(A, B) \in p : \\
 %
     \bB{[}\neg actual(p, (A, B)) \wedge (A^\prime, B^\prime) = (A, B)\bB{]} \vee \bC{[}actual(p, (A, B)) \\
 %
     \wedge \bD{[}(lock \wedge (A^\prime, B^\prime) = (A, B \cup \{\mathtt{f}\})) \vee (\neg lock \wedge (A^\prime, B^\prime) = (A \cup \{\mathtt{f}\}, B))%
 %
-    \bD{]}\bC{]}\bA{\}}\}
+    \bD{]}\bC{]}\bA{\}}\bb{\}}
 \end{multlined}
 $$
 Further, when an unlock is called, a~new $ (A, B) $ pair is created as follows: 
 $$
 \begin{multlined}
-    s_\mathtt{g} = \{p^\prime \in 2^{2^\Sigma \times 2^\Sigma}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A^\prime, B^\prime) \in 2^\Sigma \times 2^\Sigma\ |\ \\
+    s_\mathtt{g} = \bb{\{}p^\prime \in 2^{2^\Sigma \times 2^\Sigma}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{}(A, B) \in 2^\Sigma \times 2^\Sigma\ |\ \\
 %
-    \bB{[}(A^\prime, B^\prime) = (\emptyset, \emptyset) \wedge setActual(p, (A^\prime, B^\prime))\bB{]} \vee (A^\prime, B^\prime) \in p%
+    \bB{[}(A, B) = (\emptyset, \emptyset) \wedge setActual(p, (A, B))\bB{]} \vee (A, B) \in p%
 %
-    \bA{\}}\}
+    \bA{\}}\bb{\}}
 \end{multlined}
 $$
 Other algorithms (e.g., calling an already analysed \emph{nested} function) are modified analogically.
@@ -1002,12 +1002,14 @@ void g()
 
 The \emph{detection of atomicity violations} in Phase~2 then works almost the same way as before the approximation. However, there is one difference. Before, the analysis implemented in the second phase looked for violations of atomic sequences obtained from Phase~1. Now, \textbf{atomic sets} are obtained from Phase~1; hence, the detection of atomicity violations needs to work with sets too. Again, the analysis looks for \emph{pairs of functions that should be called atomically}, while this is not the case on some path through the CFG. This algorithm is identical to the algorithm before the approximation.
 
-Nevertheless, it is needed to propose a~new algorithm that derives the pairs of function calls (from the atomic sets) to be checked for atomicity (i.e., the set~$ \Omega \in 2^{\Sigma \times \Sigma} $). Intuitively, the second phase of the analysis now looks for non-atomic execution of any pair of functions~\texttt{f, g} such that $ \{\mathtt{f, g}\} $ is a~\emph{subset} of some set of functions that were found to be executed atomically. In order to obtain the pairs, all possible pairs of functions are taken from atomic sets from Phase~1, i.e., all \emph{2-element variations}. Formally, let~$ S $ be an analysed program, and let $ X_S \in 2^{2^{2^\Sigma} \times 2^\Sigma} $ be a~set of all \emph{summaries} of the program~$ S $. Then, all the atomic pairs (the first item of a~pair may be empty if an atomic set consists of a~single function) are obtained as follows: 
+Nevertheless, it is needed to propose a~new algorithm that derives the pairs of function calls (from the atomic sets) to be checked for atomicity (i.e., the set~$ \Omega \in 2^{\Sigma \times \Sigma} $). Intuitively, the second phase of the analysis now looks for non-atomic execution of any pair of functions~\texttt{f, g} such that $ \{\mathtt{f, g}\} $ is a~\emph{subset} of some set of functions that were found to be executed atomically. In order to obtain the pairs, all possible pairs of functions are taken from atomic sets from Phase~1, i.e., all \emph{2-element variations}. Formally, let~$ S $ be an analysed program, and let $ X_S \in 2^{2^{2^\Sigma} \times 2^\Sigma} $ be a~set of all summaries of the program~$ S $. Then, all the atomic pairs (the first item of a~pair may be empty if an atomic set consists of a~single function) are obtained as follows: 
 $$
 \begin{multlined}
-    \Omega = \{(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) \in \{\varepsilon\} \times B\bA{]} \\
+    \Omega = \bb{\{}(\mathtt{x}, \mathtt{y}) \in \Sigma \times \Sigma\ |\ \exists\,(\mathcal{B}, AB) \in X_S : \exists\,B \in \mathcal{B} : \bA{[}|B| = 1 \wedge (\mathtt{x}, \mathtt{y}) \in \{\varepsilon\} \times B\bA{]} \\
 %
-    \vee \bB{[}|B| > 1 \wedge (\mathtt{x}, \mathtt{y}) \in B \times B \wedge \mathtt{x} \neq \mathtt{y}\bB{]}\}
+    \vee \bB{[}|B| > 1 \wedge (\mathtt{x}, \mathtt{y}) \in B \times B \wedge \mathtt{x} \neq \mathtt{y}%
+%
+    \bB{]}\bb{\}}
 \end{multlined}
 $$
 
@@ -1019,331 +1021,186 @@ $$
 \section{Advanced Manipulation with Locks}
 \label{sec:proposalAdvancedLocks}
 
-In the first version of Atomer, \emph{different locks} are not distinguished
-at all. Only calls of locks/unlocks are identified, and parameters of these
-calls (\emph{lock objects}) are not considered. In order to consider lock
-objects, it was proposed distinguishing between them using Facebook Infer's
-built-in mechanism called \emph{access paths}, explained in
-Section~\ref{sec:accessPath}. The analyser does not perform a~general
-\emph{alias analysis}, i.e., it is not performed a~precise analysis for
-saying when arbitrary pairs of accesses to lock objects may alias. During
-the analysis (both phases), each \emph{atomic section} is identified by an
-access path of a~lock that guards the section, see
-Sections~\ref{sec:proposalMultiLocksPhase1}, \ref{sec:proposalMultiLocksPhase2}.
-Because \emph{syntactically identical access paths} are used as the intuition
-for distinguishing atomic sections, some \emph{atomicity violations} could be
-missed (or some \emph{false alarms} could be reported) due to distinct access
-paths that refer to the same memory. However, it vastly simplifies the
-analysis, and the stress is put on finding likely violations.
+The original version of Atomer does not distinguish \emph{different lock instances} in a~program. Only calls of locks/unlocks are identified, and the parameters of these calls\,---\,\emph{lock objects}\,---\,are not considered. Thus, if there are several lock objects used, the analysis does not work correctly.
 
-\subsection{Access Paths}
-\label{sec:accessPath}
+In order to consider lock objects, it was proposed to distinguish between them using Facebook Infer's built-in mechanism called \emph{access paths}~\cite{accessPath}, explained below. The analyser does not perform a~classical \emph{alias analysis}, i.e., it does not perform a~precise analysis for saying when arbitrary pairs of accesses to lock objects may alias (such an analysis is considered too expensive).
 
-The \emph{syntactic access paths}~\cite{accessPath} represent \emph{heap
-locations} via the paths used to access them, i.e., a~base variable followed
-by a~sequence of fields. More formally, let $ Var $ be a~set of all variables
-that can occur in a~given program. Let $ Field $ be a~set of all possible
-field names that can be used in a~given program (e.g. structure fields). Then,
-an access path~$ \pi $ from the set~$ \Pi $ of all access paths is defined
-as follows:
+\paragraph{Access Paths}
+The \emph{syntactic access paths}~\cite{accessPath} represent \emph{heap locations} via the paths used to access them, i.e., they have the form of an expression consisting of a~base variable followed by a~sequence of fields. More formally, let $ Var $ be a~set of all variables that can occur in a~given program. Let $ Field $ be a~set of all possible field names that can be used in the program (e.g., structure fields). An access path~$ \pi $ from the set~$ \Pi $ of all access paths is then defined as follows:
 $$
     \pi \in \Pi \Coloneqq Var \times Field^*
 $$
+Access paths are already implemented in Facebook Infer. For instance, the principle of using access paths is used in an existing analyser in Facebook Infer\,---\,RacerD~\cite{racerD, racerDOnline, staticRaceDetectorTruePositives}\,---\,for data race detection. In general, no sufficiently precise \emph{alias analysis} works \emph{compositionally} and \emph{at scale}. That is the motivation for using access paths in Facebook Infer.
 
-Access paths are already implemented in Facebook Infer. For instance, the
-principle of using access paths is used in an existing analyser in Facebook
-Infer\,---\,RacerD~\cite{racerD}\,---\,for data race detection. In general,
-no sufficiently precise \emph{alias analysis} works \emph{compositionally}
-and at \emph{scale}. That is the motivation for using access paths in
-Facebook Infer.
+Given a~pair of accesses to lock objects, to determine whether these locks are equal, it is needed to answer the following question: \uv{Can the accesses touch the same address?}. Remarkably, according to the authors of~\cite{racerD}, access paths alone \emph{almost} convey enough semantic information to answer the above question on their own. If two access paths are syntactically equal, it is almost (but not quite) true that they must refer to the same address. Syntactically identical paths can refer to different addresses if
+\begin{enuminline}
+    \item they refer to different instances of the same object, or
 
-Given a~pair of accesses to lock objects, to determine whether these locks
-are equal, it is needed to answer the following question: \uv{Can the
-accesses touch the same address?}. Remarkably, according to the authors
-of~\cite{racerD}, access paths alone \emph{almost} convey enough semantic
-information to answer the above question on their own. If two access paths
-are syntactically equal, it is almost (but not quite) true that they must
-refer to the same address. Syntactically identical paths can refer to
-different addresses if
-\begin{enumerate*}[label={(\roman*)}]
-    \item
-        they refer to different instances of the same object or
+    \item a~prefix of the path is reassigned along one execution trace but not the other.
+\end{enuminline}
+These conditions cannot hold if an access path is \emph{stable}, i.e., if none of its proper prefixes appears in assignments during a~given execution trace, then it touches the same memory as all other stable accesses to the syntactic path. Therefore, the access paths' syntactic equality is a~reasonably efficient way to say (in an \emph{under-approximate fashion}) that heap access touches the same address. Also, by using access paths, RacerD detected many errors in real-world programs, proving that the use of access paths can reveal real errors. This is why it was decided to use this principle to represent locks in Atomer.
 
-    \item
-        a~prefix of the path is reassigned along one execution trace,
-        but not the other.
-\end{enumerate*}
-These conditions cannot hold if an access path is \emph{stable}, i.e., if
-none of its proper prefixes appears in assignments during a~given
-execution trace, then it touches the same memory as all other stable
-accesses to the syntactic path. So, access paths' syntactic equality is
-a~reasonably efficient way to say (in an \emph{under-approximate fashion})
-that heap access touches the same address. Also, by using access paths,
-RacerD detected many errors in real-world programs, proving that the
-use of access paths can reveal real errors. This is why it was decided to
-use this principle to represent locks in Atomer.
+During the analysis performed by Atomer (in both phases), each atomic section is identified by an access path of the lock that guards the section; see Sections~\ref{sec:proposalMultiLocksPhase1}, \ref{sec:proposalMultiLocksPhase2}. Because \emph{syntactically identical access paths} are used as the means for distinguishing atomic sections, some atomicity violations could be missed (or some false alarms could be reported) due to distinct access paths that refer to the same memory. However, the analysis's precision is still significantly improved this way while preserving its \emph{scalability}, and the stress is anyway put on finding likely violations, not on being \emph{sound}.
 
-\subsection{Distinguishing Multiple Locks in Phase~1}
-\label{sec:proposalMultiLocksPhase1}
+Another limitation of Atomer in its basic version is that it does not count with \emph{re-entrant locks} when a~process can lock the same object multiple times without blocking itself, and then it should unlock the lock object the same number of times. This approach is, in fact, widespread, e.g., in Java, where so-called \emph{synchronised blocks} are used, as demonstrates Listing~\ref{list:reentrantJava}. These blocks are re-entrant by default. To consider re-entrant locks in the analysis, the number of locks of individual lock objects is tracked in the abstract states of both phases of the analysis. A~lock is unlocked as soon as this number decreases to~0. Also, an input parameter $ t \in \mathbb{N} $ was proposed to limit the \emph{upper bound} to which the analysis tracks precisely the number of times a~given lock is locked. When this bound is reached, the \emph{widening operator} is used to abstract the number to any value bigger than the bound. This is to ensure \emph{termination} of the analysis. The idea of this upper bound limit comes from the approach used in RacerD.
 
-The \emph{detection of sets of calls to be executed atomically} is based on
-generating all pairs $ {(A, B)} \in 2^\Sigma \times 2^\Sigma $. Now, it is
-needed to store \emph{access paths} of locks that guard calls
-executed atomically, i.e., the~$ B $ sets. Therefore, these pairs are
-extended to the triples $ {(A, B, \pi)} \in 2^\Sigma \times 2^\Sigma \times
-\Pi $, where the third component is an access path that identifies
-a~\emph{lock object} which locks an atomic section that contains the calls
-from~$ B $. Note, that~$ \pi $ could also be~$ \varepsilon $ (i.e.
-$ \varepsilon \in \Pi $), which is a~special case when there is no lock
-associated to the~${ (A, B) }$ pair so far, i.e., $ B $ is empty as well,
-and a~lock was not called yet. The \emph{abstract state} $ s \in
-\boldsymbol{Q} $ is now defined as $ 2^{2^{2^\Sigma \times 2^\Sigma \times
-\Pi}} $. When a~function is called, it is appended to the~$ A $
-set of the triple where $ \pi = \varepsilon $, i.e., the triple without
-an associated lock. Also, it is appended to all the triples that have
-some lock which is currently locked. When a~lock is called, its identifier
-is associated to the triple without any lock associated to it (which is
-then labelled as the currently locked lock), and it is created a~new triple
-without a~lock. Finally, when an unlock is called, it is created a~new
-triple without a~lock, and all the currently locked locks are labelled
-as unlocked.
-
-Formally, the \emph{initial abstract state} of a~function is changed to
-$ s_{init} = \{\{{(\emptyset, \emptyset, \varepsilon)}\}\} $. During the
-analysis of a~function~\texttt{g} with an abstract state~$ s_\mathtt{g} $,
-when a~leaf function~\texttt{f} is called, the abstract state's
-transformation is changed as follows: $ s_\mathtt{g} = \{p^\prime \in
-2^{2^\Sigma \times 2^\Sigma \times \Pi}\ |\ \exists\,p \in s_\mathtt{g}
-: p^\prime = \textcolor{blue}{\{}{(A^\prime, B^\prime, \pi^\prime)} \in
-2^\Sigma \times 2^\Sigma \times \Pi\ |\ \exists\,{(A, B, \pi)} \in p
-: \textcolor{green}{(}\pi = \varepsilon \wedge {(A^\prime, B^\prime,
-\pi^\prime)} = {(A \cup \{\mathtt{f}\}, B, \pi)}\textcolor{green}{)} \vee
-\textcolor{red}{[}\pi \neq \varepsilon \wedge
-\textcolor{green}{[}\textcolor{violet}{(}{(A, B, \pi)} \in locked(p)
-\wedge {(A^\prime, B^\prime, \pi^\prime)} = {(A, B \cup \{\mathtt{f}\},
-\pi)}\textcolor{violet}{)} \vee \textcolor{orange}{(}{(A, B, \pi)}
-\notin locked(p) \wedge {(A^\prime, B^\prime, \pi^\prime)} = {(A, B,
-\pi)}\textcolor{orange}{)}\textcolor{green}{]}\textcolor{red}{]}%
-\textcolor{blue}{\}}\} $, where $ locked $ is a~function that returns
-(for a~given program path) a~set of the ${ (A, B, \pi) }$ triples where
-the lock identified by~$ \pi $ is currently locked. Further, when a~lock
-identified by the access path~$ \pi_i $ is called, the abstract state
-changes as follows: $ s_\mathtt{g} = \{
-p^\prime \in 2^{2^\Sigma \times 2^\Sigma \times \Pi}\ |\ \exists\,p \in
-s_\mathtt{g} : p^\prime = \textcolor{blue}{\{}{(A^\prime, B^\prime,
-\pi^\prime)} \in 2^\Sigma \times 2^\Sigma \times \Pi\ |\ {(A^\prime,
-B^\prime, \pi^\prime)} = {(\emptyset, \emptyset, \varepsilon)} \vee
-\textcolor{violet}{(}{(A^\prime, B^\prime, \pi^\prime)} \in p \wedge
-\pi^\prime \neq \varepsilon\textcolor{violet}{)} \vee
-\textcolor{red}{[}{(A^\prime, B^\prime, \varepsilon)} \in p \wedge
-\pi^\prime = \pi_i \wedge setLocked\textcolor{green}{(}p,
-locked(p) \cup \{{(A^\prime, B^\prime, \pi^\prime)}\}\textcolor{green}{)}%
-\textcolor{red}{]}\textcolor{blue}{\}}\} $, where $ setLocked $ is
-a~function that labels triples (for a~given program path) as those currently
-locked by their lock. Furthermore, when an unlock identified by the access
-path~$ \pi_i $ is called, the abstract state changes as follows:
-$ s_\mathtt{g} = \{p^\prime \in 2^{2^\Sigma \times 2^\Sigma \times \Pi}\
-|\ \exists\,p \in s_\mathtt{g} : p^\prime = \textcolor{blue}{\{}{(A^\prime,
-B^\prime, \pi^\prime)} \in 2^\Sigma \times 2^\Sigma \times \Pi\ |\
-{(A^\prime, B^\prime, \pi^\prime)} = {(\emptyset, \emptyset, \varepsilon)}
-\vee \textcolor{violet}{(}{(A^\prime, B^\prime, \pi^\prime)} \in p
-\wedge \pi^\prime \neq \varepsilon \wedge \pi^\prime \neq
-\pi_i\textcolor{violet}{)} \vee \textcolor{red}{[}{(A^\prime, B^\prime,
-\pi^\prime)} \in p \wedge \pi^\prime = \pi_i \wedge
-setLocked\textcolor{green}{(}p, locked(p) \setminus \{{(A^\prime,
-B^\prime, \pi^\prime)}\}\textcolor{green}{)}\textcolor{red}{]}%
-\textcolor{blue}{\}}\} $. Other definitions (e.g. calling and already
-analysed \emph{nested} function) will be changed analogically.
-
-The \emph{summary} $ \chi_\mathtt{f} \in 2^{2^\Sigma} \times 2^\Sigma $
-of a~function~\texttt{f} is the same as earlier. Only access paths
-from abstract states are ignored. I.e. $ \chi_\mathtt{f} = {(\boldsymbol{B},
-AB)} $, where:
-\begin{itemize}
-    \item 
-        $ \boldsymbol{B} = \{B^\prime \in 2^\Sigma\ |\ \exists\,p \in
-        s_\mathtt{f} : \exists\,{(A, B, \pi)} \in p : B \neq \emptyset \wedge
-        B^\prime = B\} $, where~$ s_\mathtt{f} $ is the abstract state at
-        the end of an interpretation of~\texttt{f}.
-        
-    \item
-        $ AB = \bigcup\limits_{ab \in AB^\prime} ab $,
-        where $ AB^\prime = \{ab \in 2^\Sigma\ |\ \exists\,p \in
-        s_\mathtt{f} : \exists\,(A, B, \pi) \in p: ab = {A \cup B}\} $.
-\end{itemize}
-
-\begin{example}
-    Consider two base cases (\emph{nested atomic section} and
-    \emph{alternating sequence of locks}) in function~\texttt{f}
-    and~\texttt{g} from Listing~\ref{list:atomerPhase1MultiLocks}. There
-    are two lock objects \texttt{lockA} and \texttt{lockB} that are used
-    simultaneously. Further assume, that~\texttt{a}, \texttt{b},
-    \texttt{c} are leaf nodes of the \emph{call graph}. After the
-    extension of the distinguishment of multiple locks used,
-    the produced abstract states and summaries are as follows:
-    \begin{itemize}
-        \item 
-            $ s_\mathtt{f} = \{\{{(\{\mathtt{a}\}, \{\mathtt{b}\},
-            \mathtt{lockB})}, {(\emptyset, \{\mathtt{a}, \mathtt{b},
-            \mathtt{c}\}, \mathtt{lockA})}, {(\emptyset, \emptyset,
-            \varepsilon)}\}\} $, \\
-            $ \chi_\mathtt{f} = ({\{\{\mathtt{b}\}, \{\mathtt{a}, \mathtt{b},
-            \mathtt{c}\}\}}, {\{\mathtt{a}, \mathtt{b}, \mathtt{c}\}}) $;
-
-        \item 
-            $ s_\mathtt{f} = \{\{{(\emptyset, \{\mathtt{a}, \mathtt{b}\},
-            \mathtt{lockA})}, {(\{\mathtt{a}\}, \{\mathtt{b}, \mathtt{c}\},
-            \mathtt{lockB})}, {(\emptyset, \emptyset, \varepsilon)}\}\} $, \\
-            $ \chi_\mathtt{f} = ({\{\{\mathtt{a}, \mathtt{b}\}, \{\mathtt{b},
-            \mathtt{c}\}\}}, {\{\mathtt{a}, \mathtt{b}, \mathtt{c}\}}) $.
-    \end{itemize}
-\end{example}
-
-\begin{lstlisting}[
-    style=c, label={list:atomerPhase1MultiLocks}, float=hbt,
-    caption={%
-        A~code snippet used to illustrate \emph{distinguishing
-        multiple locks used} during derivation of \emph{sets
-        of functions called atomically}%
+\begin{lstlisting}[style=java, label={list:reentrantJava}, float=hbt, caption={An example of \emph{re-entrant locks} in Java using the \texttt{synchronized} keyword, which is implemented as a~\emph{monitor}. In the example, there are three locks used simultaneously over the same object. The entire method~\texttt{f} is synchronised, which implicitly uses \texttt{this} as a~\emph{lock object}. Furthermore, the two \emph{synchronised blocks} explicitly use the lock object \texttt{this}}]
+public synchronized void f() {
+    x();
+    synchronized (this) {
+        a();
+        synchronized (this) { b(); c(); }
+        d();
     }
-]
-void f()
-{
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&<@\textcolor{magenta}{lockA}@>); // {a, b, c}
-    a();
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&<@\textcolor{cyan}{lockB}@>); // {b}
-    b();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&<@\textcolor{cyan}{lockB}@>);
-    c();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&<@\textcolor{magenta}{lockA}@>);
-}
-void g()
-{
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&<@\textcolor{magenta}{lockA}@>); // {a, b}
-    a();
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&<@\textcolor{cyan}{lockB}@>); // {b, c}
-    b();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&<@\textcolor{magenta}{lockA}@>);
-    c();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&<@\textcolor{cyan}{lockB}@>);
+    y();
 }
 \end{lstlisting}
 
-\subsection{Distinguishing Multiple Locks in Phase~2}
-\label{sec:proposalMultiLocksPhase2}
+\subsection{Advanced Manipulation with Locks in Phase~1}
+\label{sec:proposalMultiLocksPhase1}
 
-The pairs~$ \Omega $ of functions that should be called atomically are
-computed the same way as earlier during the \emph{detection of atomicity
-violations} in \textbf{Phase~2}. The analysis again looks for \emph{pairs
-of functions that should be called atomically} while this is not the case
-on some path through the CFG. However, this time, there are stored (in addition
-to a~pair of the most recent function calls) all the most recent pairs of
-function calls locked under individual locks.
+Recall that the \emph{detection of sets of calls to be executed atomically} is based on generating the pairs $ (A, B) \in 2^\Sigma \times 2^\Sigma $. Now, these pairs are to be extended to store the access paths and the number of locks of lock objects that guard calls executed atomically, i.e., the~$ B $ sets. Therefore, the $ (A, B) $ pairs are extended to tuples $ (A, B, \pi, l) \in 2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top $ where~$ \pi $ is an access path that identifies a~lock object that locks the atomic section that contains the calls from~$ B $, and~$ l $ is the number of locks of the lock identified by~$ \pi $. For the clarity of the below description, let~$ \pi $ be just a~base variable, i.e., $ \pi \in \Pi \Coloneqq Var \cup \{\varepsilon\} $. Note that~$ \pi $ could also be~$ \varepsilon $, which is a~special case when there is no lock associated with the~$ (A, B) $ pair so far, i.e., $ B $ is empty and a~lock was not called yet. $ \mathbb{N}^\top $ denotes $ \mathbb{N} \cup \{\top\} $, where~$ \top $ represents a~number larger than~$ t $. Thus, the \emph{abstract states} are elements of the set $ 2^{2^{2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top}} $.
 
-An \emph{abstract state} element is the following: $ {(\mathtt{x},
-\mathtt{y}, \Delta, \Lambda)} \in \Sigma \times \Sigma \times 2^{\Sigma
-\times \Sigma} \times 2^{\Sigma \times \Sigma \times \Pi} $, where
-${ (\mathtt{x}, \mathtt{y}) }$ and~$ \Delta $ are as before. $ \Lambda $ is
-a~set of \emph{locked pairs} of the most recent function calls with
-their locks' \emph{access paths}. Thus, the abstract state $ s \in
-\boldsymbol{Q} $ is defined as $ 2^{\Sigma \times \Sigma \times 2^{\Sigma
-\times \Sigma} \times 2^{\Sigma \times \Sigma \times \Pi}} $. The analysis
-works as follows. When a~function~\texttt{f} is called, it is created a~new
-pair ${ (\mathtt{x}^\prime, \mathtt{y}^\prime) }$ of the most recent function
-calls from the previous pair ${ (\mathtt{x}, \mathtt{y}) }$ (i.e.
-$ {(\mathtt{x}^\prime, \mathtt{y}^\prime)} = {(\mathtt{y}, \mathtt{f})} $).
-This pair is also stored to the locked pairs~$ \Lambda $ if there are any
-locks currently locked. Further, it is checked whether the new pair (or
-just the last call) violates atomicity, and at the same time, it is not
-locked by any of the stored locks (i.e. $ ({(\mathtt{x}^\prime,
-\mathtt{y}^\prime)} \in \Omega \wedge {(\mathtt{x}^\prime,
-\mathtt{y}^\prime)} \notin \Lambda) \vee ({(\varepsilon, \mathtt{y}^\prime)}
-\in \Omega \wedge {(\varepsilon, \mathtt{y}^\prime)} \notin \Lambda) $).
-When it holds, it is added to the set~$ \Delta $ of pairs that violate
-atomicity.
+The analysis works as follows. When a~function is called, it is appended to the~$ A $ set of the element without an associated lock, i.e., the element where $ \pi = \varepsilon $. Besides, the function is appended to the~$ B $ sets of all the elements that have associated some lock that is currently locked, i.e., $ \pi \neq \varepsilon $ and $ l > 0 $. When a~lock is called, its identifier~$ \pi_i $ is associated with the element without any lock associated with it, and the counter~$ l $ of this element is set to 1. Then, $ l $ is incremented in all the elements where $ \pi = \pi_i $ and $ l > 0 $. Moreover, it is created a~new empty element without a~lock. Finally, when an unlock with the identifier~$ \pi_i $ is called, $ l $ is decremented in all the elements where $ \pi = \pi_i $ and $ l > 0 $. To formalise this process, let $ inc_\top : \mathbb{N}^\top\!\rightarrow \mathbb{N}^\top $ and $ dec_\top : \mathbb{N}^\top\!\rightarrow \mathbb{N}^\top $ be functions for incrementing and decrementing the number of locks of some lock objects w.r.t. the upper bound~$ \top $, respectively. These functions are defined as follows:
+\begin{gather*}
+    inc_\top(l) =
+    \begin{cases}
+        l + 1 & \text{for}\ l \neq \top\ \text{and}\ l + 1 < t \\
+        \top & \text{otherwise}
+    \end{cases}
+%
+    \qquad
+%
+    dec_\top(l) =
+    \begin{cases}
+        l - 1 & \text{for}\ l \neq \top\ \text{and}\ l - 1 \geq 0 \\
+        0 & \text{for}\ l = 0 \\
+        t - 1 & \text{otherwise, i.e.,}\ l = \top
+    \end{cases}
+\end{gather*}
+The \emph{initial abstract state} of a~function is changed to $ s_{init} = \{\{(\emptyset, \emptyset, \varepsilon, 0)\}\} $. During the analysis of a~function~\texttt{g} with an abstract state~$ s_\mathtt{g} $, when a~leaf function~\texttt{f} is called, the abstract state's transformation is changed as follows:
+$$
+\begin{multlined}
+    s_\mathtt{g} = \bb{\{}p^\prime \in 2^{2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{} (A^\prime, B^\prime, \pi^\prime, l^\prime) \in 2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top\ |\ \\
+%
+    \exists\,(A, B, \pi, l) \in p : \bB{[}\pi = \varepsilon \wedge l = 0 \wedge (A^\prime, B^\prime, \pi^\prime, l^\prime) = (A \cup \{\mathtt{f}\}, B, \pi, l)\bB{]} \vee \bC{[}\pi \neq \varepsilon \\
+%
+    \wedge \bD{(}\bA{[}l > 0 \wedge (A^\prime, B^\prime, \pi^\prime, l^\prime) = (A, B \cup \{\mathtt{f}\}, \pi, l)\bA{]} \vee \bB{[}l = 0 \wedge (A^\prime, B^\prime, \pi^\prime, l^\prime) = (A, B, \pi, l)%
+%
+    \bB{]}\bD{)}\bC{]}\bA{\}}\bb{\}}
+\end{multlined}
+$$
+Further, when a~lock identified by an access path~$ \pi_i $ is called, the abstract state changes as follows:
+$$
+\begin{multlined}
+    s_\mathtt{g} = \bb{\{}p^\prime \in 2^{2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{} (A, B, \pi, l) \in 2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top\ |\ \\
+%
+    (A, B, \pi, l) = (\emptyset, \emptyset, \varepsilon, 0) \vee \bB{[}(A, B, \varepsilon, 0) \in p \wedge \pi = \pi_i \wedge l = inc_\top(0)\bB{]} \vee \bC{[}(A, B, \pi, l^\prime) \in p \\
+%
+    \wedge \pi \neq \varepsilon \wedge \bD{[}\bA{(}(l^\prime = 0 \vee \pi \neq \pi_i) \wedge l = l^\prime\bA{)} \vee \bB{(}l^\prime > 0 \wedge \pi = \pi_i \wedge l = inc_\top(l^\prime)%
+%
+    \bB{)}\bD{]}\bC{]}\bA{\}}\bb{\}}
+\end{multlined}
+$$
+Furthermore, when an unlock identified by the access path~$ \pi_i $ is called, the abstract state changes as follows: 
+$$
+\begin{multlined}
+    s_\mathtt{g} = \bb{\{}p^\prime \in 2^{2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top}\ |\ \exists\,p \in s_\mathtt{g} : p^\prime = \bA{\{} (A, B, \pi, l) \in 2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top\ |\ \\
+%
+    (A, B, \pi, l) = (\emptyset, \emptyset, \varepsilon, 0) \vee \bC{[}(A, B, \pi, l^\prime) \in p \wedge \pi \neq \varepsilon \\
+%
+    \wedge \bD{[}\bA{(}(l^\prime = 0 \vee \pi \neq \pi_i) \wedge l = l^\prime\bA{)} \vee \bB{(}l^\prime > 0 \wedge \pi = \pi_i \wedge l = dec_\top(l^\prime)%
+%
+    \bB{)}\bD{]}\bC{]}\bA{\}}\bb{\}}
+\end{multlined}
+$$
+Other algorithms (e.g., calling an already analysed \emph{nested} function) are changed analogically.
 
-More formally, the \emph{initial abstract state} of a~function is defined
-as $ s_{init} = {\{\{(\varepsilon, \varepsilon, \emptyset, \emptyset)\}\}} $.
-To formalise the analysis of a~function, let~\texttt{f} be a~called leaf
-function. Further, let~$ s_\mathtt{g} $ be the abstract state of
-a~function~\texttt{g} being analysed before the function~\texttt{f} is
-called. After the call of~\texttt{f}, the abstract state will be changed
-as follows: $ s_\mathtt{g} = \{{(\mathtt{x}^\prime, \mathtt{y}^\prime,
-\Delta^\prime, \Lambda^\prime)} \in \Sigma \times \Sigma \times
-2^{\Sigma \times \Sigma} \times 2^{\Sigma \times \Sigma \times \Pi}\ |
-\ \exists\,{(\mathtt{x}, \mathtt{y}, \Delta, \Lambda)} \in s_\mathtt{g} :
-{(\mathtt{x}^\prime, \mathtt{y}^\prime)} = {(\mathtt{y}, \mathtt{f})}
-\wedge \Lambda^\prime = \textcolor{blue}{\{}{(\mathtt{x}_\pi^\prime,
-\mathtt{y}_\pi^\prime, \pi^\prime)} \in \Sigma \times \Sigma \times \Pi\ 
-|\ \exists\,{(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi)} \in \Lambda :
-{(\mathtt{x}_\pi^\prime, \mathtt{y}_\pi^\prime, \pi^\prime)} =
-{(\mathtt{y}_\pi, \mathtt{f}, \pi)}\textcolor{blue}{\}} \wedge
-\Delta^\prime = \textcolor{red}{\{}{(\mathtt{x}^{\prime\prime},
-\mathtt{y}^{\prime\prime})} \in \Sigma \times \Sigma\ |\
-{(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime})} \in \Delta
-\vee \textcolor{green}{[}\textcolor{violet}{(}{(\mathtt{x}^{\prime\prime},
-\mathtt{y}^{\prime\prime})} = {(\mathtt{x}^\prime, \mathtt{y}^\prime)} \vee
-{(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime})} = {(\varepsilon,
-\mathtt{y}^\prime)}\textcolor{violet}{)} \wedge {(\mathtt{x}^{\prime\prime},
-\mathtt{y}^{\prime\prime})} \in \Omega \wedge
-\nexists\,{(\mathtt{x}^{\prime\prime}_\pi, \mathtt{y}^{\prime\prime}_\pi,
-\pi^{\prime\prime})} \in \Lambda^\prime : {(\mathtt{x}^{\prime\prime}_\pi,
-\mathtt{y}^{\prime\prime}_\pi)} = {(\mathtt{x}^{\prime\prime},
-\mathtt{y}^{\prime\prime})}\textcolor{green}{]}\textcolor{red}{\}}\} $.
-Further, when a~lock identified by the access path~$ \pi_i $ is called,
-the abstract state is changed as follows: $ s_\mathtt{g} =
-\{{(\mathtt{x}^\prime, \mathtt{y}^\prime, \Delta^\prime, \Lambda^\prime)}
-\in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma} \times 2^{\Sigma
-\times \Sigma \times \Pi}\ |\ \exists\,{(\mathtt{x}, \mathtt{y}, \Delta,
-\Lambda)} \in s_\mathtt{g} : {(\mathtt{x}^\prime, \mathtt{y}^\prime,
-\Delta^\prime, \Lambda^\prime)} = {(\mathtt{x}, \mathtt{y}, \Delta,
-\Lambda \cup {\{(\varepsilon, \varepsilon, \pi_i)\}})}\} $. Furthermore,
-when an unlock identified by the access path~$ \pi_i $ is called, the
-abstract state is changed as follows: $ s_\mathtt{g} =
-\{{(\mathtt{x}^\prime, \mathtt{y}^\prime, \Delta^\prime, \Lambda^\prime)}
-\in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma} \times 2^{\Sigma
-\times \Sigma \times \Pi}\ |\ \exists\,{(\mathtt{x}, \mathtt{y}, \Delta,
-\Lambda)} \in s_\mathtt{g} : {(\mathtt{x}^\prime, \mathtt{y}^\prime,
-\Delta^\prime, \Lambda^\prime)} = {(\mathtt{x}, \mathtt{y}, \Delta,
-\Lambda \setminus \Sigma \times \Sigma \times \{\pi_i\})}\} $.
+A~\emph{summary} $ \chi_\mathtt{f} \in 2^{2^\Sigma} \times 2^\Sigma $ of a~function~\texttt{f} is the same as earlier. Only access paths and lock counters from abstract states are ignored. This is, $ \chi_\mathtt{f} = (\mathcal{B}, AB) $, where:
+\begin{itemize}
+    \item $ \mathcal{B} = \{B^\prime \in 2^\Sigma\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B, \pi, l) \in p : B \neq \emptyset \wedge B^\prime = B\} $, where~$ s_\mathtt{f} $ is the abstract state at the end of the abstract interpretation of~\texttt{f}.
+        
+    \item $ AB = \bigcup\limits_{ab\,\in\,AB^\prime} ab $, where $ AB^\prime = \{ab \in 2^\Sigma\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(A, B, \pi, l) \in p : ab = A \cup B\} $.
+\end{itemize}
 
 \begin{example}
-    Consider the function~\texttt{f} from
-    Listing~\ref{list:atomerPhase2MultiLocks}. There are two lock objects
-    \texttt{lockA} and \texttt{lockB} that are used simultaneously.
-    Further assume, that~\texttt{a}, \texttt{b} are leaf nodes of the
-    \emph{call graph}. Then assume, that the result of the first
-    phase of the analysis is that a~pair of functions~\texttt{a},
-    \texttt{b} that should be called atomically, i.e., $ \Omega =
-    {\{(\mathtt{a}, \mathtt{b})\}} $. Before the extension of
-    the distinguishment of multiple locks used, the analysis
-    would report an atomicity violation of these functions (line~6).
-    That is because the locks are not distinguished, and the
-    unlock of \texttt{lockA} (line~5) would unlock everything.
-    On the other hand, after the extension, there are not reported
-    any atomicity violations because the pair of functions is
-    locked using the second lock\,---\,\texttt{lockB}. The abstract
-    state~$ s_\mathtt{f} $ of the function~\texttt{f} before
-    line~7 looks like follows: $ s_\mathtt{f} = \{{(\mathtt{a},
-    \mathtt{b}, \emptyset, \{(\mathtt{a}, \mathtt{b},
-    \mathtt{lockB})\})}\} $.
+    Consider the function~\texttt{f} from Listing~\ref{list:atomerPhase1MultiLocks}. There are two lock objects~\textcolor{magenta}{\texttt{L1}} and~\textcolor{cyan}{\texttt{L2}}, which are used simultaneously. Moreover, \textcolor{cyan}{\texttt{L2}} is locked several times without unlocking in between. Further, assume that~\texttt{a}, \texttt{b}, \texttt{c} are leaf nodes of the call graph. After the extension described above, the produced summary is as follows: $ \chi_\mathtt{f} = (\{\{\mathtt{b}\}, \{\mathtt{a, b, c}\}\}, \{\mathtt{a, b, c}\}) $. Without the extension, the summary would be $ \chi_\mathtt{f}^\prime = (\{\{\mathtt{a}\}\}, \{\mathtt{a, b, c}\}) $. The reason is that only the first locks/unlocks were detected. Other locks inside atomic sections and other unlocks outside atomic sections were ignored. Moreover, the abstract state after the execution of line~7 is as follows: $ s_{\mathtt{f}_7} = \{\{(\emptyset, \{\mathtt{a, b}\}, \textcolor{magenta}{\mathtt{L1}}, 1), (\{\mathtt{a}\}, \{\mathtt{b}\}, \textcolor{cyan}{\mathtt{L2}}, 2), (\{\mathtt{b}\}, \emptyset, \varepsilon, 0)\}\} $.
 \end{example}
 
-\begin{lstlisting}[
-    style=c, label={list:atomerPhase2MultiLocks}, float=hbt,
-    caption={%
-        A~code snippet used to illustrate \emph{distinguishing
-        multiple locks used} during \emph{detection of atomicity
-        violations}%
-    }
-]
+\begin{lstlisting}[style=c, label={list:atomerPhase1MultiLocks}, float=hbt, caption={A~code snippet used to illustrate the \emph{advanced manipulation with locks} during the first phase of the analysis}]
 void f()
 {
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&<@\textcolor{magenta}{lockA}@>); // {}
-    <@\textcolor{red}{pthread\_mutex\_lock}@>(&<@\textcolor{cyan}{lockB}@>); // {a, b}
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&<@\textcolor{magenta}{lockA}@>);
+    <@\red{lock}@>(&<@\textcolor{magenta}{L1}@>); // {a, b, c}
+    a();
+    <@\red{lock}@>(&<@\textcolor{cyan}{L2}@>); <@\red{lock}@>(&<@\textcolor{cyan}{L2}@>); // {b}
+    <@\red{lock}@>(&<@\textcolor{cyan}{L2}@>); <@\red{unlock}@>(&<@\textcolor{cyan}{L2}@>);
+    b();
+    <@\red{unlock}@>(&<@\textcolor{cyan}{L2}@>); <@\red{unlock}@>(&<@\textcolor{cyan}{L2}@>);
+    c();
+    <@\red{unlock}@>(&<@\textcolor{magenta}{L1}@>);
+}
+\end{lstlisting}
+
+\subsection{Advanced Manipulation with Locks in Phase~2}
+\label{sec:proposalMultiLocksPhase2}
+
+The pairs~$ \Omega $ of functions that should be called atomically are computed the same way as earlier during the \emph{detection of atomicity violations} in Phase~2. However, dealing with access paths and re-entrant locks must, of course, be reflected in the second phase of the analysis as well. For that, while looking for \emph{atomicity violations of pairs of function calls}, from now, the analysis stores (in addition to pairs of the most recent function calls $ (\mathtt{x, y}) $ and the set~$ \delta $ of pairs that have so far been identified as violating atomicity) all the most recent pairs of function calls locked under individual locks. Hence, the \emph{abstract state} element gets the form $ (\mathtt{x}, \mathtt{y}, \delta, \lambda) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} \times 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top} $, where $ (\mathtt{x, y}), \delta $ are as before, and~$ \lambda $ is the set of the most recent function calls with their lock access paths and the number of locks of lock objects of these locks. Thus, the abstract states are elements of the set $ 2^{\Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} \times 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top}} $.
+
+The analysis works as follows. When a~function~\texttt{f} is called on some path that led to an abstract state $ (\mathtt{x}, \mathtt{y}, \delta, \lambda) $, a~new pair $ (\mathtt{x}^\prime, \mathtt{y}^\prime) $ of the most recent function calls is created from the previous pair $ (\mathtt{x}, \mathtt{y}) $ such that $ (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) $. This pair is also stored in the locked pairs~$ \lambda $ if there are any locks currently locked. Further, it is checked whether the new pair (or just the last call) violates the atomicity, and at the same time, the pair is not locked by any of the stored locks (i.e., $ ((\mathtt{x}^\prime, \mathtt{y}^\prime) \in \Omega \wedge \nexists\,(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) \in \lambda : (\mathtt{x}_\pi, \mathtt{y}_\pi) = (\mathtt{x}^\prime, \mathtt{y}^\prime)) \vee ((\varepsilon, \mathtt{y}^\prime) \in \Omega \wedge \nexists\,(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) \in \lambda : (\mathtt{x}_\pi, \mathtt{y}_\pi) = (\varepsilon, \mathtt{y}^\prime)) $). When the condition holds, the pair is added to the set~$ \delta $ of pairs that violate atomicity. When a~lock with an identifier~$ \pi_i $ is called, it is created a~new empty element of~$ \lambda $ with this identifier, and the lock counter~$ l $ of this element is set to~1. Furthermore, the lock counter~$ l $ of an element from~$ \lambda $ with the access path~$ \pi_i $ is incremented/decremented when a~lock/unlock with the identifier~$ \pi_i $ is called, respectively.
+
+More formally, the \emph{initial abstract state} of a~function is defined as $ s_{init} = \{\{(\varepsilon, \varepsilon, \emptyset, \emptyset)\}\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ c $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
+$$
+\begin{multlined}
+    s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime, \lambda^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} \times 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top}\ | \ \exists\,(\mathtt{x}, \mathtt{y}, \delta, \lambda) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) \\
+%
+    \wedge \lambda^\prime = \bA{\{}(\mathtt{x}_\pi^\prime, \mathtt{y}_\pi^\prime, \pi^\prime, l^\prime) \in \Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top\  |\ \exists\,(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) \in \lambda : (\mathtt{x}_\pi^\prime, \mathtt{y}_\pi^\prime, \pi^\prime, l^\prime) = \\
+%
+    (\mathtt{y}_\pi, \mathtt{f}, \pi, l)\bA{\}} \wedge \delta^\prime = \bD{\{}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, c^\prime) \in \Sigma \times \Sigma \times \mathbb{N}\ |\ (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}, c^\prime) \in \delta \vee \bC{[}\bB{(}(\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\mathtt{x}^\prime, \mathtt{y}^\prime) \vee \\
+%
+    (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) = (\varepsilon, \mathtt{y}^\prime)\bB{)} \wedge (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime}) \in \Omega \wedge c^\prime = c \wedge \nexists\,(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) \in \lambda^\prime : (\mathtt{x}_\pi, \mathtt{y}_\pi) = (\mathtt{x}^{\prime\prime}, \mathtt{y}^{\prime\prime})%
+%
+    \bC{]}\bD{\}}\bb{\}}
+\end{multlined}
+$$
+Further, when a~lock identified by an access path~$ \pi_i $ is called, the abstract state is changed as follows: 
+$$
+\begin{multlined}
+    s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime, \lambda^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} \times 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta, \lambda) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) = \\
+%
+    (\mathtt{x}, \mathtt{y}, \delta) \wedge \lambda^\prime = \bA{\{}(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) \in \Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top\ |\ (\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) = (\varepsilon, \varepsilon, \pi_i, inc_\top(0)) \\
+%
+    \vee \bB{[}(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l^\prime) \in \lambda \wedge \bD{[}(\pi \neq \pi_i \wedge l = l^\prime) \vee (\pi = \pi_i \wedge l = inc_\top(l^\prime))
+%
+    \bD{]}\bB{]}\bA{\}}\bb{\}}
+\end{multlined}
+$$
+Furthermore, when an unlock identified by the access path~$ \pi_i $ is called, the abstract state is changed as follows:
+$$
+\begin{multlined}
+    s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime, \lambda^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} \times 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta, \lambda) \in s_\mathtt{g} : \\ 
+%
+    (\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) = (\mathtt{x}, \mathtt{y}, \delta) \wedge \lambda^\prime = \bA{\{}(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) \in \Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top\ |\ l > 0 \\
+%
+    \wedge \bB{[}(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l^\prime) \in \lambda \wedge \bD{[}(\pi \neq \pi_i \wedge l = l^\prime) \vee (\pi = \pi_i \wedge l = dec_\top(l^\prime))
+%
+    \bD{]}\bB{]}\bA{\}}\bb{\}}
+\end{multlined}
+$$
+
+A~\emph{summary} of the second phase of the analysis\,---\,$ \chi_\mathtt{f} \in 2^{\Sigma \times \Sigma \times \mathbb{N}} $\,---\,of a~function~\texttt{f} is the same as earlier. Only the locked pairs~$ \lambda $ with their access paths from abstract states are ignored. This is, $ \chi_\mathtt{f} = \Delta = \{\delta^\prime \in 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,p \in s_\mathtt{f} : \exists\,(\mathtt{x}, \mathtt{y}, \delta, \lambda) \in p : \delta \neq \emptyset \wedge \delta^\prime = \delta\} $, where $ s_\mathtt{f} $ is the abstract state at the end of the abstract interpretation of~\texttt{f}.
+
+\begin{example}
+    Consider the function~\texttt{g} from Listing~\ref{list:atomerPhase2MultiLocks}. There are two lock objects~\textcolor{magenta}{\texttt{L1}} and~\textcolor{cyan}{\texttt{L2}}, which are used simultaneously. Further, assume that~\texttt{a}, \texttt{b} are leaf nodes of the call graph. Then, assume that the result of the first phase of the analysis is that the pair $ (\mathtt{a, b}) $ should be called atomically, i.e., $ \Omega = \{(\mathtt{a, b})\} $. Before the extension distinguishing of multiple lock instances, the analysis would report an atomicity violation for these functions (line~6). This is because the locks are not distinguished, and the unlock of~\textcolor{magenta}{\texttt{L1}} (line~5) would unlock everything. On the other hand, after the extension, there are not reported any atomicity violations because the pair is still locked using~\textcolor{cyan}{\texttt{L2}} (i.e., in Phase~2, it is produced the following summary: $ \chi_\mathtt{g} = \emptyset $). The abstract state of~\texttt{g} after the execution of line~6 looks as follows: $ s_{\mathtt{g}_6} = \{(\mathtt{a}, \mathtt{b}, \emptyset, \{(\mathtt{a}, \mathtt{b}, \textcolor{cyan}{\mathtt{L2}}, 1)\})\} $.
+\end{example}
+
+\begin{lstlisting}[style=c, label={list:atomerPhase2MultiLocks}, float=hbt, caption={A~code snippet used to illustrate the \emph{advanced manipulation with locks} during the second phase of the analysis}]
+void g()
+{
+    <@\red{lock}@>(&<@\textcolor{magenta}{L1}@>); // {}
+    <@\red{lock}@>(&<@\textcolor{cyan}{L2}@>); // {a, b}
+    <@\red{unlock}@>(&<@\textcolor{magenta}{L1}@>);
     a(); b();
-    <@\textcolor{red}{pthread\_mutex\_unlock}@>(&<@\textcolor{cyan}{lockB}@>);
+    <@\red{unlock}@>(&<@\textcolor{cyan}{L2}@>);
 }
 \end{lstlisting}
 
