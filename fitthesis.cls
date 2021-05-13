@@ -1380,7 +1380,7 @@ Management}{\@fit@EN}%
 
 % \leftsquigarrow
 \makeatletter
-\newcommand{\reflect@squig}[2]{\reflectbox{$\m@th#1\rightsquigarrow$}}
+\newcommand{\reflect@squig}[2]{\protect\reflectbox{$\m@th#1\rightsquigarrow$}}
 \providecommand{\leftsquigarrow}{\mathrel{\mathpalette\reflect@squig\relax}}
 \makeatother
 
