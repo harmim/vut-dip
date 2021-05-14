@@ -41,15 +41,15 @@ clean:
 .PHONY: pack
 pack: $(PACK)
 
-$(PACK): $(CO).pdf
+$(PACK):
 	COPYFILE_DISABLE=1 tar -czvf $@ $(CO).tex $(CO).bib $(BST) $(IMGS) $(CLS) \
-		$(ASSIGNMENT) $(DESKS) $^ Makefile latexmkrc $(CHAPTERS) \
+		$(ASSIGNMENT) $(DESKS) $(CO).pdf Makefile latexmkrc $(CHAPTERS) \
 		$(APPENDICES)
 
 
 .PHONY: vlna
 vlna:
-	vlna -l $(CO).tex $(CO).bib $(CHAPTERS) $(APPENDICES)
+	vlna -l -v aAI $(CO).tex $(CO).bib $(CHAPTERS) $(APPENDICES)
 
 
 .PHONY: normostrany

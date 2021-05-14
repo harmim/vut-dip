@@ -1204,11 +1204,70 @@ void g()
 }
 \end{lstlisting}
 
+\subsection{Lock Guards}
+
+Finally, support for so-called \emph{lock guard objects} has been proposed. Lock guards are objects associated with lock objects. One lock guard can be associated with multiple lock objects, and one lock object can be associated with multiple lock guards. When a~lock guard is created, all lock objects associated with it are locked. When a~lock guard is destroyed (usually, when a~\emph{scope of variables} is left), all lock objects associated with it are automatically unlocked. Exceptionally, under certain circumstances, lock guards can be locked/unlocked manually. Lock guards are widely used, especially in C++, but they are used, e.g., in Java as well. To cope with them, the analysis has been extended such that they are also identified by \emph{access paths}. The association between a~lock guard and lock objects is modelled as a~pair $ (\pi_g, L) \in \Pi \times 2^\Pi $, where~$ \pi_g $ is an access path that identifies the lock guard and~$ L $ is a~set of access paths that identify the lock objects associated with the guard identified by~$ \pi_g $. In the \emph{abstract states} of both phases of the analysis, the associations between lock guards and lock objects are maintained as a~set that is an element of the set $ 2^{\Pi \times 2^\Pi} $, i.e., there is a~set of associations between lock guards and lock objects. Subsequent locks/unlocks of lock guards are then interpreted as a~sequence of locks/unlocks of lock objects associated with these lock guards, respectively.
+
+\begin{example}
+    Using Listing~\ref{list:lockGuards}, it will be demonstrated how the analysis works with lock guards. There are used two lock objects~\textcolor{magenta}{\texttt{L1}}, \textcolor{cyan}{\texttt{L2}}. \textcolor{cyan}{\texttt{L2}} is a~\emph{re-entrant lock} while~\textcolor{magenta}{\texttt{L1}} is not. Besides, there are also two lock guards~\texttt{G1} and~\texttt{G2}. On line~9, at the same time, the lock guard~\texttt{G1} is associated with both~\textcolor{magenta}{\texttt{L1}} and~\textcolor{cyan}{\texttt{L2}}, and the guard~\texttt{G2} is associated only with~\textcolor{cyan}{\texttt{L2}}. Conversely, the lock object~\textcolor{magenta}{\texttt{L1}} is associated only with~\texttt{G1}, and~\textcolor{cyan}{\texttt{L2}} is associated with both~\texttt{G1} and~\texttt{G2}. These associations are stored in the analysis's abstract states as the $ (\pi_g, L) $ pairs in the following set: $ \{(\mathtt{G1}, \{\textcolor{magenta}{\mathtt{L1}}, \textcolor{cyan}{\mathtt{L2}}\}), (\mathtt{G2}, \{\textcolor{cyan}{\mathtt{L2}}\})\} $. For instance, when the scope of~\texttt{G1} is left, the analysis abstractly interprets it as a~sequence \texttt{\textcolor{magenta}{L1}.unlock(); \textcolor{cyan}{L2}.unlock();}.
+\end{example}
+    
+\begin{lstlisting}[style=c++, label={list:lockGuards}, float=hbt, caption={An example of \emph{lock guards} in C++. The entire function~\texttt{f} is locked with lock objects~\textcolor{magenta}{\texttt{L1}}, \textcolor{cyan}{\texttt{L2}} using \texttt{std::scoped\_lock}, which is a~type of lock guard that can lock multiple lock objects at once (note that \texttt{std::scoped\_lock} is available since C++~17). However, there is also an inner atomic section locked with~\textcolor{cyan}{\texttt{L2}} using \texttt{std::lock\_guard}. \textcolor{cyan}{\texttt{L2}} is, in effect, locked twice\,---\,it is a~\emph{re-entrant lock} of a~type \texttt{std::recursive\_mutex}}]
+#include <mutex>
+std::mutex <@\textcolor{magenta}{L1}@>; std::recursive_mutex <@\textcolor{cyan}{L2}@>;
+void f()
+{
+    <@\red{std::scoped\_lock}@> G1(<@\textcolor{magenta}{L1}@>, <@\textcolor{cyan}{L2}@>); // {a, b, c}
+    a();
+    {
+        <@\red{std::lock\_guard}@><std::recursive_mutex> G2(<@\textcolor{cyan}{L2}@>); // {b}
+        b();
+    }
+    c();
+}
+\end{lstlisting}
+
 
 \section{Analysis's Parametrisation}
 \label{sec:proposalParametr}
 
-\cite{anaconda}
+This section proposes solutions to reduce the number of \emph{false alarms} reported by the basic version of Atomer. In particular, it is done by \emph{parameterising} the analysis by some inputs provided by the user, i.e., in this case, the analysis does not have to be fully automatic. Namely, the parametrisation aims to filter out functions and \emph{critical sections} that cause many reportings where most of them are very likely false alarms.
+
+\subsection{Specification of Critical Functions}
+
+One of the main reasons why Atomer in its first version reports false alarms is that, in practice, critical sections often interleave calls of functions that need to be executed atomically with common functions that need not be executed atomically (such as functions for printing to the standard output, functions for recasting variables to different types, functions related to iterators, and various other \uv{safe} functions). Often, to find real atomicity violations, it is sufficient to focus on specific \uv{critical} functions only.
+
+For example, calls of \emph{constructor} and \emph{destructor} methods of classes do not lead to atomicity violations. Therefore, these calls can usually be ignored. Unfortunately, in general, it is not easy to differentiate between functions that should be set aside and functions to focus on because this distinction is application-specific. Therefore, the author decided to rely on the user to provide this information to the analysis. (Indeed, providing information of this kind is not so exceptional, e.g., for developers of libraries. A~similar approach has also been chosen, e.g., in the \emph{ANaConDA dynamic analyser} for concurrency issues~\cite{anaconda}, where the user can use so-called \emph{hierarchical filters} to specify functions that the analysis should not monitor.) For this reason, the following input parameters of the analysis are proposed:
+\begin{itemize}
+    \item a~list of functions that will not be analysed,
+
+    \item a~list of functions that will be analysed (and all other functions will not be),
+
+    \item a~list of functions whose calls will not be considered,
+
+    \item and a~list of functions whose calls will be considered (and all other function calls will not be).
+\end{itemize}
+In other words, it is possible to specify \emph{black-lists} and \emph{white-lists} of functions to analyse and function calls to consider. It is also possible to combine these parameters, and they can be enabled for individual phases of the analysis. In the implementation of this approach mentioned in the following chapter, these parameters' values are read from input text files that contain one function name per line. Moreover, the implementation allows the user to specify sets of functions using \emph{regular expressions} (in that case, the line must start with the letter~\texttt{R} followed by whitespace).
+
+\subsection{Limitation of a~Size of Critical Sections}
+
+Another issue often causing false alarms is that some programs contain \uv{large} critical sections or critical sections that include function calls with a~\emph{deep hierarchy of nested function calls}. Both cases can cause massive and \uv{imprecise} atomic sets that are the source of false alarms. Indeed, such \uv{large} and/or \uv{deep} critical sections are likely to contain a~number of calls of functions that are not critical.
+
+To resolve the \uv{large} critical sections' problem, the author proposes to parametrise the analysis by a~parameter $ p \in \mathbb{N} $ that limits the maximum length of a~critical section to be taken into account. During its first phase, the analysis then discards all $ (A, B) $ pairs where $ |B| > p $, i.e., it removes pairs where the number of functions in the set~$ B $ (functions called atomically) is greater than the limit~$ p $.
+
+To get to the above proposal of dealing with deeply nested critical functions, recall that, during the first phase of the analysis, when calling an already analysed \emph{nested function}, the $ AB $ set (i.e., the set of all called functions within a~function) from its summary is used. If there is a~deep hierarchy of nested function calls, the top level of the hierarchy uses function calls from all lower-level functions, leading to \uv{large} critical sections. To avoid this problem, the summary $ \chi = (\mathcal{B}, AB) \in 2^{2^\Sigma} \times 2^\Sigma $ in Phase~1 is redefined as $ 2^{2^\Sigma} \times 2^{\mathbb{N} \times 2^\Sigma} $, i.e., $ AB $ is no longer a~set of all functions called within an analysed function. It is a~set of pairs where each pair represents functions called at a~particular level in the hierarchy of a~nested function (0 means the top-level). For instance, the summary $ \chi_\mathtt{f} = (\emptyset, \{(0, \{\mathtt{a, b}\}), (1, \{\mathtt{x, y}\})\}) $ of a~function~\texttt{f} means that there were called functions \texttt{a, b} in~\texttt{f} and that there were called functions \texttt{x, y} in functions one level lower in the call tree (i.e., in functions directly invoked from~\texttt{f}). During the analysis, the summaries are passed among functions in the call hierarchy. Furthermore, the analysis uses a~parameter $ r \in \mathbb{N} $ to limit the number of levels considered during analysing nested functions.
+
+More particularly, to derive these extended summaries, it is also needed to store in the abstract states the information about in which levels appear which function calls. When analysing a~function~\texttt{f} and a~leaf function~\texttt{g} is called, \texttt{g} is added to the level~0 of functions called within~\texttt{f}. Furthermore, when calling an already analysed function~\texttt{h}, the functions called in a~level~$ i $ of~\texttt{h} are appended into the appropriate $ A $ or $ B $ sets of~\texttt{f} if $ i < r $. Finally, the information about in which levels appear which function calls is passed from a~lower-level function to a~higher-level function. In particular, if some function is called in a~level~$ i $ of~\texttt{h}, it is added to the level $ i + 1 $ of the function~\texttt{f} (which is one level higher) if $ i + 1 < r $.
+
+\begin{example}
+    Assume functions~\texttt{x, y, z} from Listing~\ref{list:atomerDeepParam}. Their summaries for the first phase of the analysis are as follows: $ \chi_\mathtt{z} = (\emptyset, \{(0, \{\mathtt{z1, z2}\})\}) $, $ \chi_\mathtt{y} = (\emptyset, \{(0, \{\mathtt{y1, y2, z}\}), \allowbreak (1, \{\mathtt{z1, z2}\})\}) $, $ \chi_\mathtt{x} = (\emptyset, \{(0, \{\mathtt{x1, x2, y}\}), (1, \{\mathtt{y1, y2, z}\}), (2, \{\mathtt{z1, z2}\})\}) $. When the value of the parameter~$ r $ is set to~1, the summary of the function~\texttt{x} is reduced as follows: $ \chi_\mathtt{x}^\prime = (\emptyset, \{(0, \{\mathtt{x1, x2, y}\}), (1, \{\mathtt{y1, y2, z}\})\}) $.
+\end{example}
+
+\begin{lstlisting}[style=c, label={list:atomerDeepParam}, float=hbt, caption={A~code snippet used to illustrate the \emph{limitation of considered nested functions}}]
+void z() { z1(); z2(); }
+void y() { y1(); y2(); z(); }
+void x() { x1(); x2(); y(); }
+\end{lstlisting}
 
 
 \section{Local/Global Atomicity Violations}
