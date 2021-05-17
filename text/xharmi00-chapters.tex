@@ -1329,6 +1329,7 @@ Note that in the listings in the below sections, \texttt{Domain} refers to an ab
 
 For both phases of the analysis, the analyser is implemented as an \emph{abstract interpreter} using the \texttt{LowerHil} module, which transforms \emph{Smallfoot Intermediate Language (SIL) instructions} (mentioned in Section~\ref{sec:fbinfer}) into \emph{High-level Intermediate Language (HIL) instructions}. HIL instructions wrap SIL instructions and simplify their utilisation, i.e., it is an abstraction over SIL. For representing functions, a~filtered view of the \emph{forward CFG} that skips \emph{exceptional control-flow paths} is used. This type of CFG corresponds to the \texttt{ProcCfg.Normal} module in Facebook Infer. The final analyser is created as a~module \texttt{Analyser} using the \texttt{LowerHil.MakeAbstractInterpreter} function.
 
+%~-
 \begin{lstlisting}[style=ocaml, label={list:analyseProc}, float=hbt, caption={The \emph{main analysis function} for analysing individual functions in a~given program}]
 let analyse_procedure data : Domain.Summary.t option =
   (* Should be the analysis of this function skipped? *)
@@ -1345,6 +1346,7 @@ let analyse_procedure data : Domain.Summary.t option =
       Some summary
     | None -> Logging.die InternalError "Analysis failed."
 \end{lstlisting}
+%~+
 
 The \emph{main analysis function} \texttt{analyse\_procedure} is implemented the same way for both phases of the analysis (for Phase~1, it is implemented in the \texttt{AtomicSets} module, and for Phase~2, it is implemented in the \texttt{AtomicityViolations} module). A~simplified implementation is given in Listing~\ref{list:analyseProc}. Facebook Infer's backend invokes this function for each function in an analysed program. It computes a~\emph{summary} of the analysed function. At first, the function checks whether the analysis of an analysed function should be ignored (line~3). It has to do with the \emph{specification of critical functions} proposed in Section~\ref{sec:proposalParametr}. The implementation of that is covered in Section~\ref{sec:implementFunIgnore}. Further, \texttt{analyse\_procedure} computes the final abstract state (\emph{post-condition}) for the analysed function using the \texttt{Analyser.compute\_post} function (line~9). As a~\emph{pre-condition}, the \emph{initial abstract state} \texttt{Domain.initial} from an abstract domain is used. On line~12, the abstract state is appropriately converted to an interprocedural function summary using \texttt{Domain.Summary.create}. Finally, this summary is returned. The crucial parts are here the types \texttt{Domain.t}, \hyptt{Domain.Summary.t}, and the function \texttt{Domain.Summary.create}. These are different for individual phases of the analysis. They are described in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}.
 
