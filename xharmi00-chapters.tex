@@ -337,7 +337,7 @@ If the abstraction and concretisation functions of the abstract interpretation f
 
 Most program properties can be represented as \emph{fixpoints}\footnote{Consider a~function~$ f : L \rightarrow L $ on a~set~$ L $. A~\textbf{fixed point} (or \textbf{fixpoint}) of~$ f $ is an element $ l \in L $ iff $ f(l) = l $. The set of all fixpoints of~$ f $ is denoted as $ Fix(f) = \{l \in L\ |\ f(l) = l\} $.~\cite{programAnalysisNielson}}. This reduces the program analysis to the \emph{fixpoint approximation}. The complete analysis of a~program using abstract interpretation can be then viewed as finding the \emph{least/greatest} fixpoint of the equation $ \overline{Q} = \overline{\tau}(\overline{Q}) $, where~$ \overline{Q} $ is a~vector of abstract states and~$ \overline{\tau} $ is an extension of~$ \tau $ to the whole program. This fixpoint equation is then solved iteratively. \emph{Knaster-Tarski theorem}~\cite{tarski} guarantees these fixpoints' existence.
 
-The computation of the most precise abstract fixpoint is not generally guaranteed to \emph{terminate}, in particular, when a~given program contains a~loop (or recursion) and uses an infinite domain (or even finite but very large). In order to enforce or accelerate the convergence, the fixpoint is often over-approximated using the \emph{widening} operator~$ \triangledown $. The approximation may be later refined using the \emph{narrowing} operator~$ \vartriangle $. These two operators are defined below. In practice, the analysis is usually done by iterating the abstract transformers over the \emph{control flow graph}\footnote{A~\textbf{control flow graph} (\textbf{CFG}) is a~\emph{directed graph} in which the nodes represent \emph{basic blocks} of the program, and the edges represent control flow paths among them~\cite{controlFlowAnalysisAllen}. A~basic block is a~\emph{maximal sequence of statements} such that all transfers to it are to the first statement in the sequence, and all statements in the sequence are executed sequentially~\cite{programAnalysisNielson}.} (CFG). The join operator~$ \sqcup $ is applied at program locations where different branches come across. Moreover, the widening operator~$ \triangledown $ is applied at loop junctions (and afterwards, the narrowing operator~$ \vartriangle $ may be used).
+The computation of the most precise abstract fixpoint is not generally guaranteed to \emph{terminate}, in particular, when a~given program contains a~loop (or recursion) and uses an infinite domain (or even finite but very large). In order to enforce or accelerate the convergence, the fixpoint is often over-approximated using the \emph{widening} operator~$ \triangledown $. The approximation may be later refined using the \emph{narrowing} operator~$ \vartriangle $. These two operators are defined below. In practice, the analysis is usually done by iterating the abstract transformers over the \emph{control-flow graph}\footnote{A~\textbf{control-flow graph} (\textbf{CFG}) is a~\emph{directed graph} in which the nodes represent \emph{basic blocks} of the program, and the edges represent control-flow paths among them~\cite{controlFlowAnalysisAllen}. A~basic block is a~\emph{maximal sequence of statements} such that all transfers to it are to the first statement in the sequence, and all statements in the sequence are executed sequentially~\cite{programAnalysisNielson}.} (CFG). The join operator~$ \sqcup $ is applied at program locations where different branches come across. Moreover, the widening operator~$ \triangledown $ is applied at loop junctions (and afterwards, the narrowing operator~$ \vartriangle $ may be used).
 
 \begin{definition}[\textbf{Widening}]
     Assume the abstract interpretation from Definition~\ref{def:AI}. The \textbf{widening operator} over the abstract domain~$ Q $ is a~binary operator~$ \triangledown : Q \times Q \rightarrow Q $ such that $ \forall x, y \in Q : x \sqcup y \sqsubseteq x\,\triangledown\,y $, and for all \emph{increasing chains} $ x_0 \sqsubseteq x_1 \sqsubseteq \ldots\ $, the increasing chain defined by $ y_0 = x_0,\ \ldots\ ,\ y_{i + 1} = y_i\,\triangledown\,x_{i + 1},\ \ldots $ is not \emph{strictly increasing}. Note that the chain eventually stabilises since the result of~$ \triangledown $ is an \emph{upper bound}.
@@ -1313,10 +1313,144 @@ When an atomicity violation within an analysed function is detected as earlier, 
 %===============================================================================
 
 
+
 \chapter{Implementation of a~New Version of Atomer}
 \label{chap:implement}
 
-\todo{Některé věci částečně převzít z~projektové praxe a~z~Excelu. Zmínit, že byl aktualizován Infer a~že byl udělán nějaký refaktoring.}
+This chapter discusses the implementation of a~new version of \emph{Atomer}. It summarises the implementation of the whole analyser (i.e., it includes the implementation of the Atomer's basic version from~\cite{harmimBP}, also described in Chapter~\ref{chap:atomer}) with a~particular focus on the new enhancements proposed in Chapter~\ref{chap:proposal}. Atomer is implemented as a~\emph{module of Facebook Infer} introduced in Section~\ref{sec:fbinfer}. The implemented algorithms are illustrated using convenient \emph{pseudocode} and listings of simplified code written in \emph{OCaml}, which is an implementation language of Atomer and Facebook Infer. Sections~\ref{sec:implementPhase1} and~\ref{sec:implementPhase2} describe the implementation of \emph{both phases} of the analysis in more detail. Moreover, Section~\ref{sec:implementLanguages} outlines the implementation of support for \emph{programming languages} and \emph{locking mechanisms} newly added to Atomer.
+
+The implementation of both the basic version and the new version of Atomer is \emph{publicly available} at GitHub\footnote{The implementation of a~new version of \textbf{Atomer} at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}. The implementation of the first version is in a~branch \texttt{atomicity}. At the following address, there are available releases of both versions, including source code and executable binaries (v1.0.0 is the basic version, and v2.0.0 corresponds to the new version): \url{https://github.com/harmim/infer/releases}.}. An installation and user manual are available in Appendix~\ref{app:man}. Together with some examples, these manuals are also available in the attached memory media of the thesis (see Appendix~\ref{app:memMedia}) and in Atomer's Wiki\footnote{\textbf{Atomer's Wiki} provides an installation and user manual together with some examples. It is available at GitHub: \url{https://github.com/harmim/infer/wiki}.}. As it was already said, Atomer is implemented in OCaml, which is a~\emph{functional} programming language. However, it also allows using the \emph{imperative} and \emph{object-oriented} paradigms exploited in the Atomer's implementation as well. Since the implementation of the first version of Atomer, Facebook Infer was many times updated (in its Git repository, there are several new commits every day). Due to maintaining Atomer up-to-date with Facebook Infer, and due to some refactoring of Atomer itself, the code of the first version of Atomer since its first implementation is considerably different. 
+
+Atomer itself is implemented in files in a~directory \texttt{infer/src/atomicity}. In particular, the first phase of the analysis is implemented in \texttt{AtomicSets.ml[i]}, and its \emph{abstract domain}~$ Q $ is implemented in \texttt{AtomicSetsDomain.ml[i]}. The second phase is implemented in \texttt{AtomicityViolations.ml[i]}, and its abstract domain~$ Q $ is implemented in \texttt{AtomicityViolationsDomain.ml[i]}. The phases are implemented as separate analysers in Facebook Infer. The output of the first phase is the input to the second one (as earlier shown in Figure~\ref{fig:atomerPhasesSets}). These analysers are defined as modules of Facebook Infer in \texttt{infer/src/base/Checker.ml[i]}, and they are registered to the framework in \texttt{infer/src/backend/registerCheckers.ml}. The analysers are enabled only by specific command line arguments; see the mentioned manuals.
+
+Note that in the listings in the below sections, \texttt{Domain} refers to an abstract domain~$ Q $ of a~particular phase of the analysis (the \texttt{AtomicSetsDomain}/\texttt{AtomicityViolationsDomain} module for the first/second phase of the analysis, respectively). Then, \texttt{Domain.t} is a~type of \emph{abstract state} of the particular phase. Furthermore, \texttt{Domain.Summary.t} is a~type of \emph{summary}~$ \chi $ in the particular phase.
+
+\subsection{The Main Analysis Function}
+
+For both phases of the analysis, the analyser is implemented as an \emph{abstract interpreter} using the \texttt{LowerHil} module, which transforms \emph{Smallfoot Intermediate Language (SIL) instructions} (mentioned in Section~\ref{sec:fbinfer}) into \emph{High-level Intermediate Language (HIL) instructions}. HIL instructions wrap SIL instructions and simplify their utilisation, i.e., it is an abstraction over SIL. For representing functions, a~filtered view of the \emph{forward CFG} that skips \emph{exceptional control-flow paths} is used. This type of CFG corresponds to the \texttt{ProcCfg.Normal} module in Facebook Infer. The final analyser is created as a~module \texttt{Analyser} using the \texttt{LowerHil.MakeAbstractInterpreter} function.
+
+\begin{lstlisting}[style=ocaml, label={list:analyseProc}, float=hbt, caption={The \emph{main analysis function} for analysing individual functions in a~given program}]
+let analyse_procedure data : Domain.Summary.t option =
+  (* Should be the analysis of this function skipped? *)
+  if f_is_ignored (Pdesc.get_pname data.pdesc) then None
+  else
+    let pre : Domain.t = 
+      Domain.initial (* initial abstract state (pre-condition) *)
+    in
+    (* Compute the final abstract state (post-condition). *)
+    match Analyser.compute_post data ~initial:pre with
+    | Some (post : Domain.t) ->
+      (* Convert the abstract state to a summary. *)
+      let summary : Domain.Summary.t = Domain.Summary.create post in
+      Some summary
+    | None -> Logging.die InternalError "Analysis failed."
+\end{lstlisting}
+
+The \emph{main analysis function} \texttt{analyse\_procedure} is implemented the same way for both phases of the analysis (for Phase~1, it is implemented in the \texttt{AtomicSets} module, and for Phase~2, it is implemented in the \texttt{AtomicityViolations} module). A~simplified implementation is given in Listing~\ref{list:analyseProc}. Facebook Infer's backend invokes this function for each function in an analysed program. It computes a~\emph{summary} of the analysed function. At first, the function checks whether the analysis of an analysed function should be ignored (line~3). It has to do with the \emph{specification of critical functions} proposed in Section~\ref{sec:proposalParametr}. The implementation of that is covered in Section~\ref{sec:implementFunIgnore}. Further, \texttt{analyse\_procedure} computes the final abstract state (\emph{post-condition}) for the analysed function using the \texttt{Analyser.compute\_post} function (line~9). As a~\emph{pre-condition}, the \emph{initial abstract state} \texttt{Domain.initial} from an abstract domain is used. On line~12, the abstract state is appropriately converted to an interprocedural function summary using \texttt{Domain.Summary.create}. Finally, this summary is returned. The crucial parts are here the types \texttt{Domain.t}, \hyptt{Domain.Summary.t}, and the function \texttt{Domain.Summary.create}. These are different for individual phases of the analysis. They are described in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}.
+
+%~-
+\begin{lstlisting}[style=ocaml, label={list:AITransform}, float=hbt, caption={The implementation of the \emph{abstract transformers} (also called \emph{transfer functions})}]
+let exec_instr (s : Domain.t) data : HilInstr.t -> Domain.t = function
+  | Call (Direct callee, params) (* function call instruction *)
+    (* Should be this function call ignored? *)
+    when f_is_ignored callee ~actuals:(Some params) -> s
+  | Call (Direct callee, params, loc) -> ( (* function call instruction *)
+    (* Does the call relate to the locking? *)
+    match ConcurrencyModels.get_lock_effect callee params with
+    (* Process locks/unlocks/lock guards. *)
+    | Lock locks ->
+      Domain.apply_locks (get_paths locks) s
+    | Unlock locks ->
+      Domain.apply_unlocks (get_paths locks) s
+    | GuardConstruct {guard; locks} ->
+      Domain.apply_guard_construct (get_path guard) (get_paths locks) s
+    | GuardDestroy guard ->
+      Domain.apply_guard_destroy (get_path guard) s
+    | NoEffect -> ( (* the call of a classical function *)
+      let s : Domain.t =
+        (* Process the called function. *)
+        Domain.apply_call ~fName:(Pname.to_string callee) loc s
+      in
+      (* Read a summary of an already analysed nested function. *)
+      match data.analyze_dependency callee with
+      | Some (summary : Domain.Summary.t) ->
+        (* Apply the summary to the abstract state. *)
+        Domain.apply_summary summary loc s
+      | None -> s (* leaf node *) ) )
+  | _ -> s (* Do nothing for other instructions. *)
+\end{lstlisting}
+%~+
+
+\subsection{Abstract Transformers}
+
+The \emph{abstract transformers} $ \tau : Instr \times Q \rightarrow Q $ over an abstract domain~$ Q $ (also called \emph{transfer functions}) are implemented almost the same way for both phases of the analysis. In general, the abstract transformer takes an abstract state as its input and produces an abstract state as an output while interpreting an instruction of an analysed program. The implementation is illustrated in Listing~\ref{list:AITransform}. It is implemented using the \texttt{exec\_instr} function (in the \texttt{AtomicSets}/\texttt{AtomicityViolations} module for Phase~1/Phase~2, respectively). It considers only function calls, i.e., instruction \texttt{CALL}. The abstract state remains unchanged when other instructions are executed (line~28). On line~4, there is checked whether the called function should be ignored (see Section~\ref{sec:proposalParametr}). Otherwise, line~7 identifies calls related to \emph{locking}. When the called function is some lock, \texttt{Domain.apply\_locks} is called to update the abstract state appropriately (line~10). When the call is a~construction of a~\emph{lock guard}, \texttt{Domain.apply\_guard\_construct} is used (line~14), etc. Note that besides the cases used in the pattern matching shown in the listing, there are also processed \texttt{GuardRelease}, \texttt{GuardLock}, and \texttt{GuardUnlock} for advanced manipulation with lock guards in the actual implementation. The functions \texttt{get\_path}/\texttt{get\_paths} are used for acquiring \emph{access paths} of \emph{lock objects}. The functions \texttt{Domain.apply\_locks} and \texttt{Domain.apply\_unlocks} are implemented differently for both phases of the analysis. This implementation is described in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}. However, the functions \texttt{Domain.apply\_guard\_construct} and \texttt{Domain.apply\_guard\_destroy} are the same for both phases. Thus, they are explained below. If the called function is not related to locking (line~17), the function call is interpreted in the abstract domain using \texttt{Domain.apply\_call}. Further, line~23 tries to read a~summary of the called function. If it is not a~leaf node of the call tree, its summary is used to update the abstract state using \texttt{Domain.apply\_summary} on line~26. The functions  \texttt{Domain.apply\_call}, \texttt{Domain.apply\_summary} are essential. Thus, they are introduced in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}. Moreover, note that on line~5, there is a~parameter \texttt{loc} of the called function. It is the location of the call in the source program. It is used to identify the location of an atomicity violation. Therefore, it is needed only in the implementation of the abstract transformers for the second phase of the analysis.
+
+When a~\emph{lock guard is constructed}, an abstract state is updated using the function \texttt{Domain.apply\_guard\_construct} illustrated in Algorithm~\ref{alg:guardConst}. It first appends the association of the lock guard with the underlying locks to the $ guards $ field of each element (program path) of the abstract state. Then, all the underlying locks are immediately locked using \texttt{Domain.apply\_locks}, which is defined later. Both the lock guard and the underlying locks are identified through access paths.
+
+\begin{algorithm}[hbt]
+    \KwData{lock guard's access path~$ \pi_g \in \Pi $; access paths $ L \in 2^\Pi $ of locks associated with~$ \pi_g $; abstract state~$ s $}
+%
+    \Def{\texttt{\upshape{apply\_guard\_construct($ \pi_g $, $ L $, $ s $)}}}{%
+        \lFor{$ p \in s $}{$ p.guards \leftarrow p.guards \cup \{(\pi_g, L)\} $}
+        \Return{$ \text{\texttt{\upshape{apply\_locks}}}(L, s) $}\;%
+    }
+%
+    \caption{Updating an abstract state after the \emph{construction} of a~\emph{lock guard}}
+    \label{alg:guardConst}
+\end{algorithm}
+
+After the \emph{destruction of a~lock guard}, an abstract state is changed using the function \texttt{Domain.apply\_guard\_destroy} given in Algorithm~\ref{alg:guardDest}. For each element of the abstract state, it obtains locks associated with the lock guard being destroyed. This association is then removed from the abstract state's field $ guards $. Finally, the associated locks are unlocked using the function \texttt{Domain.apply\_unlocks} extended to apply unlock calls for a~particular program path only.
+
+\begin{algorithm}[hbt]
+    \KwData{lock guard's access path~$ \pi_g \in \Pi $; abstract state~$ s $}
+%
+    \Def{\texttt{\upshape{apply\_guard\_destroy($ \pi_g $, $ s $)}}}{%
+        \For{$ p \in s $}{%
+            $ L \leftarrow p.guards(\pi_g) $\;
+            $ p.guards \leftarrow p.guards \setminus \{(\pi_g, L)\} $\;
+            $ s \leftarrow \text{\texttt{\upshape{apply\_unlocks}}}(L, s, p) $\;%
+        }
+        \Return{$ s $}\;%
+    }
+%
+    \caption{Updating an abstract state after the \emph{destruction} of a~\emph{lock guard}}
+    \label{alg:guardDest}
+\end{algorithm}
+
+\subsection{Abstract Interpretation Operators}
+
+%~-
+\begin{lstlisting}[style=ocaml, label={list:AIOps}, float=hbt, caption={The implementation of the \emph{abstract interpretation operators}}]
+(* lhs <= rhs if lhs is a subset of rhs. *)
+let leq ~(lhs : t) ~(rhs : t) : bool = TSet.subset lhs rhs
+(* Union of abstract states. *)
+let join (s1 : t) (s2 : t) : t = TSet.union s1 s2
+(* Join the previous and the next abstract state. *)
+let widen ~(prev : t) ~(next : t) ~(num_iters : int) : t = join prev next
+\end{lstlisting}
+%~+
+
+\subsection{Specification of Critical Functions}
+\label{sec:implementFunIgnore}
+
+\subsection{Representation of Locks in Abstract States}
+
+%~-
+\begin{lstlisting}[style=ocaml, label={list:lockModule}, float=hbt, caption={The implementation of a~module that represents \emph{locks in abstract states}}]
+module Lock = struct
+  (* A lock's access path with the number of times it has been acquired. *)
+  type t = AccessPath.t * int (* (p, l) *)
+  (* The bottom value of 'l'. *)
+  let bot : int = 0
+  (* The top value of 'l'. *)
+  let top : int = Config.atomicity_lock_level_limit
+  (* Increases 'l'. *)
+  let lock ((p, l) : t) : t = if l = top then (p, l) else (p, l + 1)
+  (* Decreases 'l'. *)
+  let unlock ((p, l) : t) : t = if l = bot then (p, l) else (p, l - 1)
+end
+\end{lstlisting}
+%~+
 
 
 \section{\texorpdfstring{Phase~1\,---\,Detection of Atomic Sets}{Phase~1 - Detection of Atomic Sets}}
@@ -1327,12 +1461,10 @@ When an atomicity violation within an analysed function is detected as earlier, 
 \label{sec:implementPhase2}
 
 
-\section{Support for C++ and Java Languages}
+\section{Support for New Languages and Locks}
 \label{sec:implementLanguages}
 
-
-\section{Additional Locking Mechanisms}
-\label{sec:implementLocks}
+\todo{Některé věci částečně převzít z~projektové praxe a~z~Excelu.}
 
 
 
@@ -1375,53 +1507,53 @@ When an atomicity violation within an analysed function is detected as earlier, 
 \chapter{Conclusion}
 \label{chap:conc}
 
-This thesis started by describing the principles of \emph{static analysis}
-and \emph{abstract interpretation}. Further, \emph{Facebook Infer} was
-described\,---\,a~concrete static analysis framework that uses abstract
-interpretation\,---\,its features, architecture, and existing analysers
-implemented in this tool. Next, there were described \emph{contracts for
-concurrency}. The major part of the thesis then aimed at the description of
-static analyser \emph{Atomer}\footnote{The implementation of \textbf{Atomer}
-is available on GitHub as an \emph{open-source} repository (in a~branch
-\texttt{atomicity-sets}):
-\url{https://github.com/harmim/infer}.}\,---\,proposed and implemented
-within the author's bachelor's thesis~\cite{harmimBP}\,---\,implemented as
-a~Facebook Infer's module, and that detects \emph{atomicity violations}.
-It was described its limitations, and thereafter, it was described the
-proposal and implementation of its extensions and improvements. Lastly,
-the experimental evaluation of the new features and improvements was
-depicted, and there were also described other performed experiments
-and possible future work.
+% This thesis started by describing the principles of \emph{static analysis}
+% and \emph{abstract interpretation}. Further, \emph{Facebook Infer} was
+% described\,---\,a~concrete static analysis framework that uses abstract
+% interpretation\,---\,its features, architecture, and existing analysers
+% implemented in this tool. Next, there were described \emph{contracts for
+% concurrency}. The major part of the thesis then aimed at the description of
+% static analyser \emph{Atomer}\footnote{The implementation of \textbf{Atomer}
+% is available on GitHub as an \emph{open-source} repository (in a~branch
+% \texttt{atomicity-sets}):
+% \url{https://github.com/harmim/infer}.}\,---\,proposed and implemented
+% within the author's bachelor's thesis~\cite{harmimBP}\,---\,implemented as
+% a~Facebook Infer's module, and that detects \emph{atomicity violations}.
+% It was described its limitations, and thereafter, it was described the
+% proposal and implementation of its extensions and improvements. Lastly,
+% the experimental evaluation of the new features and improvements was
+% depicted, and there were also described other performed experiments
+% and possible future work.
 
-Atomer works on the level of \emph{sequences of function calls}. It is
-based on the assumption that sequences of function calls executed
-\emph{atomically once} should probably be executed \emph{always atomically},
-and it naturally works with sequences. In the thesis, to improve
-\emph{scalability}, the use of sequences was \emph{approximated} by
-\emph{sets}. Further, two new features were implemented: support for
-\emph{C++} and \emph{Java} languages; and distinguishing \emph{multiple
-locks used}.
+% Atomer works on the level of \emph{sequences of function calls}. It is
+% based on the assumption that sequences of function calls executed
+% \emph{atomically once} should probably be executed \emph{always atomically},
+% and it naturally works with sequences. In the thesis, to improve
+% \emph{scalability}, the use of sequences was \emph{approximated} by
+% \emph{sets}. Further, two new features were implemented: support for
+% \emph{C++} and \emph{Java} languages; and distinguishing \emph{multiple
+% locks used}.
 
-The introduced enhancements were successfully tested on \emph{hand-crafted}
-programs. It turned out that such innovations improved the \emph{accuracy}
-and \emph{scalability}. Moreover, Atomer was experimentally evaluated on
-additional software. Notably, it was evaluated on \emph{real-life Java
-programs}\,---\,\emph{Apache Cassandra} and \emph{Tomcat}. Already fixed
-and reported \emph{real bugs} were successfully rediscovered. Nevertheless,
-so far, quite some \emph{false alarms} are reported.
+% The introduced enhancements were successfully tested on \emph{hand-crafted}
+% programs. It turned out that such innovations improved the \emph{accuracy}
+% and \emph{scalability}. Moreover, Atomer was experimentally evaluated on
+% additional software. Notably, it was evaluated on \emph{real-life Java
+% programs}\,---\,\emph{Apache Cassandra} and \emph{Tomcat}. Already fixed
+% and reported \emph{real bugs} were successfully rediscovered. Nevertheless,
+% so far, quite some \emph{false alarms} are reported.
 
-Several other improvements were proposed to reduce the number of false
-alarms, namely, \emph{parametrisation} of the analysis, support for
-\emph{interprocedural locks}, or combinations with a~\emph{dynamic analysis}.
-Their implementation and evaluation is currently the work in progress.
+% Several other improvements were proposed to reduce the number of false
+% alarms, namely, \emph{parametrisation} of the analysis, support for
+% \emph{interprocedural locks}, or combinations with a~\emph{dynamic analysis}.
+% Their implementation and evaluation is currently the work in progress.
 
-Atomer's \emph{accuracy} can be further increased. Some of its limitations
-and possible solutions are discussed in this thesis, e.g., considering
-\emph{formal parameters} and distinguishing the \emph{context} of
-called functions, \emph{ranking} of atomic functions, or focusing on
-\emph{library containers concurrency restrictions} related to method
-calls. Further, it is needed to perform more experiments on \emph{real-life}
-programs to find and report \emph{new bugs}.
+% Atomer's \emph{accuracy} can be further increased. Some of its limitations
+% and possible solutions are discussed in this thesis, e.g., considering
+% \emph{formal parameters} and distinguishing the \emph{context} of
+% called functions, \emph{ranking} of atomic functions, or focusing on
+% \emph{library containers concurrency restrictions} related to method
+% calls. Further, it is needed to perform more experiments on \emph{real-life}
+% programs to find and report \emph{new bugs}.
 
 
 

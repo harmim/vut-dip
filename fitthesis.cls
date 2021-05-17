@@ -1253,7 +1253,7 @@ Management}{\@fit@EN}%
   showspaces=false,
   showtabs=false,
   breaklines=true,
-  showstringspaces=true,
+  showstringspaces=false,
   breakatwhitespace=true,
   commentstyle=\color{greencomments},
   keywordstyle=\color{bluekeywords},
@@ -1296,7 +1296,7 @@ Management}{\@fit@EN}%
   showspaces=false,
   showtabs=false,
   breaklines=true,
-  showstringspaces=true,
+  showstringspaces=false,
   breakatwhitespace=true,
   escapeinside={<@}{@>},
   commentstyle=\color{greencomments},
@@ -1313,7 +1313,7 @@ Management}{\@fit@EN}%
   showspaces=false,
   showtabs=false,
   breaklines=true,
-  showstringspaces=true,
+  showstringspaces=false,
   breakatwhitespace=true,
   escapeinside={<@}{@>},
   commentstyle=\color{greencomments},
@@ -1331,7 +1331,7 @@ Management}{\@fit@EN}%
   showspaces=false,
   showtabs=false,
   breaklines=true,
-  showstringspaces=true,
+  showstringspaces=false,
   breakatwhitespace=true,
   escapeinside={<@}{@>},
   commentstyle=\color{greencomments},
@@ -1341,7 +1341,7 @@ Management}{\@fit@EN}%
   captionpos=b,
   numbers=left,
   frame=trBL,
-  morekeywords={Some, None}
+  morekeywords={Some, None, option, bool, int, when, module, struct}
 }
 
 \lstdefinestyle{java}{
@@ -1349,7 +1349,7 @@ Management}{\@fit@EN}%
   showspaces=false,
   showtabs=false,
   breaklines=true,
-  showstringspaces=true,
+  showstringspaces=false,
   breakatwhitespace=true,
   escapeinside={<@}{@>},
   commentstyle=\color{greencomments},
@@ -1386,6 +1386,9 @@ Management}{\@fit@EN}%
 
 % Left aligned column with a fixed width
 \newcolumntype{L}[1]{>{\RaggedRight\hspace{0pt}}p{#1}}
+
+% \hyptt as tt with hyphenation enabled
+\DeclareTextFontCommand{\hyptt}{\ttfamily\hyphenchar\font=45\relax}
 
 
 \endinput
