@@ -1214,153 +1214,51 @@ Management}{\@fit@EN}%
 \fi
 
 % BEGIN Jan Pluskal (ipluskal), Dominik Harmim (xharmi00) listings
-
 \definecolor{bluekeywords}{rgb}{.13, .13, 1}
 \definecolor{greencomments}{rgb}{0, .5, 0}
 \definecolor{redstrings}{rgb}{.9, 0, 0}
-
 \definecolor{gray}{rgb}{.4, .4, .4}
-\definecolor{darkblue}{rgb}{0, 0, .6}
-\definecolor{cyan}{rgb}{0, .6, .6}
 
 \lstset{
   basicstyle=\ttfamily,
   backgroundcolor=\color{yellow!10},
   columns=fullflexible,
   showstringspaces=false,
-  commentstyle=\color{gray}\upshape,
+  commentstyle=\color{greencomments},
+  keywordstyle=\color{bluekeywords},
+  stringstyle=\color{redstrings},
   captionpos=b,
   tabsize=4,
   keepspaces=true,
+  showspaces=false,
+  showtabs=false,
+  frame=trBL,
+  escapeinside={<@}{@>},
+  breaklines=true,
+  breakatwhitespace=true,
+  numbers=left,
   belowskip=-1\baselineskip,
   aboveskip=.5\baselineskip
 }
-
-\lstdefinestyle{atomSets}{
-  basicstyle=\ttfamily,
-  backgroundcolor=\color{white},
-  columns=fullflexible,
-  captionpos=b,
-  tabsize=4,
-  keepspaces=true,
-  showspaces=true,
-  escapeinside={<@}{@>},
-  frame=single
+\lstdefinestyle{plain}{
+  numbers=none,
+  morecomment=[l]{\# }
 }
-
 \lstdefinestyle{bash}{
   language=bash,
-  showspaces=false,
-  showtabs=false,
-  breaklines=true,
-  showstringspaces=false,
-  breakatwhitespace=true,
-  commentstyle=\color{greencomments},
-  keywordstyle=\color{bluekeywords},
-  stringstyle=\color{redstrings},
-  basicstyle=\ttfamily,
-  captionpos=b,
+  numbers=none,
   morekeywords={sudo, make, infer}
 }
-
-\lstdefinestyle{csh}{
-  language=[Sharp]C,
-  showspaces=false,
-  showtabs=false,
-  breaklines=false,
-  showstringspaces=false,
-  breakatwhitespace=true,
-  escapeinside={<@}{@>},
-  commentstyle=\color{greencomments},
-  keywordstyle=\color{bluekeywords},
-  stringstyle=\color{redstrings},
-  basicstyle=\ttfamily,
-  captionpos=b,
-  numbers=left,
-  frame=single
-}
-
-\lstdefinelanguage{XML}{
-  language=xml
-  morestring=[b]",
-  morestring=[s]{>}{<},
-  morecomment=[s]{<?}{?>},
-  stringstyle=\color{black},
-  identifierstyle=\color{darkblue},
-  keywordstyle=\color{cyan},
-  morekeywords={xmlns, version, type}
-}
-
-\lstdefinestyle{c}{
-  language=c,
-  showspaces=false,
-  showtabs=false,
-  breaklines=true,
-  showstringspaces=false,
-  breakatwhitespace=true,
-  escapeinside={<@}{@>},
-  commentstyle=\color{greencomments},
-  keywordstyle=\color{bluekeywords},
-  stringstyle=\color{redstrings},
-  basicstyle=\ttfamily,
-  captionpos=b,
-  numbers=left,
-  frame=trBL
-}
-
+\lstdefinestyle{c}{language=c}
 \lstdefinestyle{c++}{
   language=c++,
-  showspaces=false,
-  showtabs=false,
-  breaklines=true,
-  showstringspaces=false,
-  breakatwhitespace=true,
-  escapeinside={<@}{@>},
-  commentstyle=\color{greencomments},
-  keywordstyle=\color{bluekeywords},
-  stringstyle=\color{redstrings},
-  basicstyle=\ttfamily,
-  captionpos=b,
-  numbers=left,
-  frame=trBL,
   morekeywords={this}
 }
-
 \lstdefinestyle{ocaml}{
   language=caml,
-  showspaces=false,
-  showtabs=false,
-  breaklines=true,
-  showstringspaces=false,
-  breakatwhitespace=true,
-  escapeinside={<@}{@>},
-  commentstyle=\color{greencomments},
-  keywordstyle=\color{bluekeywords},
-  stringstyle=\color{redstrings},
-  basicstyle=\ttfamily,
-  captionpos=b,
-  numbers=left,
-  frame=trBL,
   morekeywords={Some, None, option, bool, int, when, module, struct}
 }
-
-\lstdefinestyle{java}{
-  language=java,
-  showspaces=false,
-  showtabs=false,
-  breaklines=true,
-  showstringspaces=false,
-  breakatwhitespace=true,
-  escapeinside={<@}{@>},
-  commentstyle=\color{greencomments},
-  keywordstyle=\color{bluekeywords},
-  stringstyle=\color{redstrings},
-  basicstyle=\ttfamily,
-  captionpos=b,
-  numbers=left,
-  frame=trBL
-}
-
+\lstdefinestyle{java}{language=java}
 % END Jan Pluskal (ipluskal), Dominik Harmim (xharmi00) listings
 
 

@@ -1321,7 +1321,7 @@ This chapter discusses the implementation of a~new version of \emph{Atomer}. It 
 
 The implementation of both the basic version and the new version of Atomer is \emph{publicly available} at GitHub\footnote{The implementation of a~new version of \textbf{Atomer} at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}. The implementation of the first version is in a~branch \texttt{atomicity}. At the following address, there are available releases of both versions, including source code and executable binaries (v1.0.0 is the basic version, and v2.0.0 corresponds to the new version): \url{https://github.com/harmim/infer/releases}.}. An installation and user manual are available in Appendix~\ref{app:man}. Together with some examples, these manuals are also available in the attached memory media of the thesis (see Appendix~\ref{app:memMedia}) and in Atomer's Wiki\footnote{\textbf{Atomer's Wiki} provides an installation and user manual together with some examples. It is available at GitHub: \url{https://github.com/harmim/infer/wiki}.}. As it was already said, Atomer is implemented in OCaml, which is a~\emph{functional} programming language. However, it also allows using the \emph{imperative} and \emph{object-oriented} paradigms exploited in the Atomer's implementation as well. Since the implementation of the first version of Atomer, Facebook Infer was many times updated (in its Git repository, there are several new commits every day). Due to maintaining Atomer up-to-date with Facebook Infer, and due to some refactoring of Atomer itself, the code of the first version of Atomer since its first implementation is considerably different. 
 
-Atomer itself is implemented in files in a~directory \texttt{infer/src/atomicity}. In particular, the first phase of the analysis is implemented in \texttt{AtomicSets.ml[i]}, and its \emph{abstract domain}~$ Q $ is implemented in \texttt{AtomicSetsDomain.ml[i]}. The second phase is implemented in \texttt{AtomicityViolations.ml[i]}, and its abstract domain~$ Q $ is implemented in \texttt{AtomicityViolationsDomain.ml[i]}. The phases are implemented as separate analysers in Facebook Infer. The output of the first phase is the input to the second one (as earlier shown in Figure~\ref{fig:atomerPhasesSets}). These analysers are defined as modules of Facebook Infer in \texttt{infer/src/base/Checker.ml[i]}, and they are registered to the framework in \texttt{infer/src/backend/registerCheckers.ml}. The analysers are enabled only by specific command line arguments; see the mentioned manuals.
+Atomer itself is implemented in files in a~directory \texttt{infer/src/atomicity}. In particular, the first phase of the analysis is implemented in \texttt{AtomicSets.ml[i]}, and its \emph{abstract domain}~$ Q $ is implemented in \texttt{AtomicSetsDomain.ml[i]}. The second phase is implemented in \texttt{AtomicityViolations.ml[i]}, and its abstract domain~$ Q $ is implemented in \texttt{AtomicityViolationsDomain.ml[i]}. The phases are implemented as separate analysers in Facebook Infer. The output of the first phase is the input to the second one (as earlier shown in Figure~\ref{fig:atomerPhasesSets}). These analysers are defined as modules of Facebook Infer in \texttt{infer/src/base/Checker.ml[i]}, and they are registered to the framework in \texttt{infer/src/backend/registerCheckers.ml}. The analysers are enabled only by specific command-line arguments; see the mentioned manuals.
 
 Note that in the listings in the below sections, \texttt{Domain} refers to an abstract domain~$ Q $ of a~particular phase of the analysis (the \texttt{AtomicSetsDomain}/\texttt{AtomicityViolationsDomain} module for the first/second phase of the analysis, respectively). Then, \texttt{Domain.t} is a~type of \emph{abstract state} of the particular phase. Furthermore, \texttt{Domain.Summary.t} is a~type of \emph{summary}~$ \chi $ in the particular phase.
 
@@ -1421,6 +1421,15 @@ After the \emph{destruction of a~lock guard}, an abstract state is changed using
 
 \subsection{Abstract Interpretation Operators}
 
+The abstract domains of both phases of the analysis are quite different. However, the \emph{abstract interpretation operators} of these domains are the same because for both phases, the abstract states $ s \in Q $ are \emph{sets} of elements that represent an abstraction of program paths. The implementation of the operators is shown in Listing~\ref{list:AIOps}. Note that \texttt{t} is a~type of abstract state. In fact, it is an alias for \texttt{TSet.t}, a~module representing a~set of structures where the fields of these structures are defined differently in each phase of the analysis. Thus, each phase defines its own \texttt{TSet}. Particular abstract interpretation operators (implemented in Listing~\ref{list:AIOps}) are defined as follows:
+\begin{itemize}
+    \item The \emph{ordering operator}~$ \sqsubseteq $ (\texttt{leq}) is defined as follows. Let \texttt{lhs} be the left-hand side of the operator and \texttt{rhs} the right-hand side. Then, $ \mathtt{lhs} \sqsubseteq \mathtt{rhs} $ iff \texttt{lhs} is a~\emph{subset} of \texttt{rhs}. In other words, $ s \sqsubseteq s^\prime \Longleftrightarrow s \subseteq s^\prime $, where $ s, s^\prime \in Q $.
+
+    \item The \emph{join operator}~$ \sqcup $ (\texttt{join}) is defined simply as the \emph{union} of two abstract states, i.e., $ s \sqcup s^\prime \Longleftrightarrow s \cup s^\prime $.
+
+    \item The \emph{widening operator}~$ \triangledown $ (\texttt{widen}) is defined as joining the previous and the next abstract state since the domains are \emph{finite}. In particular, $ s\,\triangledown\,s^\prime \Longleftrightarrow s \sqcup s^\prime $.
+\end{itemize}
+
 %~-
 \begin{lstlisting}[style=ocaml, label={list:AIOps}, float=hbt, caption={The implementation of the \emph{abstract interpretation operators}}]
 (* lhs <= rhs if lhs is a subset of rhs. *)
@@ -1434,6 +1443,23 @@ let widen ~(prev : t) ~(next : t) ~(num_iters : int) : t = join prev next
 
 \subsection{Specification of Critical Functions}
 \label{sec:implementFunIgnore}
+
+In Section~\ref{sec:proposalParametr}, there are proposed \emph{input parameters} for specifying \emph{black-lists}/\emph{white-lists} of functions to analyse or function calls to consider. The decision of whether a~function is analysed or a~function call is considered is made in \texttt{analyse\_procedure} (Listing~\ref{list:analyseProc}) and \texttt{exec\_instr} (Listing~\ref{list:AITransform}), respectively. In particular, the function \texttt{f\_is\_ignored} implements the decision making whether a~particular function is considered/ignored according to the input parameters. These parameters may be combined. For example, one can allow only specific functions to be analysed and ignore several selected function calls considered during the analysis. Moreover, these parameters may be enabled for individual phases of the analysis or specified differently for each phase. \texttt{f\_is\_ignored} is implemented in the \texttt{AtomicityUtils} module.
+
+The parameters' values are read from \emph{input text files}. How to enable the parameters (i.e., how to specify the file names of the input files using command-line arguments) is described in the manual. The input file should contain one function name to consider/ignore per line. There may be empty lines, and line comments can be used with the character~\texttt{\#}. Moreover, it is possible to specify sets of function names using \emph{regular expressions} (in that case, the line must start with the letter~\texttt{R} followed by any number of whitespaces). The syntax of the regular expressions corresponds to the OCaml's regular expressions syntax\footnote{The syntax of \emph{OCaml's regular expressions}: \url{https://ocaml.org/api/Str.html}.}. An example of such an input file is in Listing~\ref{list:funList}. Processing of input files is implemented in the \texttt{functions\_from\_file} class in the \texttt{AtomicityUtils} module.
+
+%~-
+\begin{lstlisting}[style=plain, label={list:funList}, float=hbt, caption={An example of an \emph{input text file} with a~\emph{black-list}/\emph{white-list} of functions to analyse or function calls to consider}]
+intValue # this is a comment
+R [A-Z]+.*
+
+foo
+Logger.log
+R \(String\)?\.format
+#this is another comment
+R   \(Int\|Float\)\.toString
+\end{lstlisting}
+%~+
 
 \subsection{Representation of Locks in Abstract States}
 
