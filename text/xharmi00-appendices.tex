@@ -31,3 +31,102 @@
 
 
 %===============================================================================
+
+
+
+\chapter{Atomer's Implementation Algorithms}
+\label{app:alg}
+
+This appendix provides an overview of some of the \emph{implementation algorithms} of the new version of Atomer. These algorithms are either too long or not that important to be placed in the main content of the thesis.
+
+
+\section*{Phase~1\,---\,Detection of Atomic Sets}
+
+This section deals with algorithms related to the \emph{first phase} of the analysis.
+
+\begin{algorithm}[hbt]
+    \KwData{access paths $ L \in 2^\Pi $ of locks being unlocked; abstract state~$ s : \mathtt{Domain.t} $}
+%
+    \Def{\texttt{\upshape{apply\_unlocks($ L $, $ s $)}}}{%
+        \For{$ p \in s $}{%
+            \For{$ (A, B, \mathcal{L}) \in p.callsPairs $}{%
+                \If{$ \mathcal{L}.\pi \in L $}{%
+                    $ \mathcal{L} \leftarrow \text{\texttt{\upshape{Lock.unlock}}}(\mathcal{L}) $\;
+                    \If{$ \neg \text{\texttt{\upshape{Lock.is\_locked}}}(\mathcal{L}) $}{%
+                        $ p.finalCallsPairs \leftarrow p.finalCallsPairs \cup \{(A, B)\} $\;
+                        $ p.callsPairs \leftarrow p.callsPairs \setminus \{(A, B, \mathcal{L})\} $\;
+                        $ p.calls \leftarrow \emptyset $\;
+                    }
+                }
+            }
+        }
+        \Return{$ s $}\;
+    }
+%
+    \caption{Updating an abstract state after an \emph{unlock}}
+    \label{alg:phase1AppUnlock}
+\end{algorithm}
+
+\begin{algorithm}[hbt]
+    \KwData{access paths $ L \in 2^\Pi $ of locks being locked; abstract state~$ s : \mathtt{Domain.t} $}
+%
+    \Def{\texttt{\upshape{apply\_locks($ L $, $ s $)}}}{%
+        \For{$ p \in s $}{%
+            $ lockCreated \leftarrow False $\;
+            \For{$ \pi \in L $}{%
+                $ locked \leftarrow False $\;
+                \For{$ (A, B, \mathcal{L}) \in p.callsPairs $}{%
+                    \If{$ \pi = \mathcal{L}.\pi $}{%
+                        $ locked \leftarrow True $\;
+                        $ \mathcal{L} \leftarrow \text{\texttt{\upshape{Lock.lock}}}(\mathcal{L}) $\;
+                    }
+                }
+                \If{$ \neg locked $}{%
+                    $ lockCreated \leftarrow True $\;
+                    $ p.callsPairs \leftarrow p.callsPairs \cup \{(p.calls, \emptyset, \text{\texttt{\upshape{Lock.create}}}(\pi))\} $\;
+                }
+            }
+            \lIf{$ lockCreated $}{$ p.calls \leftarrow \emptyset $}
+        }
+        \Return{$ s $}\;
+    }
+%
+    \caption{Updating an abstract state after a~\emph{lock}}
+    \label{alg:phase1AppLock}
+\end{algorithm}
+
+\begin{algorithm}[hbt]
+    \KwData{summary~$ \chi : \mathtt{Domain.Summary.t} $ of a~called function; abstract state~$ s : \mathtt{Domain.t} $; maximum length~$ d \in \mathbb{N} $ of a~critical section; the number~$ r \in \mathbb{N} $ of levels for the consideration of nested calls}
+%
+    \Def{\texttt{\upshape{apply\_summary($ \chi $, $ s $)}}}{%
+        \For{$ p \in s $}{%
+            $ nestedCalls \leftarrow \emptyset $\;
+            \For{$ (i, C) \in \chi.allCalls $}{%
+                \If{$ i + 1 < r $}{%
+                    \lIf{$ \exists\,p.allCalls[i + 1] $}{$ p.allCalls[i + 1] \leftarrow p.allCalls[i + 1] \cup C $}
+                    \lElse{$ p.allCalls[i + 1] \leftarrow C $}
+                }
+                \lIf{$ i < r $}{$ nestedCalls \leftarrow nestedCalls \cup C $}
+            }
+            $ p.calls \leftarrow p.calls \cup nestedCalls $\;
+            \For{$ (A, B, \mathcal{L}) \in p.callsPairs $}{%
+                $ B \leftarrow B \cup nestedCalls $\;
+                \lIf{$ |B| > d $}{$ p.calls \leftarrow p.calls \setminus \{(A, B, \mathcal{L})\} $}
+            }
+        }
+        \Return{$ s $}\;
+    }
+%
+    \caption{Updating an abstract state \emph{with a~summary} of a~called function}
+    \label{alg:phase1ApplSumm}
+\end{algorithm}
+
+
+\clearpage
+\section*{Phase~2\,---\,Detection of Atomicity Violations}
+
+This section deals with algorithms related to the \emph{second phase} of the analysis.
+
+
+
+%===============================================================================

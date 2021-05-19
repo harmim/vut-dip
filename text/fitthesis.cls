@@ -1237,8 +1237,8 @@ Management}{\@fit@EN}%
   breaklines=true,
   breakatwhitespace=true,
   numbers=left,
-  belowskip=-1\baselineskip,
-  aboveskip=.5\baselineskip
+  belowskip=-.5\baselineskip,
+  aboveskip=1\baselineskip
 }
 \lstdefinestyle{plain}{
   numbers=none,
@@ -1256,7 +1256,9 @@ Management}{\@fit@EN}%
 }
 \lstdefinestyle{ocaml}{
   language=caml,
-  morekeywords={Some, None, option, bool, int, when, module, struct}
+  morekeywords={
+    Some, None, option, bool, int, when, module, struct, list
+  }
 }
 \lstdefinestyle{java}{language=java}
 % END Jan Pluskal (ipluskal), Dominik Harmim (xharmi00) listings

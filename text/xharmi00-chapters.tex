@@ -28,7 +28,7 @@ Within this thesis, Atomer has been \emph{significantly improved and extended}. 
 
 The development of the original Atomer started under the H2020 ECSEL projects AQUAS and Arrowhead Tools. The development of its new version is supported by the H2020 ECSEL project VALU3S. It has been discussed with the developers of Facebook Infer too. Parts of the thesis concerning the preliminaries and the basic version of Atomer are partially taken from the thesis~\cite{harmimBP}. Moreover, some preliminary results were also published in the Excel@FIT'21 paper~\cite{excel2021Harmim} written by the author.
 
-The rest of the thesis is organised as follows. Chapter~\ref{chap:prelim} describes all the topics related to and essential to this thesis (including \emph{static analysis}, \emph{abstract interpretation}, \emph{Facebook Infer}, and \emph{contracts for concurrency}). The original version of \emph{Atomer}, its limitations, and related work are described in Chapter~\ref{chap:atomer}. Subsequently, Chapter~\ref{chap:proposal} presents all the proposed extensions and improvements. The implementation of these extensions is then covered in Chapter~\ref{chap:implement}. The experimental evaluation of the new Atomer's features and other experiments performed within this thesis are discussed in Chapter~\ref{chap:exp} together with the future work. Finally, the thesis is concluded in Chapter~\ref{chap:conc}. Besides, there are included the following appendices. The content of the attached memory media is listed in Appendix~\ref{app:memMedia}. In the end, Appendix~\ref{app:man} serves as an installation and user manual.
+The rest of the thesis is organised as follows. Chapter~\ref{chap:prelim} describes all the topics related to and essential to this thesis (including \emph{static analysis}, \emph{abstract interpretation}, \emph{Facebook Infer}, and \emph{contracts for concurrency}). The original version of \emph{Atomer}, its limitations, and related work are described in Chapter~\ref{chap:atomer}. Subsequently, Chapter~\ref{chap:proposal} presents all the proposed extensions and improvements. The implementation of these extensions is then covered in Chapter~\ref{chap:implement}. The experimental evaluation of the new Atomer's features and other experiments performed within this thesis are discussed in Chapter~\ref{chap:exp} together with the future work. Finally, the thesis is concluded in Chapter~\ref{chap:conc}. Besides, there are included the following appendices. The content of the attached memory media is listed in Appendix~\ref{app:memMedia}. Furthermore, Appendix~\ref{app:man} serves as an installation and user manual. In the end, Appendix~\ref{app:alg} provides several algorithms of the new version of Atomer's implementation that are too long to be placed in the main content of the thesis.
 
 
 
@@ -1253,11 +1253,11 @@ In other words, it is possible to specify \emph{black-lists} and \emph{white-lis
 
 Another issue often causing false alarms is that some programs contain \uv{large} critical sections or critical sections that include function calls with a~\emph{deep hierarchy of nested function calls}. Both cases can cause massive and \uv{imprecise} atomic sets that are the source of false alarms. Indeed, such \uv{large} and/or \uv{deep} critical sections are likely to contain a~number of calls of functions that are not critical.
 
-To resolve the \uv{large} critical sections' problem, the author proposes to parametrise the analysis by a~parameter $ p \in \mathbb{N} $ that limits the maximum length of a~critical section to be taken into account. During its first phase, the analysis then discards all $ (A, B) $ pairs where $ |B| > p $, i.e., it removes pairs where the number of functions in the set~$ B $ (functions called atomically) is greater than the limit~$ p $.
+To resolve the \uv{large} critical sections' problem, the author proposes to parametrise the analysis by a~parameter $ d \in \mathbb{N} $ that limits the maximum length of a~critical section to be taken into account. During its first phase, the analysis then discards all $ (A, B) $ pairs where $ |B| > d $, i.e., it removes pairs where the number of functions in the set~$ B $ (functions called atomically) is greater than the limit~$ d $.
 
 To get to the above proposal of dealing with deeply nested critical functions, recall that, during the first phase of the analysis, when calling an already analysed \emph{nested function}, the~$ C $ set (i.e., the set of all called functions within a~function) from its summary is used. If there is a~deep hierarchy of nested function calls, the top level of the hierarchy uses function calls from all lower-level functions, leading to \uv{large} critical sections. To avoid this problem, the summary $ \chi = (\mathcal{B}, C) \in 2^{2^\Sigma} \times 2^\Sigma $ in Phase~1 is redefined as $ 2^{2^\Sigma} \times 2^{\mathbb{N} \times 2^\Sigma} $, i.e., $ C $ is no longer a~set of all functions called within an analysed function. It is a~set of pairs where each pair represents functions called at a~particular level in the hierarchy of a~nested function (0 means the top-level). For instance, the summary $ \chi_\mathtt{f} = (\emptyset, \{(0, \{\mathtt{a}, \mathtt{b}\}), (1, \{\mathtt{x}, \mathtt{y}\})\}) $ of a~function~\texttt{f} means that there were called functions \texttt{a}, \texttt{b} in~\texttt{f} and that there were called functions \texttt{x}, \texttt{y} in functions one level lower in the call-tree (i.e., in functions directly invoked from~\texttt{f}). During the analysis, the summaries are passed among functions in the call hierarchy. Furthermore, the analysis uses a~parameter $ r \in \mathbb{N} $ to limit the number of levels considered during analysing nested functions.
 
-More particularly, to derive these extended summaries, it is also needed to store in the abstract states the information about in which levels appear which function calls. When analysing a~function~\texttt{f} and a~leaf function~\texttt{g} is called, \texttt{g} is added to the level~0 of functions called within~\texttt{f}. Furthermore, when calling an already analysed function~\texttt{h}, the functions called in a~level~$ i $ of~\texttt{h} are appended into the appropriate $ A $ or $ B $ sets of~\texttt{f} if $ i < r $. Finally, the information about in which levels appear which function calls is passed from a~lower-level function to a~higher-level function. In particular, if some function is called in a~level~$ i $ of~\texttt{h}, it is added to the level $ i + 1 $ of the function~\texttt{f} (which is one level higher) if $ i + 1 < r $.
+More particularly, to derive these extended summaries, it is also needed to store in the abstract states the information about in which levels appear which function calls. When analysing a~function~\texttt{f} and a~leaf function~\texttt{g} is called, \texttt{g} is added to the level~0 of functions called within~\texttt{f}. Furthermore, when calling an already analysed function~\texttt{h}, the functions called at a~level~$ i $ of~\texttt{h} are appended into the appropriate $ A $ or $ B $ sets of~\texttt{f} if $ i < r $. Finally, the information about in which levels appear which function calls is passed from a~lower-level function to a~higher-level function. In particular, if some function is called at a~level~$ i $ of~\texttt{h}, it is added to the level $ i + 1 $ of the function~\texttt{f} (which is one level higher) if $ i + 1 < r $.
 
 \begin{example}
     Assume functions~\texttt{x}, \texttt{y}, \texttt{z} from Listing~\ref{list:atomerDeepParam}. Their summaries for the first phase of the analysis are as follows: $ \chi_\mathtt{z} = (\emptyset, \{(0, \{\mathtt{z1, z2}\})\}) $, $ \chi_\mathtt{y} = (\emptyset, \{(0, \{\mathtt{y1, y2, z}\}), \allowbreak (1, \{\mathtt{z1, z2}\})\}) $, $ \chi_\mathtt{x} = (\emptyset, \{(0, \{\mathtt{x1, x2, y}\}), (1, \{\mathtt{y1, y2, z}\}), (2, \{\mathtt{z1, z2}\})\}) $. When the value of the parameter~$ r $ is set to~1, the summary of the function~\texttt{x} is reduced as follows: $ \chi_\mathtt{x}^\prime = (\emptyset, \{(0, \{\mathtt{x1, x2, y}\}), (1, \{\mathtt{y1, y2, z}\})\}) $.
@@ -1336,7 +1336,7 @@ let analyse_procedure data : Domain.Summary.t option =
   if f_is_ignored (Pdesc.get_pname data.pdesc) then None
   else
     let pre : Domain.t = 
-      Domain.initial (* initial abstract state (pre-condition) *)
+      Domain.initial (* an initial abstract state (pre-condition) *)
     in
     (* Compute the final abstract state (post-condition). *)
     match Analyser.compute_post data ~initial:pre with
@@ -1348,15 +1348,15 @@ let analyse_procedure data : Domain.Summary.t option =
 \end{lstlisting}
 %~+
 
-The \emph{main analysis function} \texttt{analyse\_procedure} is implemented the same way for both phases of the analysis (for Phase~1, it is implemented in the \texttt{AtomicSets} module, and for Phase~2, it is implemented in the \texttt{AtomicityViolations} module). A~simplified implementation is given in Listing~\ref{list:analyseProc}. Facebook Infer's backend invokes this function for each function in an analysed program. It computes a~\emph{summary} of the analysed function. At first, the function checks whether the analysis of an analysed function should be ignored (line~3). It has to do with the \emph{specification of critical functions} proposed in Section~\ref{sec:proposalParametr}. The implementation of that is covered in Section~\ref{sec:implementFunIgnore}. Further, \texttt{analyse\_procedure} computes the final abstract state (\emph{post-condition}) for the analysed function using the \texttt{Analyser.compute\_post} function (line~9). As a~\emph{pre-condition}, the \emph{initial abstract state} \texttt{Domain.initial} from an abstract domain is used. On line~12, the abstract state is appropriately converted to an interprocedural function summary using \texttt{Domain.Summary.create}. Finally, this summary is returned. The crucial parts are here the types \texttt{Domain.t}, \hyptt{Domain.Summary.t}, and the function \texttt{Domain.Summary.create}. These are different for individual phases of the analysis. They are described in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}.
+The \emph{main analysis function} \texttt{analyse\_procedure} is implemented the same way for both phases of the analysis (for Phase~1, it is implemented in the \texttt{AtomicSets} module, and for Phase~2, it is implemented in the \texttt{AtomicityViolations} module). A~simplified implementation is given in Listing~\ref{list:analyseProc}. Facebook Infer's backend invokes this function for each function in an analysed program. It computes a~\emph{summary} of the analysed function. At first, the function checks whether the analysis of an analysed function should be ignored (line~3). It has to do with the \emph{specification of critical functions} proposed in Section~\ref{sec:proposalParametr}. The implementation of that is covered in Section~\ref{sec:implementFunIgnore}. Further, \texttt{analyse\_procedure} computes the final abstract state (\emph{post-condition}) for the analysed function using the \texttt{Analyser.compute\_post} function (line~9). As a~\emph{pre-condition}, the \emph{initial abstract state} \texttt{Domain.initial} from an abstract domain is used. On line~12, the abstract state is appropriately converted to an interprocedural function summary using \texttt{Domain.Summary.create}. Finally, this summary is returned. The crucial parts are here the types \texttt{Domain.t}, \hyptt{Domain.Summary.t}, and the functions \texttt{Domain.initial}, \texttt{Domain.Summary.create}. These are different for individual phases of the analysis. They are described in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}.
 
 %~-
 \begin{lstlisting}[style=ocaml, label={list:AITransform}, float=hbt, caption={The implementation of the \emph{abstract transformers} (also called \emph{transfer functions})}]
 let exec_instr (s : Domain.t) data : HilInstr.t -> Domain.t = function
-  | Call (Direct callee, params) (* function call instruction *)
+  | Call (Direct callee, params) (* the CALL instruction *)
     (* Should be this function call ignored? *)
     when f_is_ignored callee ~actuals:(Some params) -> s
-  | Call (Direct callee, params, loc) -> ( (* function call instruction *)
+  | Call (Direct callee, params, loc) -> ( (* the CALL instruction *)
     (* Does the call relate to the locking? *)
     match ConcurrencyModels.get_lock_effect callee params with
     (* Process locks/unlocks/lock guards. *)
@@ -1390,11 +1390,11 @@ The \emph{abstract transformers} $ \tau : Instr \times Q \rightarrow Q $ over an
 When a~\emph{lock guard is constructed}, an abstract state is updated using the function \texttt{Domain.apply\_guard\_construct} illustrated in Algorithm~\ref{alg:guardConst}. It first appends the association of the lock guard with the underlying locks to the $ guards $ field of each element (program path) of the abstract state. Then, all the underlying locks are immediately locked using \texttt{Domain.apply\_locks}, which is defined later. Both the lock guard and the underlying locks are identified through access paths.
 
 \begin{algorithm}[hbt]
-    \KwData{lock guard's access path~$ \pi_g \in \Pi $; access paths $ L \in 2^\Pi $ of locks associated with~$ \pi_g $; abstract state~$ s $}
+    \KwData{lock guard's access path~$ \pi_g \in \Pi $; access paths $ L \in 2^\Pi $ of locks associated with~$ \pi_g $; abstract state~$ s : \mathtt{Domain.t} $}
 %
     \Def{\texttt{\upshape{apply\_guard\_construct($ \pi_g $, $ L $, $ s $)}}}{%
         \lFor{$ p \in s $}{$ p.guards \leftarrow p.guards \cup \{(\pi_g, L)\} $}
-        \Return{$ \text{\texttt{\upshape{apply\_locks}}}(L, s) $}\;%
+        \Return{$ \text{\texttt{\upshape{apply\_locks}}}(L, s) $}\;
     }
 %
     \caption{Updating an abstract state after the \emph{construction} of a~\emph{lock guard}}
@@ -1404,15 +1404,15 @@ When a~\emph{lock guard is constructed}, an abstract state is updated using the 
 After the \emph{destruction of a~lock guard}, an abstract state is changed using the function \texttt{Domain.apply\_guard\_destroy} given in Algorithm~\ref{alg:guardDest}. For each element of the abstract state, it obtains locks associated with the lock guard being destroyed. This association is then removed from the abstract state's field $ guards $. Finally, the associated locks are unlocked using the function \texttt{Domain.apply\_unlocks} extended to apply unlock calls for a~particular program path only.
 
 \begin{algorithm}[hbt]
-    \KwData{lock guard's access path~$ \pi_g \in \Pi $; abstract state~$ s $}
+    \KwData{lock guard's access path~$ \pi_g \in \Pi $; abstract state~$ s : \mathtt{Domain.t} $}
 %
     \Def{\texttt{\upshape{apply\_guard\_destroy($ \pi_g $, $ s $)}}}{%
         \For{$ p \in s $}{%
             $ L \leftarrow p.guards(\pi_g) $\;
             $ p.guards \leftarrow p.guards \setminus \{(\pi_g, L)\} $\;
-            $ s \leftarrow \text{\texttt{\upshape{apply\_unlocks}}}(L, s, p) $\;%
+            $ s \leftarrow \text{\texttt{\upshape{apply\_unlocks}}}(L, s, p) $\;
         }
-        \Return{$ s $}\;%
+        \Return{$ s $}\;
     }
 %
     \caption{Updating an abstract state after the \emph{destruction} of a~\emph{lock guard}}
@@ -1446,7 +1446,7 @@ let widen ~(prev : t) ~(next : t) ~(num_iters : int) : t = join prev next
 
 In Section~\ref{sec:proposalParametr}, there are proposed \emph{input parameters} for specifying \emph{black-lists}/\emph{white-lists} of functions to analyse or function calls to consider. The decision of whether a~function is analysed or a~function call is considered is made in \texttt{analyse\_procedure} (Listing~\ref{list:analyseProc}) and \texttt{exec\_instr} (Listing~\ref{list:AITransform}), respectively. In particular, the function \texttt{f\_is\_ignored} implements the decision making whether a~particular function is considered/ignored according to the input parameters. These parameters may be combined. For example, one can allow only specific functions to be analysed and ignore several selected function calls considered during the analysis. Moreover, these parameters may be enabled for individual phases of the analysis or specified differently for each phase. \texttt{f\_is\_ignored} is implemented in the \texttt{AtomicityUtils} module.
 
-The parameters' values are read from \emph{input text files}. How to enable the parameters (i.e., how to specify the file names of the input files using command-line arguments) is described in the manual. The input file should contain one function name to consider/ignore per line. There may be empty lines, and line comments can be used with the character~\texttt{\#}. Moreover, it is possible to specify sets of function names using \emph{regular expressions} (in that case, the line must start with the letter~\texttt{R} followed by any number of whitespaces). The syntax of the regular expressions corresponds to the OCaml's regular expressions syntax\footnote{The syntax of \emph{OCaml's regular expressions}: \url{https://ocaml.org/api/Str.html}.}. An example of such an input file is in Listing~\ref{list:funList}. Processing of input files is implemented in the \texttt{functions\_from\_file} class in the \texttt{AtomicityUtils} module.
+The parameters' values are read from \emph{input text files}. How to enable the parameters (i.e., how to specify the file names of the input files using command-line arguments) is described in the user manual. The input file should contain one function name to consider/ignore per line. There may be empty lines, and line comments can be used with the character~\texttt{\#}. Moreover, it is possible to specify sets of function names using \emph{regular expressions} (in that case, the line must start with the letter~\texttt{R} followed by any number of whitespaces). The syntax of the regular expressions corresponds to the OCaml's regular expressions syntax\footnote{The syntax of \emph{OCaml's regular expressions}: \url{https://ocaml.org/api/Str.html}.}. An example of such an input file is in Listing~\ref{list:funList}. Processing of input files is implemented in the \texttt{functions\_from\_file} class in the \texttt{AtomicityUtils} module.
 
 %~-
 \begin{lstlisting}[style=plain, label={list:funList}, float=hbt, caption={An example of an \emph{input text file} with a~\emph{black-list}/\emph{white-list} of functions to analyse or function calls to consider}]
@@ -1463,18 +1463,22 @@ R   \(Int\|Float\)\.toString
 
 \subsection{Representation of Locks in Abstract States}
 
+In module \texttt{AtomicityUtils}, there is implemented a~sub-module \texttt{Lock} for \emph{working with locks} in both phases of the analysis. The essential parts of the implementation are shown in Listing~\ref{list:lockModule}. Data of this module are of a~type \texttt{Lock.t}, a~pair of an \emph{access path} (\texttt{AccessPath.t}) of a~lock object and the number of locks of this lock object, i.e., it corresponds to the $ (\pi, l) $ pairs of the abstract states in the proposal.
+
+The bottom value of~$ l $ is 0; this is \texttt{bot}. The top value of~$ l $ is \hyptt{Config.atomicity\_lock\-\_level\_limit}; this is \texttt{top}. This value comes from the user (the default value is~5). This corresponds to the~$ \top $ element (parameter~$ t $) from the proposal. How the user can set this value is described in the user manual. Locking/unlocking of the lock is implemented such that~$ l $ is incremented/decremented, respectively. It is crucial that it is implemented so that~$ l $ remains within bounds $ [0, t] $ to ensure termination. The module also implements other functions, e.g., a~function that finds out whether the lock object is currently locked, etc. However, other functions are not too interesting; thus, they are not shown in the listing.
+
 %~-
 \begin{lstlisting}[style=ocaml, label={list:lockModule}, float=hbt, caption={The implementation of a~module that represents \emph{locks in abstract states}}]
 module Lock = struct
   (* A lock's access path with the number of times it has been acquired. *)
-  type t = AccessPath.t * int (* (p, l) *)
-  (* The bottom value of 'l'. *)
+  type t = AccessPath.t * int (* <@\textcolor{greencomments}{$ (p, l) $}@> *)
+  (* The bottom value of <@\textcolor{greencomments}{$ l $}@>. *)
   let bot : int = 0
-  (* The top value of 'l'. *)
+  (* The top value of <@\textcolor{greencomments}{$ l $}@>. *)
   let top : int = Config.atomicity_lock_level_limit
-  (* Increases 'l'. *)
+  (* Increases the value of <@\textcolor{greencomments}{$ l $}@>. *)
   let lock ((p, l) : t) : t = if l = top then (p, l) else (p, l + 1)
-  (* Decreases 'l'. *)
+  (* Decreases the value of <@\textcolor{greencomments}{$ l $}@>. *)
   let unlock ((p, l) : t) : t = if l = bot then (p, l) else (p, l - 1)
 end
 \end{lstlisting}
@@ -1483,6 +1487,116 @@ end
 
 \section{\texorpdfstring{Phase~1\,---\,Detection of Atomic Sets}{Phase~1 - Detection of Atomic Sets}}
 \label{sec:implementPhase1}
+
+The first phase of the analysis is enabled by a~command-line argument \texttt{-{}-atomic-sets-only} (see the user manual for more details). The detected \emph{atomic sets} by this phase (i.e., sets of functions \emph{expected to execute atomically}) are printed into a~text file, which is then used as an input to the second phase. The output of this phase is in more detail described in Section~\ref{sec:phase1Output}. This section, in particular, explains the concrete implementation of the abstract states and summaries. Moreover, it is outlined how they are used during the analysis.
+
+\paragraph{Abstract State}
+The implementation of the \emph{abstract state} is illustrated in Listing~\ref{list:phase1AbsState}. The abstract state is of the type \texttt{TSet.t} (\texttt{t} is an alias for it). \texttt{TSet} itself is defined on line~12. It is a~module representing a~set of structures~\texttt{p} (lines 10-11). Each element corresponds to a~single program path. Fields of this structure are composed of the types and modules defined on the lines above. Lines 14-20 define the \emph{initial abstract state}. The fields are as follows:
+\begin{itemize}
+    \item \texttt{calls}: a~\emph{set of function calls} (a~function call is a~string), i.e., an element of~$ 2^\Sigma $. It captures function calls before a~lock. When a~lock is called, a~new $ (A, B) $ pair is created and the \texttt{calls} set became the~$ A $ set.
+    
+    \item \texttt{callsPairs}: a~\emph{set of the $ (A, B) $ pairs with associated locks}, where a~lock~$ \mathcal{L} $ is of the type \texttt{Lock.t} defined earlier. In fact, it is a~set of the tuples $ (A, B, \pi, l) $, i.e., an element of $ 2^{2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top} $. These elements are considered currently locked, i.e., new function calls are appended to the~$ B $ set.
+    
+    \item \texttt{finalCallsPairs}: a~\emph{set of the $ (A, B) $ pairs that are \uv{complete}}, i.e., an element of $ 2^{2^\Sigma \times 2^\Sigma} $. These are the final pairs that were already unlocked (thus, the association with a~lock is not needed anymore). In the end, the final atomic sets are derived from this field.
+    
+    \item \texttt{allCalls}: a~\emph{list of sets of function calls}, i.e., an element of $ 2^{\mathbb{N} \times 2^\Sigma} $. It is used to capture which functions were called at which levels of the call hierarchy. Indices of the list represent individual levels (functions called in an analysed function are stored at level~0, functions directly invoked from the analysed function are at level~1, etc.). This field is used to limit the number of nested functions in critical sections using the proposed parameter~$ r $.
+    
+    \item \texttt{guards}: a~\emph{map $ \Pi \rightarrow 2^{\mathbb{N} \times \Pi} $}. It maps a~lock guard's access path to a~list of access paths of associated locks. It can be viewed as a~set of the pairs $ (\pi_g, L) \in \Pi \times 2^\Pi $ from the proposal. (An ordering in the list is ignored and it is treated as a~set. The list is used because it simplifies the implementation in OCaml.)
+\end{itemize}
+
+%~-
+\begin{lstlisting}[style=ocaml, label={list:phase1AbsState}, float=hbt, caption={A~definition of the \emph{abstract state}}]
+module S = Set.Make(String) (* a set of strings *)
+type ab = S.t * S.t (* <@\textcolor{greencomments}{$ (A, B) $}@> pair *)
+module S_ab = Set.Make(struct type t = ab end) (* a set of <@\textcolor{greencomments}{$ (A, B) $}@> pairs *)
+type ab_lock = ab * Lock.t (* <@\textcolor{greencomments}{$ (A, B) $}@> pair with a lock, i.e., <@\textcolor{greencomments}{$ (A, B, \pi, l) $}@> *)
+module S_ab_lock = (* a set of the above *)
+  Set.Make(struct type t = ab_lock end)
+module M_AP = Map.Make(AccessPath) (* a map where AccessPath is a key *)
+type g = (* maps lock guards to a list of associated locks *)
+  AccessPath.t list M_AP.t (* <@\textcolor{greencomments}{$ (\pi_g, L) $}@> where <@\textcolor{greencomments}{$ \pi_g $}@> is a key and <@\textcolor{greencomments}{$ L $}@> is a value *)
+type p = {calls: S.t; callsPairs: S_ab_lock.t; finalCallsPairs: S_ab.t;
+  allCalls: S.t list; guards: g} (* an element of an abstract state *)
+module TSet = Set.Make(struct type t = p end) (* a set of the above *)
+type t = TSet.t (* a type of the abstract state (an alias for TSet.t) *)
+let initial : t = (* the initial abstract state of a function f *)
+  TSet.singleton (* an "empty" element (initial program path of f) *)
+    { calls= S.empty (* an empty set *)
+    ; callsPairs= S_ab_lock.empty (* an empty set *)
+    ; finalCallsPairs= S_ab.empty (* an empty set *)
+    ; allCalls= [S.empty] (* an empty set at level 0 of f *)
+    ; guards= M_AP.empty (* an empty map *) }
+\end{lstlisting}
+%~+
+
+The major functions of the abstract domain that work with abstract states are \texttt{apply\_call}, \texttt{apply\_locks}, and \texttt{apply\_unlocks}. In earlier Listing~\ref{list:AITransform}, there is shown how these functions are utilised.
+
+The function \texttt{apply\_call} from Algorithm~\ref{alg:phase1ApplCall} demonstrates how an abstract state is updated when some classical function is invoked. For example, note that on line~4, the called function is appended to level~0 the \texttt{allCalls} field. This is because the function is directly invoked from the analysed function, which is level~0. Moreover, e.g., notice that on line~7, the entire pair $ (A, B) $ is discarded when~$ B $ is greater than the parameter~$ d $. This is to rid of \uv{large} critical sections, as described in the proposal.
+
+\begin{algorithm}[hbt]
+    \KwData{called function~$ f \in \Sigma $; abstract state~$ s : \mathtt{Domain.t} $; maximum length~$ d \in \mathbb{N} $ of a~critical section}
+%
+    \Def{\texttt{\upshape{apply\_call($ f $, $ s $)}}}{%
+        \For{$ p \in s $}{%
+            $ p.calls \leftarrow p.calls \cup \{f\} $\;
+            $ p.allCalls[0] \leftarrow p.allCalls[0] \cup \{f\} $\;
+            \For{$ (A, B, \mathcal{L}) \in p.callsPairs $}{%
+                $ B \leftarrow B \cup \{f\} $\;
+                \lIf{$ |B| > d $}{$ p.callsPairs \leftarrow p.callsPairs \setminus \{(A, B, \mathcal{L})\} $}
+            }
+        }
+        \Return{$ s $}\;
+    }
+%
+    \caption{Updating an abstract state after a~\emph{call of a~function}}
+    \label{alg:phase1ApplCall}
+\end{algorithm}
+
+Furthermore, the implementation of functions \texttt{apply\_locks} and \texttt{apply\_unlocks} is illustrated using the algorithms from Appendix~\ref{app:alg}, namely, Algorithms~\ref{alg:phase1AppLock} and~\ref{alg:phase1AppUnlock}, respectively.
+
+\paragraph{Summary}
+The implementation of the \emph{summary} is given in Listing~\ref{list:phase1Summ}. It is of the type \texttt{Summary.t} (line~3). It is composed of the modules defined on the lines above and earlier in Listing~\ref{list:phase1AbsState}. The sub-module \texttt{Summary} also implements other functions not shown in the listing. Some of these functions are defined later. The summary is a~structure which consists of the following fields:
+\begin{itemize}
+    \item \texttt{atomicFunctions}: a~\emph{set~$ \mathcal{B} $ of sets of function calls}, i.e., an element of~$ 2^{2^\Sigma} $. It captures sets of functions called atomically within an analysed function.
+
+    \item \texttt{allCalls}: a~\emph{list of sets of function calls}, i.e., an element of~$ 2^{\mathbb{N} \times 2^\Sigma} $. The purpose of this field is the same as the field \texttt{allCalls} of the abstract state, i.e., it is used to capture which functions were called at which levels of the call hierarchy. It is recorded to facilitate the derivation of atomic sets that show up higher in the call hierarchy. This field can be view as the~$ C $ set from the proposal. However, it is extended to store also the number of the level in the call hierarchy in which the functions were called, as it is proposed in Section~\ref{sec:proposalParametr}.
+\end{itemize}
+
+%~-
+\begin{lstlisting}[style=ocaml, label={list:phase1Summ}, float=hbt, caption={A~definition of the \emph{summary}}]
+module SS = Set.Make (S) (* a set of sets of strings *)
+module Summary = struct
+  type t = (* a type of a summary *)
+    {atomicFunctions: SS.t; allCalls: S.t list}
+end
+\end{lstlisting}
+%~+
+
+The \texttt{Summary} module also implements the function \texttt{create}, which converts an \emph{intraprocedural abstract state} to an \emph{interprocedural summary}. This function is given in Algorithm~\ref{alg:phase1SummCreate}. Its application can be seen in Listing~\ref{list:analyseProc} provided formerly.
+
+\begin{algorithm}[hbt]
+    \KwData{abstract state~$ s : \mathtt{Domain.t} $}
+%
+    \Def{\texttt{\upshape{create($ s $)}}}{%
+        $ \mathcal{B} \leftarrow \emptyset $\;
+        $ C \leftarrow [] $\;
+        \For{$ p \in s $}{%
+            \lFor{$ (A, B) \in p.finalCallsPairs $}{$ \mathcal{B} \leftarrow \mathcal{B} \cup \{B\} $}
+            \For{$ (i, C^\prime) \in p.allCalls $}{%
+                \leIf{$ \exists\,C[i] $}{$ C[i] \leftarrow C[i] \cup C^\prime $}{$ C[i] \leftarrow C^\prime $}
+            }
+        }
+        \Return{$ \{atomicFunctions = \mathcal{B}; allCalls = C\} $}\;
+    }
+%
+    \caption{Converting an abstract state to a~\emph{function summary}}
+    \label{alg:phase1SummCreate}
+\end{algorithm}
+
+Moreover, when calling an already analysed function, its summary is used to update an abstract state of an analysed function. This is done by the function \texttt{apply\_summary} from Algorithm~\ref{alg:phase1ApplSumm} in Appendix~\ref{app:alg}. On line~14, there is again used the parameter~$ d $ to discard \uv{large} critical sections. Another interesting part of the algorithm is the derivation of nested functions executed within the called function (lines 4-10). Here, the parameter~$ r $ is used to limit the number of levels in the call hierarchy considered during analysing nested functions. How the function \texttt{apply\_summary} is used in the analysis is shown in Listing~\ref{list:AITransform} discussed previously.
+
+\subsection{Output of Phase~1}
+\label{sec:phase1Output}
 
 
 \section{\texorpdfstring{Phase~2\,---\,Detection of Atomicity Violations}{Phase~2 - Detection of Atomicity Violations}}
