@@ -14,7 +14,7 @@ Recently, Facebook introduced \emph{Facebook Infer}: an \emph{open-source} tool 
 
 At the same time, in \emph{concurrent programs}, there are often \emph{atomicity requirements} for the execution of specific sequences of instructions. Violating these requirements may cause many kinds of problems, such as unexpected behaviour, exceptions, segmentation faults, or other failures. \emph{Atomicity violations} are usually not verified by compilers, unlike syntactic or some sorts of semantic rules. Moreover, atomicity requirements, in most cases, are not even documented at all. Therefore, in the end, programmers themselves must abide by these requirements and usually lack any tool support. Furthermore, in general, it is difficult to avoid errors in \emph{atomicity-dependent programs}, especially in large projects, and even more laborious and time-consuming is finding and fixing them. The papers~\cite{contracts2017, atomizer, contracts2015, atomicityOOP} discuss the importance of \emph{atomicity-related bugs}, and they also show some bugs in \emph{real-world programs}. Unfortunately, tool support for automatically discovering such kinds of errors is currently minimal.
 
-As already mentioned, within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}.} was proposed\,---\,a~\emph{static analyser} for finding some forms of \emph{atomicity violations} implemented as a~Facebook Infer's module. In particular, the stress is put on the \emph{atomic execution of sequences of function calls}, which is often required, e.g., when using specific library calls. For example, assume the function \texttt{replace} from Listing~\ref{list:exampleViolation} that replaces item~\texttt{a} in an array by item~\texttt{b}. It contains an atomicity violation\,---\,the index obtained may be outdated when \texttt{set} is executed (because, e.g., a~\emph{concurrent thread} can modify the array), i.e., \texttt{index\_of} and \texttt{set} should be executed atomically. The analysis is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}. Hence, the checker naturally works with sequences. In fact, the idea of checking the atomicity of certain sequences of function calls is inspired by the works of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. In the terminology of~\cite{contracts2017, contracts2015}, the atomicity of specific sequences of calls is the most straightforward (yet very useful in practice) kind of contracts for concurrency. However, while the idea of using sequences in the given context is indeed natural and rather exact, it quite severely limits the \emph{scalability} of the analysis (indeed, even with a~few functions, there can appear numerous different orders in which they can be called). Moreover, the implementation of the first version of Atomer targets mainly \emph{C~programs} using \emph{PThread locks}. Consequently, there was no support for other languages and their locking mechanisms in the first version of Atomer.
+As already mentioned, within the author's bachelor's thesis~\cite{harmimBP}, \emph{Atomer}\footnote{The implementation of~\textbf{Atomer} is available at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer/tree/atomicity-sets}.} was proposed\,---\,a~\emph{static analyser} for finding some forms of \emph{atomicity violations} implemented as a~Facebook Infer's module. In particular, the stress is put on the \emph{atomic execution of sequences of function calls}, which is often required, e.g., when using specific library calls. For example, assume the function \texttt{replace} from Listing~\ref{list:exampleViolation} that replaces item~\texttt{a} in an array by item~\texttt{b}. It contains an atomicity violation\,---\,the index obtained may be outdated when \texttt{set} is executed (because, e.g., a~\emph{concurrent thread} can modify the array), i.e., \texttt{index\_of} and \texttt{set} should be executed atomically. The analysis is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}. Hence, the checker naturally works with sequences. In fact, the idea of checking the atomicity of certain sequences of function calls is inspired by the works of \emph{contracts for concurrency}~\cite{contracts2017, contracts2015}. In the terminology of~\cite{contracts2017, contracts2015}, the atomicity of specific sequences of calls is the most straightforward (yet very useful in practice) kind of contracts for concurrency. However, while the idea of using sequences in the given context is indeed natural and rather exact, it quite severely limits the \emph{scalability} of the analysis (indeed, even with a~few functions, there can appear numerous different orders in which they can be called). Moreover, the implementation of the first version of Atomer targets mainly \emph{C~programs} using \emph{PThread locks}. Consequently, there was no support for other languages and their locking mechanisms in the first version of Atomer.
 
 \begin{lstlisting}[style=c, label={list:exampleViolation}, float=hbt, caption={An example of an \emph{atomicity violation}}]
 void replace(int *array, int a, int b)
@@ -1319,7 +1319,7 @@ When an atomicity violation within an analysed function is detected as earlier, 
 
 This chapter discusses the implementation of a~new version of \emph{Atomer}. It summarises the implementation of the whole analyser (i.e., it includes the implementation of the Atomer's basic version from~\cite{harmimBP}, also described in Chapter~\ref{chap:atomer}) with a~particular focus on the new enhancements proposed in Chapter~\ref{chap:proposal}. Atomer is implemented as a~\emph{module of Facebook Infer} introduced in Section~\ref{sec:fbinfer}. The implemented algorithms are illustrated using convenient \emph{pseudocode} and listings of simplified code written in \emph{OCaml}, which is an implementation language of Atomer and Facebook Infer. Sections~\ref{sec:implementPhase1} and~\ref{sec:implementPhase2} describe the implementation of \emph{both phases} of the analysis in more detail. Moreover, Section~\ref{sec:implementLanguages} outlines the implementation of support for \emph{programming languages} and \emph{locking mechanisms} newly added to Atomer.
 
-The implementation of both the basic version and the new version of Atomer is \emph{publicly available} at GitHub\footnote{The implementation of a~new version of \textbf{Atomer} at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer}. The implementation of the first version is in a~branch \texttt{atomicity}. At the following address, there are available releases of both versions, including source code and executable binaries (v1.0.0 is the basic version, and v2.0.0 corresponds to the new version): \url{https://github.com/harmim/infer/releases}.}. An installation and user manual are available in Appendix~\ref{app:man}. Together with some examples, these manuals are also available in the attached memory media of the thesis (see Appendix~\ref{app:memMedia}) and in Atomer's Wiki\footnote{\textbf{Atomer's Wiki} provides an installation and user manual together with some examples. It is available at GitHub: \url{https://github.com/harmim/infer/wiki}.}. As it was already said, Atomer is implemented in OCaml, which is a~\emph{functional} programming language. However, it also allows using the \emph{imperative} and \emph{object-oriented} paradigms exploited in the Atomer's implementation as well. Since the implementation of the first version of Atomer, Facebook Infer was many times updated (in its Git repository, there are several new commits every day). Due to maintaining Atomer up-to-date with Facebook Infer, and due to some refactoring of Atomer itself, the code of the first version of Atomer since its first implementation is considerably different. 
+The implementation of both the basic version and the new version of Atomer is \emph{publicly available} at GitHub\footnote{The implementation of a~new version of \textbf{Atomer} at GitHub as an \emph{open-source} repository (in a~branch \texttt{atomicity-sets}): \url{https://github.com/harmim/infer/tree/atomicity-sets}. The implementation of the first version is in a~branch \texttt{atomicity}. At the following address, there are available releases of both versions, including source code and executable binaries (v1.0.0 is the basic version, and v2.0.0 corresponds to the new version): \url{https://github.com/harmim/infer/releases}.}. An installation and user manual are available in Appendix~\ref{app:man}. Together with some examples, these manuals are also available in the attached memory media of the thesis (see Appendix~\ref{app:memMedia}) and in Atomer's Wiki\footnote{\textbf{Atomer's Wiki} provides an installation and user manual together with some examples. It is available at GitHub: \url{https://github.com/harmim/infer/wiki}.}. As it was already said, Atomer is implemented in OCaml, which is a~\emph{functional} programming language. However, it also allows using the \emph{imperative} and \emph{object-oriented} paradigms exploited in the Atomer's implementation as well. Since the implementation of the first version of Atomer, Facebook Infer was many times updated (in its Git repository, there are several new commits every day). Due to maintaining Atomer up-to-date with Facebook Infer, and due to some refactoring of Atomer itself, the code of the first version of Atomer since its first implementation is considerably different. 
 
 Atomer itself is implemented in files in a~directory \texttt{infer/src/atomicity}. In particular, the first phase of the analysis is implemented in \texttt{AtomicSets.ml[i]}, and its \emph{abstract domain}~$ Q $ is implemented in \texttt{AtomicSetsDomain.ml[i]}. The second phase is implemented in \texttt{AtomicityViolations.ml[i]}, and its abstract domain~$ Q $ is implemented in \texttt{AtomicityViolationsDomain.ml[i]}. The phases are implemented as separate analysers in Facebook Infer. The output of the first phase is the input to the second one (as earlier shown in Figure~\ref{fig:atomerPhasesSets}). These analysers are defined as modules of Facebook Infer in \texttt{infer/src/base/Checker.ml[i]}, and they are registered to the framework in \texttt{infer/src/backend/registerCheckers.ml}. The analysers are enabled only by specific command-line arguments; see the mentioned manuals.
 
@@ -1450,14 +1450,14 @@ The parameters' values are read from \emph{input text files}. How to enable the 
 
 %~-
 \begin{lstlisting}[style=plain, label={list:funList}, float=hbt, caption={An example of an \emph{input text file} with a~\emph{black-list}/\emph{white-list} of functions to analyse or function calls to consider}]
-intValue # this is a comment
-R [A-Z]+.*
-
-foo
-Logger.log
-R \(String\)?\.format
-#this is another comment
-R   \(Int\|Float\)\.toString
+intValue # this is a comment<@\visiblenl@>
+R<@\visiblespace@>[A-Z]+.*<@\visiblenl@>
+<@\visiblenl@>
+foo<@\visiblenl@>
+Logger.log<@\visiblenl@>
+R<@\visibletab@>\(String\)?\.format<@\visiblenl@>
+#this is another comment<@\visiblenl@>
+R<@\visiblespace\visiblespace\visiblespace\visibletab\visiblespace@>\(Int\|Float\)\.toString<@\visiblenl@>
 \end{lstlisting}
 %~+
 
@@ -1491,9 +1491,9 @@ end
 The first phase of the analysis is enabled by a~command-line argument \texttt{-{}-atomic-sets-only} (see the user manual for more details). The detected \emph{atomic sets} by this phase (i.e., sets of functions \emph{expected to execute atomically}) are printed into a~text file, which is then used as an input to the second phase. The output of this phase is in more detail described in Section~\ref{sec:phase1Output}. This section, in particular, explains the concrete implementation of the abstract states and summaries. Moreover, it is outlined how they are used during the analysis.
 
 \paragraph{Abstract State}
-The implementation of the \emph{abstract state} is illustrated in Listing~\ref{list:phase1AbsState}. The abstract state is of the type \texttt{TSet.t} (\texttt{t} is an alias for it). \texttt{TSet} itself is defined on line~12. It is a~module representing a~set of structures~\texttt{p} (lines 10-11). Each element corresponds to a~single program path. Fields of this structure are composed of the types and modules defined on the lines above. Lines 14-20 define the \emph{initial abstract state}. The fields are as follows:
+The implementation of the \emph{abstract state} is illustrated in Listing~\ref{list:phase1AbsState}. The abstract state is of the type \texttt{TSet.t} (\texttt{t} is an alias for it). \texttt{TSet} itself is defined on line~12. It is a~module representing a~set of structures~\texttt{p} (lines 10--11). Each element corresponds to a~single program path. Fields of this structure are composed of the types and modules defined on the lines above. Lines 14--20 define the \emph{initial abstract state}. The fields are as follows:
 \begin{itemize}
-    \item \texttt{calls}: a~\emph{set of function calls} (a~function call is a~string), i.e., an element of~$ 2^\Sigma $. It captures function calls before a~lock. When a~lock is called, a~new $ (A, B) $ pair is created and the \texttt{calls} set became the~$ A $ set.
+    \item \texttt{calls}: a~\emph{set of function calls} (a~function call is a~string), i.e., an element of~$ 2^\Sigma $. It captures function calls before a~lock. When a~lock is called, a~new $ (A, B) $ pair is created, and the \texttt{calls} set became the~$ A $ set.
     
     \item \texttt{callsPairs}: a~\emph{set of the $ (A, B) $ pairs with associated locks}, where a~lock~$ \mathcal{L} $ is of the type \texttt{Lock.t} defined earlier. In fact, it is a~set of the tuples $ (A, B, \pi, l) $, i.e., an element of $ 2^{2^\Sigma \times 2^\Sigma \times \Pi \times \mathbb{N}^\top} $. These elements are considered currently locked, i.e., new function calls are appended to the~$ B $ set.
     
@@ -1501,7 +1501,7 @@ The implementation of the \emph{abstract state} is illustrated in Listing~\ref{l
     
     \item \texttt{allCalls}: a~\emph{list of sets of function calls}, i.e., an element of $ 2^{\mathbb{N} \times 2^\Sigma} $. It is used to capture which functions were called at which levels of the call hierarchy. Indices of the list represent individual levels (functions called in an analysed function are stored at level~0, functions directly invoked from the analysed function are at level~1, etc.). This field is used to limit the number of nested functions in critical sections using the proposed parameter~$ r $.
     
-    \item \texttt{guards}: a~\emph{map $ \Pi \rightarrow 2^{\mathbb{N} \times \Pi} $}. It maps a~lock guard's access path to a~list of access paths of associated locks. It can be viewed as a~set of the pairs $ (\pi_g, L) \in \Pi \times 2^\Pi $ from the proposal. (An ordering in the list is ignored and it is treated as a~set. The list is used because it simplifies the implementation in OCaml.)
+    \item \texttt{guards}: a~\emph{map $ \Pi \rightarrow 2^{\mathbb{N} \times \Pi} $}. It maps a~lock guard's access path to a~list of access paths of associated locks. It can be viewed as a~set of the pairs $ (\pi_g, L) \in \Pi \times 2^\Pi $ from the proposal. (An ordering in the list is ignored, and it is treated as a~set. The list is used because it simplifies the implementation in OCaml.)
 \end{itemize}
 
 %~-
@@ -1529,9 +1529,9 @@ let initial : t = (* the initial abstract state of a function f *)
 \end{lstlisting}
 %~+
 
-The major functions of the abstract domain that work with abstract states are \texttt{apply\_call}, \texttt{apply\_locks}, and \texttt{apply\_unlocks}. In earlier Listing~\ref{list:AITransform}, there is shown how these functions are utilised.
+The primary functions of the abstract domain that work with abstract states are \texttt{apply\_call}, \texttt{apply\_locks}, and \texttt{apply\_unlocks}. In earlier Listing~\ref{list:AITransform}, there is shown how these functions are utilised.
 
-The function \texttt{apply\_call} from Algorithm~\ref{alg:phase1ApplCall} demonstrates how an abstract state is updated when some classical function is invoked. For example, note that on line~4, the called function is appended to level~0 the \texttt{allCalls} field. This is because the function is directly invoked from the analysed function, which is level~0. Moreover, e.g., notice that on line~7, the entire pair $ (A, B) $ is discarded when~$ B $ is greater than the parameter~$ d $. This is to rid of \uv{large} critical sections, as described in the proposal.
+The function \texttt{apply\_call} from Algorithm~\ref{alg:phase1ApplCall} demonstrates how an abstract state is updated when some classical function is invoked. For example, note that on line~4, the called function is appended to level~0 of the \texttt{allCalls} field. This is because the function is directly invoked from the analysed function, which is level~0. Moreover, e.g., notice that on line~7, the entire pair $ (A, B) $ is discarded when~$ B $ is greater than the parameter~$ d $. This is to rid of \uv{large} critical sections, as described in the proposal.
 
 \begin{algorithm}[hbt]
     \KwData{called function~$ f \in \Sigma $; abstract state~$ s : \mathtt{Domain.t} $; maximum length~$ d \in \mathbb{N} $ of a~critical section}
@@ -1552,14 +1552,14 @@ The function \texttt{apply\_call} from Algorithm~\ref{alg:phase1ApplCall} demons
     \label{alg:phase1ApplCall}
 \end{algorithm}
 
-Furthermore, the implementation of functions \texttt{apply\_locks} and \texttt{apply\_unlocks} is illustrated using the algorithms from Appendix~\ref{app:alg}, namely, Algorithms~\ref{alg:phase1AppLock} and~\ref{alg:phase1AppUnlock}, respectively.
+Furthermore, the implementation of the functions \texttt{apply\_locks} and \texttt{apply\_unlocks} is illustrated using the algorithms from Appendix~\ref{app:alg}, namely, Algorithms~\ref{alg:phase1AppLock} and~\ref{alg:phase1AppUnlock}, respectively.
 
 \paragraph{Summary}
-The implementation of the \emph{summary} is given in Listing~\ref{list:phase1Summ}. It is of the type \texttt{Summary.t} (line~3). It is composed of the modules defined on the lines above and earlier in Listing~\ref{list:phase1AbsState}. The sub-module \texttt{Summary} also implements other functions not shown in the listing. Some of these functions are defined later. The summary is a~structure which consists of the following fields:
+The implementation of the \emph{summary} is given in Listing~\ref{list:phase1Summ}. It is of the type \texttt{Summary.t} (lines 3--4). It is composed of the modules defined on the lines above and earlier in Listing~\ref{list:phase1AbsState}. The sub-module \texttt{Summary} also implements other functions not shown in the listing. Some of these functions are defined later. The summary is a~structure that consists of the following fields:
 \begin{itemize}
     \item \texttt{atomicFunctions}: a~\emph{set~$ \mathcal{B} $ of sets of function calls}, i.e., an element of~$ 2^{2^\Sigma} $. It captures sets of functions called atomically within an analysed function.
 
-    \item \texttt{allCalls}: a~\emph{list of sets of function calls}, i.e., an element of~$ 2^{\mathbb{N} \times 2^\Sigma} $. The purpose of this field is the same as the field \texttt{allCalls} of the abstract state, i.e., it is used to capture which functions were called at which levels of the call hierarchy. It is recorded to facilitate the derivation of atomic sets that show up higher in the call hierarchy. This field can be view as the~$ C $ set from the proposal. However, it is extended to store also the number of the level in the call hierarchy in which the functions were called, as it is proposed in Section~\ref{sec:proposalParametr}.
+    \item \texttt{allCalls}: a~\emph{list of sets of function calls}, i.e., an element of~$ 2^{\mathbb{N} \times 2^\Sigma} $. The purpose of this field is the same as the field \texttt{allCalls} of the abstract state, i.e., it is used to capture which functions were called at which levels of the call hierarchy. It is recorded to facilitate the derivation of atomic sets that show up higher in the call hierarchy. This field can be view as the~$ C $ set from the proposal. However, it is extended to store the number of the level in the call hierarchy in which the functions were called, as proposed in Section~\ref{sec:proposalParametr}.
 \end{itemize}
 
 %~-
@@ -1572,7 +1572,7 @@ end
 \end{lstlisting}
 %~+
 
-The \texttt{Summary} module also implements the function \texttt{create}, which converts an \emph{intraprocedural abstract state} to an \emph{interprocedural summary}. This function is given in Algorithm~\ref{alg:phase1SummCreate}. Its application can be seen in Listing~\ref{list:analyseProc} provided formerly.
+The \texttt{Summary} module also implements the function \texttt{create}, which converts an \emph{intraprocedural} abstract state to an \emph{interprocedural} summary. This function is given in Algorithm~\ref{alg:phase1SummCreate}. Its application can be seen in Listing~\ref{list:analyseProc} provided formerly.
 
 \begin{algorithm}[hbt]
     \KwData{abstract state~$ s : \mathtt{Domain.t} $}
@@ -1593,10 +1593,39 @@ The \texttt{Summary} module also implements the function \texttt{create}, which 
     \label{alg:phase1SummCreate}
 \end{algorithm}
 
-Moreover, when calling an already analysed function, its summary is used to update an abstract state of an analysed function. This is done by the function \texttt{apply\_summary} from Algorithm~\ref{alg:phase1ApplSumm} in Appendix~\ref{app:alg}. On line~14, there is again used the parameter~$ d $ to discard \uv{large} critical sections. Another interesting part of the algorithm is the derivation of nested functions executed within the called function (lines 4-10). Here, the parameter~$ r $ is used to limit the number of levels in the call hierarchy considered during analysing nested functions. How the function \texttt{apply\_summary} is used in the analysis is shown in Listing~\ref{list:AITransform} discussed previously.
+Moreover, when calling an already analysed function, its summary is used to update an abstract state of an analysed function. This is done using the function \texttt{apply\_summary} from Algorithm~\ref{alg:phase1ApplSumm} in Appendix~\ref{app:alg}. On line~14, there is again used the parameter~$ d $ to discard \uv{large} critical sections. Another interesting part of the algorithm is the derivation of nested functions executed within the called function (lines 4--10). Here, the parameter~$ r $ is used to limit the number of levels in the call hierarchy considered during analysing nested functions. How the function \texttt{apply\_summary} is used in the analysis is shown in Listing~\ref{list:AITransform} discussed previously.
 
 \subsection{Output of Phase~1}
 \label{sec:phase1Output}
+
+The output of the first phase of the analysis are \emph{sets of functions} that were identified as those that are likely to be always executed atomically. The sets are given separately for each function in which they were identified. They are derived from the summaries of all analysed functions of a~given program. At the end of the entire analysis, the sets are printed into a~\emph{text file} \texttt{atomic-sets} in an exact format. Each line of the file contains a~sequence of detected atomic sets (separated by whitespace) within a~particular function. A~line starts with the name of the function followed by a~colon and whitespace. Thus, whitespaces are significant. The set of atomic functions must be inside curly braces\,---\,a~comma and whitespace separate individual functions inside the set. Empty lines and line comments (started with the character~\texttt{\#}) are ignored. Moreover, some statistical information about the number of atomic functions is printed on the last line. Listing~\ref{list:phase1Out} includes an example of such an output file.
+
+\begin{lstlisting}[style=plain, label={list:phase1Out}, float=hbt, caption={An example of the \emph{output of the first phase} of the analysis (\texttt{atomic-sets} file)}]
+functionA:<@\visiblespace@>{f1,<@\visiblespace@>f2,<@\visiblespace@>f3}<@\visiblenl@>
+foo:<@\visiblespace@>{y,<@\visiblespace@>z}<@\visiblenl@>
+bar_f:<@\visiblespace@>{a}<@\visiblespace@>{b,<@\visiblespace@>c}<@\visiblenl@>
+<@\visiblenl@>
+# Number of (analysed functions; atomic sets; atomic functions): (3; 4; 8)<@\visiblenl@>
+\end{lstlisting}
+
+This file is an \emph{input file for the second phase} of the analysis. However, it may be manually edited by the user or created from scratch, but the format must be adhered to. The derivation of the atomic sets and their printing to the output file is implemented in the \texttt{print\_atomic\_sets} function introduced in Algorithm~\ref{alg:phase1Out}.
+
+\begin{algorithm}[hbt]
+    \KwData{all analysed functions~$ F \in 2^\Sigma $}
+%
+    \Def{\texttt{\upshape{print\_atomic\_sets($ F $)}}}{%
+        \For{$ f \in F $}{%
+            $ \chi \leftarrow \text{\texttt{\upshape{read\_summary}}}(f) $\;
+            $ \text{\texttt{\upshape{printf}}}(\text{\texttt{\upshape{"\%s:\visiblespace"}}}, f) $\;
+            \lFor{$ B \in \chi.atomicFunctions $}{$ \text{\texttt{\upshape{printf}}}(\text{\texttt{\upshape{"\{\%s\}\visiblespace"}}}, \text{\texttt{\upshape{concat}}}(B, \text{\texttt{\upshape{",\visiblespace"}}})) $}
+            $ \text{\texttt{\upshape{print\_newline}}}() $\;
+        }
+        $ \text{\texttt{\upshape{print\_stats}}}(F) $\;
+    }
+%
+    \caption{\emph{Printing atomic sets} from the summaries of all analysed functions}
+    \label{alg:phase1Out}
+\end{algorithm}
 
 
 \section{\texorpdfstring{Phase~2\,---\,Detection of Atomicity Violations}{Phase~2 - Detection of Atomicity Violations}}
@@ -1658,7 +1687,7 @@ Moreover, when calling an already analysed function, its summary is used to upda
 % static analyser \emph{Atomer}\footnote{The implementation of \textbf{Atomer}
 % is available on GitHub as an \emph{open-source} repository (in a~branch
 % \texttt{atomicity-sets}):
-% \url{https://github.com/harmim/infer}.}\,---\,proposed and implemented
+% \url{https://github.com/harmim/infer/tree/atomicity-sets}.}\,---\,proposed and implemented
 % within the author's bachelor's thesis~\cite{harmimBP}\,---\,implemented as
 % a~Facebook Infer's module, and that detects \emph{atomicity violations}.
 % It was described its limitations, and thereafter, it was described the

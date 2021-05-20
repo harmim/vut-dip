@@ -111,7 +111,7 @@ This section deals with algorithms related to the \emph{first phase} of the anal
             $ p.calls \leftarrow p.calls \cup nestedCalls $\;
             \For{$ (A, B, \mathcal{L}) \in p.callsPairs $}{%
                 $ B \leftarrow B \cup nestedCalls $\;
-                \lIf{$ |B| > d $}{$ p.calls \leftarrow p.calls \setminus \{(A, B, \mathcal{L})\} $}
+                \lIf{$ |B| > d $}{$ p.callsPairs \leftarrow p.callsPairs \setminus \{(A, B, \mathcal{L})\} $}
             }
         }
         \Return{$ s $}\;

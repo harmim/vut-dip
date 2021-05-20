@@ -46,6 +46,13 @@
 % Algorithm2e settings.
 \setlength{\algomargin}{2em}
 \SetKwProg{Def}{def}{:}{end}
+% This solves the problems with links which leads after the algorithm.
+\makeatletter
+\let\old@algocf@pre@ruled\@algocf@pre@ruled
+\renewcommand{\@algocf@pre@ruled}{%
+    \Hy@raisedlink{\hyper@anchorstart{algocf.\thealgocf}\hyper@anchorend}%
+    \old@algocf@pre@ruled}
+\makeatother
 
 % Line spacing in the table of contents.
 \renewcommand\cftchapafterpnum{\vskip .2em}
