@@ -1290,5 +1290,14 @@ Management}{\@fit@EN}%
 % \hyptt as tt with hyphenation enabled
 \DeclareTextFontCommand{\hyptt}{\ttfamily\hyphenchar\font=45\relax}
 
+% visible spaces
+\newcommand\Vtextvisiblespace[1][.3em]{\textcolor{lightgray}{%
+  \mbox{\kern.06em\vrule height.5ex}%
+  \vbox{\hrule width#1}%
+  \hbox{\vrule height.5ex}}}
+\newcommand{\visiblespace}[0]{\Vtextvisiblespace[.5em]}
+\newcommand{\visibletab}[0]{\Vtextvisiblespace[1.5em]}
+\newcommand{\visiblenl}[0]{\textcolor{lightgray}{\P}}
+
 
 \endinput
