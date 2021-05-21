@@ -22,7 +22,7 @@
 \usepackage{subcaption}
 \usepackage{wrapfig}
 \usepackage{amsthm}
-\usepackage[ruled, algochapter, linesnumbered]{algorithm2e}
+\usepackage[ruled, algochapter, linesnumbered, commentsnumbered]{algorithm2e}
 \usepackage{tocloft}
 \usepackage[normalem]{ulem}
 \usepackage{mathtools}
@@ -57,7 +57,7 @@
 % Line spacing in the table of contents.
 \renewcommand\cftchapafterpnum{\vskip .2em}
 \renewcommand\cftsecafterpnum{\vskip .2em}
-\setlength{\cftbeforechapskip}{.5em}
+\setlength{\cftbeforechapskip}{.3em}
 
 % "hyperref" package create clickable links in pdf if you are using pdflatex.
 % Problem is that this package have to be introduced as the last one so it
@@ -176,14 +176,8 @@
     % --------------------------------------------------------------------------
     \setlength{\parskip}{0pt}
     \pagenumbering{roman}
-
     {\hypersetup{hidelinks}\tableofcontents}
-
-    \ifODSAZ
-        \setlength{\parskip}{.5\bigskipamount}
-    \else
-        \setlength{\parskip}{0pt}
-    \fi
+    \ifODSAZ\setlength{\parskip}{.5\bigskipamount}\fi
 
 
     \iftwoside\cleardoublepage\else\clearpage\fi
@@ -193,7 +187,6 @@
     % --------------------------------------------------------------------------
     \pagenumbering{arabic}
     \setcounter{page}{1}
-
     \input{xharmi00-chapters}
 
 
@@ -203,10 +196,7 @@
     \def\@openbib@code{\addcontentsline{toc}{chapter}{Bibliography}}
     \makeatother
     \bibliographystyle{enplain}
-
-    % \begin{flushleft}
-        \bibliography{xharmi00}
-    % \end{flushleft}
+    \bibliography{xharmi00}
 
 
     \iftwoside\cleardoublepage\else\clearpage\fi
@@ -215,5 +205,18 @@
     % Appendices
     % --------------------------------------------------------------------------
     \appendix
+
+    \appendixpage
+
+    \iftwoside\cleardoublepage\else\clearpage\fi
+    
+    \chapter*{List of Appendices}
+    \startcontents[chapters]
+    \setlength{\parskip}{0pt}
+    {\hypersetup{hidelinks}\printcontents[chapters]{l}{0}{}}
+    \ifODSAZ\setlength{\parskip}{.5\bigskipamount}\fi
+    
+    \iftwoside\cleardoublepage\else\clearpage\fi
+
     \input{xharmi00-appendices}
 \end{document}
