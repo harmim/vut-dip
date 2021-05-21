@@ -9,7 +9,44 @@
 \chapter{Contents of the Attached Memory Media}
 \label{app:memMedia}
 
-\todo{Strukturu převzít z~bakalářky.}
+This appendix lists the contents of the attached memory media. In particular, the attached memory media contains the following:
+\begin{itemize}
+    \item \texttt{\textbf{/xharmi00-thesis-2021.pdf}}
+        \begin{itemize}
+            \item This thesis in PDF format.
+        \end{itemize}
+
+    \item \texttt{\textbf{/thesis-latex/}}
+        \begin{itemize}
+            \item \LaTeX\ source files of the thesis.
+            
+            \item It can be compiled into PDF format using \texttt{pdflatex} and \texttt{bibtex} with the \texttt{make} command (\texttt{Makefile} is included). However, the attached PDF file has been compiled in Overleaf.
+        \end{itemize}
+
+    \item \texttt{\textbf{/README.md}}, \texttt{\textbf{/README.html}}
+        \begin{itemize}
+            \item Files containing (among other things) an installation and user manual. It is available in both Markdown and HTML formats.
+        \end{itemize}
+    
+    \item \texttt{\textbf{/src/}}
+        \begin{itemize}
+            \item The source code of the Facebook Infer framework.
+            
+            \item Atomer is \uv{hooked} in several files of the framework. Nevertheless, the majority of the implementation is located in the sub-directory \texttt{infer/src/atomicity/}.
+        \end{itemize}
+    
+    \item \texttt{\textbf{/infer-linux-x86-64-atomer-v2.0.0/}}
+        \begin{itemize}
+            \item Compiled Facebook Infer with the new version of Atomer (v2.0.0). It has been compiled on the Debian GNU/Linux x86-64 10.9 (Buster) operating system.
+            
+            \item Executable binaries are available in the sub-directory \texttt{bin/}.
+        \end{itemize}
+    
+    \item \texttt{\textbf{/examples/}}
+        \begin{itemize}
+            \item Some example programs with reference outputs of the analysis. These programs have been used for experimental testing of the correctness of the analysis.
+        \end{itemize}
+\end{itemize}
 
 
 
@@ -44,15 +81,18 @@ This appendix provides an overview of some of the \emph{implementation algorithm
 
 This section deals with algorithms related to the \emph{first phase} of the analysis.
 
-\begin{algorithm}[hbt]
-    \KwData{access paths $ L \in 2^\Pi $ of locks being unlocked; abstract state~$ s : \mathtt{Domain.t} $}
+\vfill
+
+\begin{algorithm}[H]
+    \KwData{access paths $ L \in 2^\Pi $ of locks being unlocked; abstract state $ s \in \mathtt{Domain.t} $}
 %
     \Def{\texttt{\upshape{apply\_unlocks($ L $, $ s $)}}}{%
         \For{$ p \in s $}{%
             \For{$ (A, B, \mathcal{L}) \in p.callsPairs $}{%
-                \If{$ \mathcal{L}.\pi \in L $}{%
+                \If(\tcc*[f]{unlock an existing lock}){$ \mathcal{L}.\pi \in L $}{%
                     $ \mathcal{L} \leftarrow \text{\texttt{\upshape{Lock.unlock}}}(\mathcal{L}) $\;
                     \If{$ \neg \text{\texttt{\upshape{Lock.is\_locked}}}(\mathcal{L}) $}{%
+                        \tcp{the lock is \uv{completely} unlocked}
                         $ p.finalCallsPairs \leftarrow p.finalCallsPairs \cup \{(A, B)\} $\;
                         $ p.callsPairs \leftarrow p.callsPairs \setminus \{(A, B, \mathcal{L})\} $\;
                         $ p.calls \leftarrow \emptyset $\;
@@ -67,22 +107,28 @@ This section deals with algorithms related to the \emph{first phase} of the anal
     \label{alg:phase1AppUnlock}
 \end{algorithm}
 
-\begin{algorithm}[hbt]
-    \KwData{access paths $ L \in 2^\Pi $ of locks being locked; abstract state~$ s : \mathtt{Domain.t} $}
+\vfill
+
+\clearpage
+
+\vfill
+
+\begin{algorithm}[H]
+    \KwData{access paths $ L \in 2^\Pi $ of locks being locked; abstract state $ s \in \mathtt{Domain.t} $}
 %
     \Def{\texttt{\upshape{apply\_locks($ L $, $ s $)}}}{%
         \For{$ p \in s $}{%
-            $ lockCreated \leftarrow False $\;
+            $ lockCreated \leftarrow false $\;
             \For{$ \pi \in L $}{%
-                $ locked \leftarrow False $\;
+                $ locked \leftarrow false $\;
                 \For{$ (A, B, \mathcal{L}) \in p.callsPairs $}{%
-                    \If{$ \pi = \mathcal{L}.\pi $}{%
-                        $ locked \leftarrow True $\;
+                    \If(\tcc*[f]{lock an existing lock}){$ \pi = \mathcal{L}.\pi $}{%
+                        $ locked \leftarrow true $\;
                         $ \mathcal{L} \leftarrow \text{\texttt{\upshape{Lock.lock}}}(\mathcal{L}) $\;
                     }
                 }
-                \If{$ \neg locked $}{%
-                    $ lockCreated \leftarrow True $\;
+                \If(\tcc*[f]{create a~new lock}){$ \neg locked $}{%
+                    $ lockCreated \leftarrow true $\;
                     $ p.callsPairs \leftarrow p.callsPairs \cup \{(p.calls, \emptyset, \text{\texttt{\upshape{Lock.create}}}(\pi))\} $\;
                 }
             }
@@ -95,14 +141,16 @@ This section deals with algorithms related to the \emph{first phase} of the anal
     \label{alg:phase1AppLock}
 \end{algorithm}
 
-\begin{algorithm}[hbt]
-    \KwData{summary~$ \chi : \mathtt{Domain.Summary.t} $ of a~called function; abstract state~$ s : \mathtt{Domain.t} $; maximum length~$ d \in \mathbb{N} $ of a~critical section; the number~$ r \in \mathbb{N} $ of levels for the consideration of nested calls}
+\vfill
+
+\begin{algorithm}[H]
+    \KwData{summary $ \chi \in \mathtt{Domain.Summary.t} $ of a~called function; abstract state $ s \in \mathtt{Domain.t} $; maximum length $ d \in \mathbb{N} $ of a~critical section; the number $ r \in \mathbb{N} $ of levels for the consideration of nested calls}
 %
     \Def{\texttt{\upshape{apply\_summary($ \chi $, $ s $)}}}{%
         \For{$ p \in s $}{%
             $ nestedCalls \leftarrow \emptyset $\;
-            \For{$ (i, C) \in \chi.allCalls $}{%
-                \If{$ i + 1 < r $}{%
+            \For(\tcc*[f]{get nested calls from lower-levels}){$ (i, C) \in \chi.allCalls $}{%
+                \If(\tcc*[f]{move the calls one level lower}){$ i + 1 < r $}{%
                     \lIf{$ \exists\,p.allCalls[i + 1] $}{$ p.allCalls[i + 1] \leftarrow p.allCalls[i + 1] \cup C $}
                     \lElse{$ p.allCalls[i + 1] \leftarrow C $}
                 }
@@ -111,6 +159,7 @@ This section deals with algorithms related to the \emph{first phase} of the anal
             $ p.calls \leftarrow p.calls \cup nestedCalls $\;
             \For{$ (A, B, \mathcal{L}) \in p.callsPairs $}{%
                 $ B \leftarrow B \cup nestedCalls $\;
+                \tcp{rid of \uv{large} critical sections}
                 \lIf{$ |B| > d $}{$ p.callsPairs \leftarrow p.callsPairs \setminus \{(A, B, \mathcal{L})\} $}
             }
         }
@@ -121,11 +170,95 @@ This section deals with algorithms related to the \emph{first phase} of the anal
     \label{alg:phase1ApplSumm}
 \end{algorithm}
 
+\vfill
 
 \clearpage
+
+
 \section*{Phase~2\,---\,Detection of Atomicity Violations}
 
 This section deals with algorithms related to the \emph{second phase} of the analysis.
+
+\vfill
+
+\begin{algorithm}[H]
+    \KwData{access paths $ L \in 2^\Pi $ of locks being unlocked; abstract state $ s \in \mathtt{Domain.t} $}
+%
+    \Def{\texttt{\upshape{apply\_unlocks($ L $, $ s $)}}}{%
+        \For{$ p \in s $}{%
+            \For{$ (\mathtt{x}, \mathtt{y}, \mathcal{L}) \in p.lockedLastPairs $}{%
+                \If(\tcc*[f]{unlock an existing lock}){$ \mathcal{L}.\pi \in L $}{%
+                    $ \mathcal{L} \leftarrow \text{\texttt{\upshape{Lock.unlock}}}(\mathcal{L}) $\;
+                    \If{$ \neg \text{\texttt{\upshape{Lock.is\_locked}}}(\mathcal{L}) $}{%
+                        \tcp{the lock is \uv{completely} unlocked}
+                        $ p.lockedLastPairs \leftarrow p.lockedLastPairs \setminus \{(\mathtt{x}, \mathtt{y}, \mathcal{L})\} $\;
+                    }
+                }
+            }
+        }
+        \Return{$ s $}\;
+    }
+%
+    \caption{Updating an abstract state after an \emph{unlock}}
+    \label{alg:phase2AppUnlock}
+\end{algorithm}
+
+\vfill
+
+\begin{algorithm}[H]
+    \KwData{access paths $ L \in 2^\Pi $ of locks being locked; abstract state $ s \in \mathtt{Domain.t} $}
+%
+    \Def{\texttt{\upshape{apply\_locks($ L $, $ s $)}}}{%
+        \For{$ p \in s $}{%
+            \For{$ \pi \in L $}{%
+                $ locked \leftarrow false $\;
+                \For{$ (\mathtt{x}, \mathtt{y}, \mathcal{L}) \in p.lockedLastPairs $}{%
+                    \If(\tcc*[f]{lock an existing lock}){$ \pi = \mathcal{L}.\pi $}{%
+                        $ locked \leftarrow true $\;
+                        $ \mathcal{L} \leftarrow \text{\texttt{\upshape{Lock.lock}}}(\mathcal{L}) $\;
+                    }
+                }
+                \If(\tcc*[f]{create a~new lock}){$ \neg locked $}{%
+                    $ p.lockedLastPairs \leftarrow p.lockedLastPairs \cup \{(\varepsilon, \varepsilon, \text{\texttt{\upshape{Lock.create}}}(\pi))\} $\;
+                }
+            }
+        }
+        \Return{$ s $}\;
+    }
+%
+    \caption{Updating an abstract state after a~\emph{lock}}
+    \label{alg:phase2AppLock}
+\end{algorithm}
+
+\vfill
+
+\clearpage
+
+\leavevmode\vfill
+
+\begin{algorithm}[H]
+    \KwData{summary $ \chi \in \mathtt{Domain.Summary.t} $ of a~called function; abstract state $ s \in \mathtt{Domain.t} $}
+%
+    \Def{\texttt{\upshape{apply\_summary($ \chi $, $ s $)}}}{%
+        \For{$ p \in s $}{%
+            \eIf(\tcc*[f]{outside an atomic section}){$ p.lockedLastPairs = \emptyset $}{%
+                \tcp{take summary violations unchanged}
+                $ p.violations \leftarrow p.violations \cup \chi.violations $\;
+            }(\tcc*[f]{inside an atomic section}){%
+                \tcp{take summary violations as warnings}
+                \For{$ (\mathtt{x}, \mathtt{y}, c, S) \in \chi.violations $}{%
+                    $ p.violations \leftarrow p.violations \cup \{(\mathtt{x}, \mathtt{y}, c, \mathtt{Warning})\} $\;
+                }
+            }
+        }
+        \Return{$ s $}\;
+    }
+%
+    \caption{Updating an abstract state \emph{with a~summary} of a~called function}
+    \label{alg:phase2ApplSumm}
+\end{algorithm}
+
+\vfill
 
 
 

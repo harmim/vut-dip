@@ -1257,7 +1257,8 @@ Management}{\@fit@EN}%
 \lstdefinestyle{ocaml}{
   language=caml,
   morekeywords={
-    Some, None, option, bool, int, when, module, struct, list
+    Some, None, option, bool, int, when, module, struct, list,
+    string
   }
 }
 \lstdefinestyle{java}{language=java}

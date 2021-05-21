@@ -821,7 +821,7 @@ where~$ X_S \in 2^{2^{\Sigma^*} \times \Sigma^*} $ is a~set of all Phase~1 summa
 
 An element of this phase's abstract state is a~triple $ (\mathtt{x}, \mathtt{y}, \delta) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} $ where $ (\mathtt{x}, \mathtt{y}) $ is a~pair of the most recent calls of functions performed on the program path being explored, and~$ \delta $ is a~set of so far detected \emph{pairs that violate atomicity} on particular lines of code. Thus, the abstract states are elements of the set~$ 2^{\Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}} $. Whenever a~function~\texttt{f} is called on some path that led to an abstract state $ (\mathtt{x}, \mathtt{y}, \delta) $, a~new pair $ (\mathtt{x}^\prime, \mathtt{y}^\prime) $ of the most recent function calls is created from the previous pair $ (\mathtt{x}, \mathtt{y}) $ such that $ (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) $. Further, when the current program state is not inside an atomic block, the analysis checks whether the new pair (or just the last call) violates atomicity (i.e., $ (\mathtt{x}^\prime, \mathtt{y}^\prime) \in \Omega \vee (\varepsilon, \mathtt{y}^\prime) \in \Omega $). When it does, it is added to the set~$ \delta $ of pairs that violate atomicity.
 
-Formally, the initial abstract state (in this phase) of a~function is defined as $ s_{init} = \{(\varepsilon, \varepsilon, \emptyset)\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ c $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
+Formally, the initial abstract state (in this phase) of a~function is defined as $ s_{init} = \{(\varepsilon, \varepsilon, \emptyset)\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ c \in \mathbb{N} $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
 $$
 \begin{multlined}
     s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}}\ |\ \exists\,(\mathtt{x}, \mathtt{y}, \delta) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) \\
@@ -1148,7 +1148,7 @@ The pairs~$ \Omega $ of functions that should be called atomically are computed 
 
 The analysis works as follows. When a~function~\texttt{f} is called on some path that led to an abstract state $ (\mathtt{x}, \mathtt{y}, \delta, \lambda) $, a~new pair $ (\mathtt{x}^\prime, \mathtt{y}^\prime) $ of the most recent function calls is created from the previous pair $ (\mathtt{x}, \mathtt{y}) $ such that $ (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) $. This pair is also stored in the locked pairs~$ \lambda $ if there are any locks currently locked. Further, it is checked whether the new pair (or just the last call) violates the atomicity, and at the same time, the pair is not locked by any of the stored locks (i.e., $ ((\mathtt{x}^\prime, \mathtt{y}^\prime) \in \Omega \wedge \nexists\,(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) \in \lambda : (\mathtt{x}_\pi, \mathtt{y}_\pi) = (\mathtt{x}^\prime, \mathtt{y}^\prime)) \vee ((\varepsilon, \mathtt{y}^\prime) \in \Omega \wedge \nexists\,(\mathtt{x}_\pi, \mathtt{y}_\pi, \pi, l) \in \lambda : (\mathtt{x}_\pi, \mathtt{y}_\pi) = (\varepsilon, \mathtt{y}^\prime)) $). When the condition holds, the pair is added to the set~$ \delta $ of pairs that violate atomicity. When a~lock with an identifier~$ \pi_i $ is called, it is created a~new empty element of~$ \lambda $ with this identifier, and the lock counter~$ l $ of this element is set to~1. Furthermore, the lock counter~$ l $ of an element from~$ \lambda $ with the access path~$ \pi_i $ is incremented/decremented when a~lock/unlock with the identifier~$ \pi_i $ is called, respectively.
 
-More formally, the \emph{initial abstract state} of a~function is defined as $ s_{init} = \{\{(\varepsilon, \varepsilon, \emptyset, \emptyset)\}\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ c $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
+More formally, the \emph{initial abstract state} of a~function is defined as $ s_{init} = \{\{(\varepsilon, \varepsilon, \emptyset, \emptyset)\}\} $. To formalise the analysis of a~function, let~\texttt{f} be a~called leaf function on a~line~$ c \in \mathbb{N} $. Further, let~$ s_\mathtt{g} $ be the abstract state of a~function~\texttt{g} being analysed before the function~\texttt{f} is called. After the call of~\texttt{f}, the abstract state will be changed as follows:
 $$
 \begin{multlined}
     s_\mathtt{g} = \bb{\{}(\mathtt{x}^\prime, \mathtt{y}^\prime, \delta^\prime, \lambda^\prime) \in \Sigma \times \Sigma \times 2^{\Sigma \times \Sigma \times \mathbb{N}} \times 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top}\ | \ \exists\,(\mathtt{x}, \mathtt{y}, \delta, \lambda) \in s_\mathtt{g} : (\mathtt{x}^\prime, \mathtt{y}^\prime) = (\mathtt{y}, \mathtt{f}) \\
@@ -1377,7 +1377,7 @@ let exec_instr (s : Domain.t) data : HilInstr.t -> Domain.t = function
       match data.analyze_dependency callee with
       | Some (summary : Domain.Summary.t) ->
         (* Apply the summary to the abstract state. *)
-        Domain.apply_summary summary loc s
+        Domain.apply_summary summary s
       | None -> s (* leaf node *) ) )
   | _ -> s (* Do nothing for other instructions. *)
 \end{lstlisting}
@@ -1385,15 +1385,15 @@ let exec_instr (s : Domain.t) data : HilInstr.t -> Domain.t = function
 
 \subsection{Abstract Transformers}
 
-The \emph{abstract transformers} $ \tau : Instr \times Q \rightarrow Q $ over an abstract domain~$ Q $ (also called \emph{transfer functions}) are implemented almost the same way for both phases of the analysis. In general, the abstract transformer takes an abstract state as its input and produces an abstract state as an output while interpreting an instruction of an analysed program. The implementation is illustrated in Listing~\ref{list:AITransform}. It is implemented using the \texttt{exec\_instr} function (in the \texttt{AtomicSets}/\texttt{AtomicityViolations} module for Phase~1/Phase~2, respectively). It considers only function calls, i.e., instruction \texttt{CALL}. The abstract state remains unchanged when other instructions are executed (line~28). On line~4, there is checked whether the called function should be ignored (see Section~\ref{sec:proposalParametr}). Otherwise, line~7 identifies calls related to \emph{locking}. When the called function is some lock, \texttt{Domain.apply\_locks} is called to update the abstract state appropriately (line~10). When the call is a~construction of a~\emph{lock guard}, \texttt{Domain.apply\_guard\_construct} is used (line~14), etc. Note that besides the cases used in the pattern matching shown in the listing, there are also processed \texttt{GuardRelease}, \texttt{GuardLock}, and \texttt{GuardUnlock} for advanced manipulation with lock guards in the actual implementation. The functions \texttt{get\_path}/\texttt{get\_paths} are used for acquiring \emph{access paths} of \emph{lock objects}. The functions \texttt{Domain.apply\_locks} and \texttt{Domain.apply\_unlocks} are implemented differently for both phases of the analysis. This implementation is described in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}. However, the functions \texttt{Domain.apply\_guard\_construct} and \texttt{Domain.apply\_guard\_destroy} are the same for both phases. Thus, they are explained below. If the called function is not related to locking (line~17), the function call is interpreted in the abstract domain using \texttt{Domain.apply\_call}. Further, line~23 tries to read a~summary of the called function. If it is not a~leaf node of the call tree, its summary is used to update the abstract state using \texttt{Domain.apply\_summary} on line~26. The functions  \texttt{Domain.apply\_call}, \texttt{Domain.apply\_summary} are essential. Thus, they are introduced in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}. Moreover, note that on line~5, there is a~parameter \texttt{loc} of the called function. It is the location of the call in the source program. It is used to identify the location of an atomicity violation. Therefore, it is needed only in the implementation of the abstract transformers for the second phase of the analysis.
+The \emph{abstract transformers} $ \tau : Instr \times Q \rightarrow Q $ over an abstract domain~$ Q $ (also called \emph{transfer functions}) are implemented almost the same way for both phases of the analysis. In general, the abstract transformer takes an abstract state as its input and produces an abstract state as an output while interpreting an instruction of an analysed program. The implementation is illustrated in Listing~\ref{list:AITransform}. It is implemented using the \texttt{exec\_instr} function (in the \texttt{AtomicSets}/\texttt{AtomicityViolations} module for Phase~1/Phase~2, respectively). It considers only function calls, i.e., instruction \texttt{CALL}. The abstract state remains unchanged when other instructions are executed (line~28). On line~4, there is checked whether the called function should be ignored (see Section~\ref{sec:proposalParametr}). Otherwise, line~7 identifies calls related to \emph{locking}. When the called function is some lock, \texttt{Domain.apply\_locks} is called to update the abstract state appropriately (line~10). When the call is a~construction of a~\emph{lock guard}, \texttt{Domain.apply\_guard\_construct} is used (line~14), etc. Note that besides the cases used in the pattern matching shown in the listing, there are also processed \texttt{GuardRelease}, \texttt{GuardLock}, and \texttt{GuardUnlock} for advanced manipulation with lock guards in the actual implementation. The functions \texttt{get\_path}/\texttt{get\_paths} are used for acquiring \emph{access paths} of \emph{lock objects}. The functions \texttt{Domain.apply\_locks} and \texttt{Domain.apply\_unlocks} are implemented differently for both phases of the analysis. This implementation is described in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}. However, the functions \texttt{Domain.apply\_guard\_construct} and \texttt{Domain.apply\_guard\_destroy} are the same for both phases. Thus, they are explained below. If the called function is not related to locking (line~17), the function call is interpreted in the abstract domain using \texttt{Domain.apply\_call}. Further, line~23 tries to read a~summary of the called function. If it is not a~leaf node of the call-tree, its summary is used to update the abstract state using \texttt{Domain.apply\_summary} on line~26. The functions  \texttt{Domain.apply\_call}, \texttt{Domain.apply\_summary} are essential. Thus, they are introduced in Sections~\ref{sec:implementPhase1}, \ref{sec:implementPhase2}. Moreover, note that on line~5, there is a~parameter \texttt{loc} of the called function. It is the location of the call in the source program. It is used to identify the location of an atomicity violation. Therefore, it is needed only in the implementation of the abstract transformers for the second phase of the analysis.
 
 When a~\emph{lock guard is constructed}, an abstract state is updated using the function \texttt{Domain.apply\_guard\_construct} illustrated in Algorithm~\ref{alg:guardConst}. It first appends the association of the lock guard with the underlying locks to the $ guards $ field of each element (program path) of the abstract state. Then, all the underlying locks are immediately locked using \texttt{Domain.apply\_locks}, which is defined later. Both the lock guard and the underlying locks are identified through access paths.
 
 \begin{algorithm}[hbt]
-    \KwData{lock guard's access path~$ \pi_g \in \Pi $; access paths $ L \in 2^\Pi $ of locks associated with~$ \pi_g $; abstract state~$ s : \mathtt{Domain.t} $}
+    \KwData{lock guard's access path $ \pi_g \in \Pi $; access paths $ L \in 2^\Pi $ of locks associated with~$ \pi_g $; abstract state $ s \in \mathtt{Domain.t} $}
 %
     \Def{\texttt{\upshape{apply\_guard\_construct($ \pi_g $, $ L $, $ s $)}}}{%
-        \lFor{$ p \in s $}{$ p.guards \leftarrow p.guards \cup \{(\pi_g, L)\} $}
+        \lFor(\tcc*[f]{create a~new guard}){$ p \in s $}{$ p.guards \leftarrow p.guards \cup \{(\pi_g, L)\} $}
         \Return{$ \text{\texttt{\upshape{apply\_locks}}}(L, s) $}\;
     }
 %
@@ -1404,12 +1404,12 @@ When a~\emph{lock guard is constructed}, an abstract state is updated using the 
 After the \emph{destruction of a~lock guard}, an abstract state is changed using the function \texttt{Domain.apply\_guard\_destroy} given in Algorithm~\ref{alg:guardDest}. For each element of the abstract state, it obtains locks associated with the lock guard being destroyed. This association is then removed from the abstract state's field $ guards $. Finally, the associated locks are unlocked using the function \texttt{Domain.apply\_unlocks} extended to apply unlock calls for a~particular program path only.
 
 \begin{algorithm}[hbt]
-    \KwData{lock guard's access path~$ \pi_g \in \Pi $; abstract state~$ s : \mathtt{Domain.t} $}
+    \KwData{lock guard's access path $ \pi_g \in \Pi $; abstract state $ s \in \mathtt{Domain.t} $}
 %
     \Def{\texttt{\upshape{apply\_guard\_destroy($ \pi_g $, $ s $)}}}{%
         \For{$ p \in s $}{%
-            $ L \leftarrow p.guards(\pi_g) $\;
-            $ p.guards \leftarrow p.guards \setminus \{(\pi_g, L)\} $\;
+            $ L \leftarrow p.guards(\pi_g) $\tcc*{get associated locks}
+            $ p.guards \leftarrow p.guards \setminus \{(\pi_g, L)\} $\tcc*{remove the guard}
             $ s \leftarrow \text{\texttt{\upshape{apply\_unlocks}}}(L, s, p) $\;
         }
         \Return{$ s $}\;
@@ -1488,10 +1488,10 @@ end
 \section{\texorpdfstring{Phase~1\,---\,Detection of Atomic Sets}{Phase~1 - Detection of Atomic Sets}}
 \label{sec:implementPhase1}
 
-The first phase of the analysis is enabled by a~command-line argument \texttt{-{}-atomic-sets-only} (see the user manual for more details). The detected \emph{atomic sets} by this phase (i.e., sets of functions \emph{expected to execute atomically}) are printed into a~text file, which is then used as an input to the second phase. The output of this phase is in more detail described in Section~\ref{sec:phase1Output}. This section, in particular, explains the concrete implementation of the abstract states and summaries. Moreover, it is outlined how they are used during the analysis.
+The first phase of the analysis is enabled by a~command-line argument \texttt{-{}-atomic-sets-only} (see the user manual for more details). The detected \emph{atomic sets} by this phase (i.e., sets of functions \emph{expected to execute atomically}) are printed into a~text file, which is then used as an input to the second phase. This section, in particular, explains the concrete implementation of the abstract states and summaries. Moreover, it is outlined how they are used during the analysis. The output of this phase is in more detail described in Section~\ref{sec:phase1Output}.
 
 \paragraph{Abstract State}
-The implementation of the \emph{abstract state} is illustrated in Listing~\ref{list:phase1AbsState}. The abstract state is of the type \texttt{TSet.t} (\texttt{t} is an alias for it). \texttt{TSet} itself is defined on line~12. It is a~module representing a~set of structures~\texttt{p} (lines 10--11). Each element corresponds to a~single program path. Fields of this structure are composed of the types and modules defined on the lines above. Lines 14--20 define the \emph{initial abstract state}. The fields are as follows:
+The implementation of the \emph{abstract state} is illustrated in Listing~\ref{list:phase1AbsState}. The abstract state is of the type \texttt{TSet.t} (\texttt{t} is an alias for it). \texttt{TSet} itself is defined on line~13. It is a~module representing a~set of structures~\texttt{p} (lines 10--12). Each element corresponds to a~single program path. Fields of this structure are composed of the types and modules defined on the lines above. Lines 15--21 define the \emph{initial abstract state}. The fields are as follows:
 \begin{itemize}
     \item \texttt{calls}: a~\emph{set of function calls} (a~function call is a~string), i.e., an element of~$ 2^\Sigma $. It captures function calls before a~lock. When a~lock is called, a~new $ (A, B) $ pair is created, and the \texttt{calls} set became the~$ A $ set.
     
@@ -1505,7 +1505,7 @@ The implementation of the \emph{abstract state} is illustrated in Listing~\ref{l
 \end{itemize}
 
 %~-
-\begin{lstlisting}[style=ocaml, label={list:phase1AbsState}, float=hbt, caption={A~definition of the \emph{abstract state}}]
+\begin{lstlisting}[style=ocaml, label={list:phase1AbsState}, float=hbt, caption={A~definition of the \emph{abstract state} in Phase~1}]
 module S = Set.Make(String) (* a set of strings *)
 type ab = S.t * S.t (* <@\textcolor{greencomments}{$ (A, B) $}@> pair *)
 module S_ab = Set.Make(struct type t = ab end) (* a set of <@\textcolor{greencomments}{$ (A, B) $}@> pairs *)
@@ -1515,8 +1515,9 @@ module S_ab_lock = (* a set of the above *)
 module M_AP = Map.Make(AccessPath) (* a map where AccessPath is a key *)
 type g = (* maps lock guards to a list of associated locks *)
   AccessPath.t list M_AP.t (* <@\textcolor{greencomments}{$ (\pi_g, L) $}@> where <@\textcolor{greencomments}{$ \pi_g $}@> is a key and <@\textcolor{greencomments}{$ L $}@> is a value *)
-type p = {calls: S.t; callsPairs: S_ab_lock.t; finalCallsPairs: S_ab.t;
-  allCalls: S.t list; guards: g} (* an element of an abstract state *)
+type p = (* an element of an abstract state *)
+  { calls: S.t; callsPairs: S_ab_lock.t; finalCallsPairs: S_ab.t
+  ; allCalls: S.t list; guards: g }
 module TSet = Set.Make(struct type t = p end) (* a set of the above *)
 type t = TSet.t (* a type of the abstract state (an alias for TSet.t) *)
 let initial : t = (* the initial abstract state of a function f *)
@@ -1531,17 +1532,18 @@ let initial : t = (* the initial abstract state of a function f *)
 
 The primary functions of the abstract domain that work with abstract states are \texttt{apply\_call}, \texttt{apply\_locks}, and \texttt{apply\_unlocks}. In earlier Listing~\ref{list:AITransform}, there is shown how these functions are utilised.
 
-The function \texttt{apply\_call} from Algorithm~\ref{alg:phase1ApplCall} demonstrates how an abstract state is updated when some classical function is invoked. For example, note that on line~4, the called function is appended to level~0 of the \texttt{allCalls} field. This is because the function is directly invoked from the analysed function, which is level~0. Moreover, e.g., notice that on line~7, the entire pair $ (A, B) $ is discarded when~$ B $ is greater than the parameter~$ d $. This is to rid of \uv{large} critical sections, as described in the proposal.
+The function \texttt{apply\_call} from Algorithm~\ref{alg:phase1ApplCall} demonstrates how an abstract state is updated when some classical function is invoked. For example, note that on line~4, the called function is appended to level~0 of the \texttt{allCalls} field. This is because the function is directly invoked from the analysed function, which is level~0. Moreover, e.g., notice that on line~8, the entire pair $ (A, B) $ is discarded when~$ B $ is greater than the parameter~$ d $. This is to rid of \uv{large} critical sections, as described in the proposal.
 
 \begin{algorithm}[hbt]
-    \KwData{called function~$ f \in \Sigma $; abstract state~$ s : \mathtt{Domain.t} $; maximum length~$ d \in \mathbb{N} $ of a~critical section}
+    \KwData{called function $ \mathtt{f} \in \Sigma $; abstract state $ s \in \mathtt{Domain.t} $; maximum length $ d \in \mathbb{N} $ of a~critical section}
 %
-    \Def{\texttt{\upshape{apply\_call($ f $, $ s $)}}}{%
+    \Def{\texttt{\upshape{apply\_call($ \mathtt{f} $, $ s $)}}}{%
         \For{$ p \in s $}{%
-            $ p.calls \leftarrow p.calls \cup \{f\} $\;
-            $ p.allCalls[0] \leftarrow p.allCalls[0] \cup \{f\} $\;
+            $ p.calls \leftarrow p.calls \cup \{\mathtt{f}\} $\;
+            $ p.allCalls[0] \leftarrow p.allCalls[0] \cup \{\mathtt{f}\} $\tcc*{0 is the top-level}
             \For{$ (A, B, \mathcal{L}) \in p.callsPairs $}{%
-                $ B \leftarrow B \cup \{f\} $\;
+                $ B \leftarrow B \cup \{\mathtt{f}\} $\;
+                \tcp{rid of \uv{large} critical sections}
                 \lIf{$ |B| > d $}{$ p.callsPairs \leftarrow p.callsPairs \setminus \{(A, B, \mathcal{L})\} $}
             }
         }
@@ -1563,7 +1565,7 @@ The implementation of the \emph{summary} is given in Listing~\ref{list:phase1Sum
 \end{itemize}
 
 %~-
-\begin{lstlisting}[style=ocaml, label={list:phase1Summ}, float=hbt, caption={A~definition of the \emph{summary}}]
+\begin{lstlisting}[style=ocaml, label={list:phase1Summ}, float=hbt, caption={A~definition of the \emph{summary} in Phase~1}]
 module SS = Set.Make (S) (* a set of sets of strings *)
 module Summary = struct
   type t = (* a type of a summary *)
@@ -1575,7 +1577,7 @@ end
 The \texttt{Summary} module also implements the function \texttt{create}, which converts an \emph{intraprocedural} abstract state to an \emph{interprocedural} summary. This function is given in Algorithm~\ref{alg:phase1SummCreate}. Its application can be seen in Listing~\ref{list:analyseProc} provided formerly.
 
 \begin{algorithm}[hbt]
-    \KwData{abstract state~$ s : \mathtt{Domain.t} $}
+    \KwData{abstract state $ s \in \mathtt{Domain.t} $}
 %
     \Def{\texttt{\upshape{create($ s $)}}}{%
         $ \mathcal{B} \leftarrow \emptyset $\;
@@ -1593,14 +1595,14 @@ The \texttt{Summary} module also implements the function \texttt{create}, which 
     \label{alg:phase1SummCreate}
 \end{algorithm}
 
-Moreover, when calling an already analysed function, its summary is used to update an abstract state of an analysed function. This is done using the function \texttt{apply\_summary} from Algorithm~\ref{alg:phase1ApplSumm} in Appendix~\ref{app:alg}. On line~14, there is again used the parameter~$ d $ to discard \uv{large} critical sections. Another interesting part of the algorithm is the derivation of nested functions executed within the called function (lines 4--10). Here, the parameter~$ r $ is used to limit the number of levels in the call hierarchy considered during analysing nested functions. How the function \texttt{apply\_summary} is used in the analysis is shown in Listing~\ref{list:AITransform} discussed previously.
+Moreover, when calling an already analysed function, its summary is used to update an abstract state of an analysed function. This is done using the function \texttt{apply\_summary} from Algorithm~\ref{alg:phase1ApplSumm} in Appendix~\ref{app:alg}. On line~15, there is again used the parameter~$ d $ to discard \uv{large} critical sections. Another interesting part of the algorithm is the derivation of nested functions executed within the called function (lines 4--10). Here, the parameter~$ r $ is used to limit the number of levels in the call hierarchy considered during analysing nested functions. How the function \texttt{apply\_summary} is used in the analysis is shown in Listing~\ref{list:AITransform} discussed previously.
 
 \subsection{Output of Phase~1}
 \label{sec:phase1Output}
 
-The output of the first phase of the analysis are \emph{sets of functions} that were identified as those that are likely to be always executed atomically. The sets are given separately for each function in which they were identified. They are derived from the summaries of all analysed functions of a~given program. At the end of the entire analysis, the sets are printed into a~\emph{text file} \texttt{atomic-sets} in an exact format. Each line of the file contains a~sequence of detected atomic sets (separated by whitespace) within a~particular function. A~line starts with the name of the function followed by a~colon and whitespace. Thus, whitespaces are significant. The set of atomic functions must be inside curly braces\,---\,a~comma and whitespace separate individual functions inside the set. Empty lines and line comments (started with the character~\texttt{\#}) are ignored. Moreover, some statistical information about the number of atomic functions is printed on the last line. Listing~\ref{list:phase1Out} includes an example of such an output file.
+An output of the first phase of the analysis are \emph{sets of functions} that were identified as those that are likely to be always executed atomically. The sets are given separately for each function in which they were identified. They are derived from the summaries of all analysed functions of a~given program. At the end of the entire analysis, the sets are printed into a~\emph{text file} \texttt{atomic-sets} in an exact format. Each line of the file contains a~sequence of detected atomic sets (separated by whitespace) within a~particular function. A~line starts with the name of the function followed by a~colon and whitespace. Thus, whitespaces are significant. The set of atomic functions must be inside curly braces\,---\,a~comma and whitespace separate individual functions inside the set. Empty lines and line comments (started with the character~\texttt{\#}) are ignored. Moreover, some statistical information about the number of atomic functions is printed on the last line. Listing~\ref{list:phase1Out} includes an example of such an output file.
 
-\begin{lstlisting}[style=plain, label={list:phase1Out}, float=hbt, caption={An example of the \emph{output of the first phase} of the analysis (\texttt{atomic-sets} file)}]
+\begin{lstlisting}[style=plain, label={list:phase1Out}, float=hbt, caption={An example of an \emph{output of the first phase} of the analysis (\texttt{atomic-sets} file)}]
 functionA:<@\visiblespace@>{f1,<@\visiblespace@>f2,<@\visiblespace@>f3}<@\visiblenl@>
 foo:<@\visiblespace@>{y,<@\visiblespace@>z}<@\visiblenl@>
 bar_f:<@\visiblespace@>{a}<@\visiblespace@>{b,<@\visiblespace@>c}<@\visiblenl@>
@@ -1611,12 +1613,13 @@ bar_f:<@\visiblespace@>{a}<@\visiblespace@>{b,<@\visiblespace@>c}<@\visiblenl@>
 This file is an \emph{input file for the second phase} of the analysis. However, it may be manually edited by the user or created from scratch, but the format must be adhered to. The derivation of the atomic sets and their printing to the output file is implemented in the \texttt{print\_atomic\_sets} function introduced in Algorithm~\ref{alg:phase1Out}.
 
 \begin{algorithm}[hbt]
-    \KwData{all analysed functions~$ F \in 2^\Sigma $}
+    \KwData{all analysed functions $ F \in 2^\Sigma $}
 %
     \Def{\texttt{\upshape{print\_atomic\_sets($ F $)}}}{%
-        \For{$ f \in F $}{%
-            $ \chi \leftarrow \text{\texttt{\upshape{read\_summary}}}(f) $\;
-            $ \text{\texttt{\upshape{printf}}}(\text{\texttt{\upshape{"\%s:\visiblespace"}}}, f) $\;
+        \For{$ \mathtt{f} \in F $}{%
+            $ \chi \leftarrow \text{\texttt{\upshape{read\_summary}}}(\mathtt{f}) $\;
+            $ \text{\texttt{\upshape{printf}}}(\text{\texttt{\upshape{"\%s:\visiblespace"}}}, \mathtt{f}) $\;
+            \tcp{\!\!'concat' concatenates elements of a~set using a~delimiter}
             \lFor{$ B \in \chi.atomicFunctions $}{$ \text{\texttt{\upshape{printf}}}(\text{\texttt{\upshape{"\{\%s\}\visiblespace"}}}, \text{\texttt{\upshape{concat}}}(B, \text{\texttt{\upshape{",\visiblespace"}}})) $}
             $ \text{\texttt{\upshape{print\_newline}}}() $\;
         }
@@ -1630,6 +1633,193 @@ This file is an \emph{input file for the second phase} of the analysis. However,
 
 \section{\texorpdfstring{Phase~2\,---\,Detection of Atomicity Violations}{Phase~2 - Detection of Atomicity Violations}}
 \label{sec:implementPhase2}
+
+The second phase of the analysis is enabled by a~command-line argument \texttt{-{}-atomicity-violations-only} (see the user manual for further details). This phase detects \emph{atomicity violations}, i.e., violations of the atomic sets obtained from the first phase. The atomic sets are read from the file \texttt{atomic-sets}, described in the previous section. Therefore, this file must exist to run the second phase of the analysis successfully. This section covers the implementation of the abstract states and summaries and their usage in this phase. The output of this phase is a~file containing reported atomicity violations, as discussed in Section~\ref{sec:phase2Output}.
+
+\begin{algorithm}[hbt]
+    \KwData{atomic sets $ \mathcal{B} \in 2^{2^\Sigma} $}
+%
+    \Def{\texttt{\upshape{create\_atomic\_pairs($ \mathcal{B} $)}}}{%
+        $ \Omega \leftarrow \emptyset $\;
+        \For{$ B \in \mathcal{B} $}{%
+            $ B_{list} \leftarrow \text{\texttt{\upshape{Set.elements}}}(B) $\tcc*{convert a~set to a~list}
+            \lIf{$ |B| = 1 $}{$ \Omega \leftarrow \Omega \cup \{(\varepsilon, B_{list}[0])\} $}
+            \Else{%
+                \For(\tcc*[f]{create all 2-element variations}){$ i \leftarrow 0 $ \KwTo $ |B| - 1 $}{%
+                    \For{$ j \leftarrow i + 1 $ \KwTo $ |B| - 1 $}{%
+                        $ \Omega \leftarrow \Omega \cup \{(B_{list}[i], B_{list}[j])\} \cup \{(B_{list}[j], B_{list}[i])\} $\;
+                    }
+                }
+            }
+        }
+        \Return{$ \Omega $}\;
+    }
+%
+    \caption{Deriving \emph{atomic pairs} from atomic sets}
+    \label{alg:phase2AtomicPairs}
+\end{algorithm}
+
+\paragraph{Atomic Pairs}
+In the beginning of the second phase of the analysis, the input file is processed. All atomic sets from this file are transformed into \emph{pairs} that are stored in an internal data structure $ \Omega \in 2^{\Sigma \times \Sigma} $, which is a~set of pairs of function calls that stores pairs that should be called atomically. $ \Omega $ is globally accessible throughout the analysis.
+
+The transformation from sets to pairs is done using the function \texttt{create\_atomic\_pairs} as demonstrated in Algorithm~\ref{alg:phase2AtomicPairs}. In particular, to obtain the pairs, all possible pairs of functions are taken from atomic sets, i.e., all \emph{2-element variations} (lines 7--11). Besides, notice that single functions may also be considered when an atomic set contains only one function call (line~5).
+
+%~-
+\begin{lstlisting}[style=ocaml, label={list:phase2AbsState}, float=hbt, caption={A~definition of the \emph{abstract state} in Phase~2}]
+type xy = string * string (* <@\textcolor{greencomments}{$ (\mathtt{x}, \mathtt{y}) $}@> pair *)
+type xy_lock = xy * Lock.t (* <@\textcolor{greencomments}{$ (\mathtt{x}, \mathtt{y}) $}@> pair with a lock, i.e., <@\textcolor{greencomments}{$ (\mathtt{x}, \mathtt{y}, \pi, l) \in \lambda $}@> *)
+module S_xy_lock = (* a set of the above *)
+  Set.Make(struct type t = xy_lock end)
+type severity = Warning | Error (* severity <@\textcolor{greencomments}{$ \mathcal{S} $}@> of an atomicity violation *)
+type v = (* a pair that violate atomicity, i.e., <@\textcolor{greencomments}{$ (\mathtt{x}, \mathtt{y}, c, S) \in \delta $}@> *)
+  xy * int * severity
+module S_v = Set.Make(struct type t = v end) (* a set of the above *)
+type p = (* an element of an abstract state *)
+  { lastPair: xy; violations: S_v.t; lockedLastPairs: S_xy_lock.t
+  ; guards: g }
+module TSet = Set.Make(struct type t = p end) (* a set of the above *)
+type t = TSet.t (* a type of the abstract state (an alias for TSet.t) *)
+let initial : t = (* the initial abstract state of a function f *)
+  TSet.singleton (* an "empty" element (initial program path of f) *)
+    { lastPair= ("", "") (* an empty pair *)
+    ; violations= S_v.empty (* an empty set *)
+    ; lockedLastPairs= S_xy_lock.empty (* an empty set *)
+    ; guards= M_AP.empty (* an empty map *) }
+\end{lstlisting}
+%~+
+
+\paragraph{Abstract State}
+The implementation of the \emph{abstract state} is illustrated in Listing~\ref{list:phase2AbsState}. The abstract state is of the type \texttt{TSet.t} (\texttt{t} is an alias for it). \texttt{TSet} itself is defined on line~12. It is a~module representing a~set of structures~\texttt{p} (lines 9--11). Each element corresponds to a~single program path. Fields of this structure are composed of types and modules defined on the lines above (some types are defined already in the previous section). Lines 14--19 define the \emph{initial abstract state}. The fields are as follows:
+\begin{itemize}
+    \item \texttt{lastPair}: a~\emph{pair of function calls}, i.e., $ \Sigma \times \Sigma $. It captures the $ (\mathtt{x}, \mathtt{y}) $ pair of the most recent calls of functions performed on the program path being explored. It is used for detecting whether this pair violates atomicity.
+    
+    \item \texttt{violations}: the \emph{set~$ \delta $ of so far detected pairs that violate atomicity} on particular lines of code with a~\emph{severity} of the violation, i.e., an element of $ 2^{\Sigma \times \Sigma \times \mathbb{N} \times \mathcal{S}} $. In the end, this set is used for reporting of atomicity violations.
+    
+    \item \texttt{lockedLastPairs}: the \emph{set~$ \lambda $ of the most recent function calls with their locks}, where a~lock~$ \mathcal{L} $ is of the type \texttt{Lock.t}. In fact, it is a~set of tuples $ (\mathtt{x}, \mathtt{y}, \pi, l) $, i.e., an element of $ 2^{\Sigma \times \Sigma \times \Pi \times \mathbb{N}^\top} $. This set is used for checking whether some pair is locked.
+    
+    \item \texttt{guards}: the same object as in the first phase of the analysis, i.e., a~\emph{map} $ \Pi \rightarrow 2^{\mathbb{N} \times \Pi} $. It maps a~lock guard's access path to a~list of access paths of associated locks. It can be viewed as a~set of the pairs $ (\pi_g, L) \in \Pi \times 2^\Pi $ from the proposal.
+\end{itemize}
+
+The main functions of the abstract domain of this phase that work with abstract states are \texttt{apply\_call}, \texttt{apply\_locks}, and \texttt{apply\_unlocks}. Earlier, in Listing~\ref{list:AITransform}, there is shown how these functions are applied.
+
+The function \texttt{apply\_call} from Algorithm~\ref{alg:phase2ApplCall} demonstrates how an abstract state is updated when some classical function is invoked. At first, this function pushes the called function to the \texttt{lastPair} field and to all locked pairs in the filed \texttt{lockedLastPairs} (lines 4--9). Then, it is checked whether there are any new atomicity violations (lines 12--18). Note that on lines 13 and 17, the created violations are labelled as \texttt{Error}. Thus, they are considered as \emph{global atomicity violations} so far. Later in the analysis\,---\,when analysing functions higher in the call hierarchy\,---\,these violations might be changed to \texttt{Warning} if this function is invoked under a~lock. This is further described later on.
+
+\begin{algorithm}[hbt]
+    \KwData{called function $ \mathtt{f} \in \Sigma $; actual line of code $ c \in \mathbb{N} $; abstract state $ s \in \mathtt{Domain.t} $; atomic pairs $ \Omega \in 2^{\Sigma \times \Sigma} $}
+%
+    \Def{\texttt{\upshape{apply\_call($ \mathtt{f} $, $ c $, $ s $)}}}{%
+        \For{$ p \in s $}{%
+            \tcp{\!\!'snd' returns the second element of a~pair}
+            $ p.lastPair \leftarrow (\text{\texttt{\upshape{snd}}}(p.lastPair), \mathtt{f}) $\tcc*{push~f to the last pair}
+            \For{$ (\mathtt{x}_\mathcal{L}, \mathtt{y}_\mathcal{L}, \mathcal{L}) \in p.lockedLastPairs $}{%
+                \tcp{push~f to all the locked pairs}
+                $ \mathtt{x}_\mathcal{L} \leftarrow \mathtt{y}_\mathcal{L} $\;
+                $ \mathtt{y}_\mathcal{L} \leftarrow \mathtt{f} $\;
+            }
+            $ (\mathtt{x}, \mathtt{y}) \leftarrow p.lastPair $\;
+            \tcp{check atomicity violation}
+            \If{$ (\mathtt{x}, \mathtt{y}) \in \Omega $ {\bf and} $ \nexists\,(\mathtt{x}, \mathtt{y}, \_) \in p.lockedLastPairs $}{%
+                $ p.violations \leftarrow p.violations \cup \{(\mathtt{x}, \mathtt{y}, c, \mathtt{Error})\} $\;
+            }
+            \tcp{check violation also for a~single function}
+            \If{$ (\varepsilon, \mathtt{y}) \in \Omega $ {\bf and} $ \nexists\,(\_, \mathtt{y}, \_) \in p.lockedLastPairs $}{%
+                $ p.violations \leftarrow p.violations \cup \{(\varepsilon, \mathtt{y}, c, \mathtt{Error})\} $\;
+            }
+        }
+        \Return{$ s $}\;
+    }
+%
+    \caption{Updating an abstract state after a~\emph{call of a~function}}
+    \label{alg:phase2ApplCall}
+\end{algorithm}
+
+Furthermore, the implementation of the functions \texttt{apply\_locks} and \texttt{apply\_unlocks} is illustrated using the algorithms from Appendix~\ref{app:alg}, namely, Algorithms~\ref{alg:phase2AppLock} and~\ref{alg:phase2AppUnlock}, respectively.
+
+\paragraph{Summary}
+The implementation of the \emph{summary} in this phase of the analysis is given in Listing~\ref{list:phase2Summ}. It is of the type \texttt{Summary.t} (line~2). It is composed of the modules defined earlier in Listing~\ref{list:phase2AbsState}. The sub-module \texttt{Summary} also implements other functions not shown in the listing. Some of these functions are defined later. The summary is a~structure that contains the following fields:
+\begin{itemize}
+    \item \texttt{violations}: the \emph{set $ \Delta $ of all detected pairs that violate atomicity} on particular lines of code with a~severity of the violation, i.e., an element of $ 2^{\Sigma \times \Sigma \times \mathbb{N} \times \mathcal{S}} $. It is constructed from the sets~$ \delta $ of an abstract state of a~given function.
+\end{itemize}
+
+%~-
+\begin{lstlisting}[style=ocaml, label={list:phase2Summ}, float=hbt, caption={A~definition of the \emph{summary} in Phase~2}]
+module Summary = struct
+  type t = {violations: S_v.t} (* a type of a summary *)
+end
+\end{lstlisting}
+%~+
+
+The \texttt{Summary} module also implements the function \texttt{create}, which converts an \emph{intraprocedural} abstract state to an \emph{interprocedural} summary. This function is given in Algorithm~\ref{alg:phase2SummCreate}. It simply takes atomicity violations from the abstract state and puts them into a~single set. An application of this function can be seen in Listing~\ref{list:analyseProc} provided in the beginning of this chapter.
+
+\begin{algorithm}[hbt]
+    \KwData{abstract state $ s \in \mathtt{Domain.t} $}
+%
+    \Def{\texttt{\upshape{create($ s $)}}}{%
+        $ \Delta \leftarrow \emptyset $\;
+        \lFor{$ p \in s $}{$ \Delta \leftarrow \Delta \cup p.violations $}
+        \Return{$ \{violations = \Delta\} $}\;
+    }
+%
+    \caption{Converting an abstract state to a~\emph{function summary}}
+    \label{alg:phase2SummCreate}
+\end{algorithm}
+
+Furthermore, when calling an already analysed function, its summary is used to update an abstract state of an analysed function. This is done using the function \texttt{apply\_summary} from Algorithm~\ref{alg:phase2ApplSumm} in Appendix~\ref{app:alg}. The algorithm works as follows. When the abstract state is considered to be inside an atomic block, all atomicity violations from the summary of the called function are passed to atomicity violations of the abstract state as warnings (lines 8--10). Otherwise, they are passed unchanged (line~5). This means that \emph{global} atomicity violations may be changed to \emph{local} atomicity violations of the called function. As a~consequence, these local atomicity violations will be reported as warnings, as discussed in the next section. How the function \texttt{apply\_summary} is used in the second phase of the analysis is shown in Listing~\ref{list:AITransform}.
+
+\subsection{Output of Phase~2}
+\label{sec:phase2Output}
+
+An output of the second phase of the analysis are final reported \emph{atomicity violations}. The violations are printed to the standard output. Moreover, it is stored in both plain text format (\texttt{infer-out/report.txt}) and JSON format (\texttt{infer-out/report.json}). An example of a~text output is provided in Listing~\ref{list:phase2Out}. Notice that in JSON format, there are more information about reported violations, e.g., an \emph{error trace path}.
+
+\begin{lstlisting}[label={list:phase2Out}, float=hbt, basicstyle=\ttfamily\small, numbers=none, caption={An example of an \emph{output of the second phase} of the analysis (\texttt{report.txt} file)}]
+#0
+analysed_program.c:36: error: Atomicity Violation
+  Atomicity Violation! - Functions 'foo' and 'bar' should be called atomically.
+  34. void do_something()
+  35. {
+  36.   foo(); bar();
+               ^
+  37. }
+  38.
+
+#1
+analysed_program.c:58: warning: Local Atomicity Violation
+  Local Atomicity Violation! - Functions 'x' and 'y' should be called atomically.
+  56. if (x() > 6)
+  57. {
+  58.   y(args);
+        ^
+  59. }
+  60.
+
+Found 2 issues
+                                          Issue Type(ISSUED_TYPE_ID): #
+              Local Atomicity Violation(ATOMICITY_VIOLATION_WARNING): 1
+                      Atomicity Violation(ATOMICITY_VIOLATION_ERROR): 1
+\end{lstlisting}
+
+The process of reporting atomicity violations is implemented using the function from Algorithms~\ref{alg:phase2Out}. As line~3 indicates, atomicity violations are reported only from \emph{top-level functions} of the call-tree. These functions contain atomicity violations from lower-levels too, because the summaries are passed upwards along the call-tree during the analysis. An error is reported a~little differently for local and global violations (lines 6--9). The reporting itself is implemented using the \texttt{Reporting} module provided by the Facebook Infer framework.
+
+\begin{algorithm}[hbt]
+    \KwData{all analysed functions $ F \in 2^\Sigma $}
+%
+    \Def{\texttt{\upshape{report\_atomicity\_violations($ F $)}}}{%
+        \For{$ \mathtt{f} \in F $}{%
+            \If{$ \text{\texttt{\upshape{is\_top\_level}}}(\mathtt{f}) $}{%
+                $ \chi \leftarrow \text{\texttt{\upshape{read\_summary}}}(\mathtt{f}) $\;
+                \For{$ (\mathtt{x}, \mathtt{y}, c, \mathcal{S}) \in \chi.violations $}{%
+                    \Switch{$ \mathcal{S} $}{%
+                        \lCase{$ \mathtt{Error} $}{$ \text{\texttt{\upshape{report\_global\_violation}}}(\mathtt{x}, \mathtt{y}, c) $}
+                        \lCase{$ \mathtt{Warning} $}{$ \text{\texttt{\upshape{report\_local\_violation}}}(\mathtt{x}, \mathtt{y}, c) $}
+                    }
+                }
+            }
+        }
+    }
+%
+    \caption{\emph{Reporting atomicity violations} from the summaries of all analysed functions}
+    \label{alg:phase2Out}
+\end{algorithm}
 
 
 \section{Support for New Languages and Locks}
