@@ -30,7 +30,7 @@ This appendix lists the contents of the attached memory media. In particular, th
     
     \item \texttt{\textbf{/src/}}
         \begin{itemize}
-            \item The source code of the Facebook Infer framework.
+            \item The source code of the Facebook Infer framework with the Atomer plugin.
             
             \item Atomer is \uv{hooked} in several files of the framework. Nevertheless, the majority of the implementation is located in the sub-directory \texttt{infer/src/atomicity/}.
         \end{itemize}
@@ -57,13 +57,154 @@ This appendix lists the contents of the attached memory media. In particular, th
 \chapter{Installation and User Manual}
 \label{app:man}
 
-\todo{Převzít z~bakalářky a~aktualizovat (aktuální informace jsou na Wiki na GitHubu), hlavně přidat použití parametrů analyzátoru. Přidat taky možná instalaci přes Docker.}
+This appendix serves as an installation and user manual. An extended manual (together with some examples) can be found at \emph{Atomer's Wiki} (\url{https://github.com/harmim/infer/wiki}) and on the attached memory media (see Appendix~\ref{app:memMedia}).
+
+Further, it is assumed that the \emph{working directory} contains all the files from the attached memory media, as described in Appendix~\ref{app:memMedia}. If not, the \texttt{/src/} directory may be cloned using \texttt{git} through \texttt{SSH} or \texttt{HTTPS} using one of the following commands:
+\begin{lstlisting}[style=bash]
+<@\textcolor{magenta}{git}@> clone git@github.com:harmim/infer.git --branch atomer-v2.0.0 --single-branch --depth 1 --recurse-submodules src
+<@\textcolor{magenta}{git}@> clone https://github.com/harmim/infer.git --branch atomer-v2.0.0 --single-branch --depth 1 --recurse-submodules src
+\end{lstlisting}
+Alternatively, it can be downloaded using \texttt{curl} as follows:
+\begin{lstlisting}[style=bash]
+curl -sL https://github.com/harmim/infer/archive/refs/tags/atomer-v2.0.0.tar.gz <@|~\textcolor{magenta}{tar}@> -xz
+mv infer-atomer-v2.0.0 src
+\end{lstlisting}
+If the \texttt{/infer-linux-x86-64-atomer-v2.0.0/} directory containing executable binaries is not present, it can be downloaded using \texttt{curl} as follows:
+\begin{lstlisting}[style=bash]
+mkdir infer-linux-x86-64-atomer-v2.0.0
+curl -sL <@\scriptsize{https://github.com/harmim/infer/releases/download/atomer-v2.0.0/infer-atomer-v2.0.0.tar.xz}@> <@|~\textcolor{magenta}{tar}@> -xJ -C infer-linux-x86-64-atomer-v2.0.0
+\end{lstlisting}
 
 
 \section*{Installation Manual}
 
+In the \texttt{/infer-linux-x86-64-atomer-v2.0.0/} directory, there is Facebook Infer with Atomer already compiled. Thus, it can be directly used. In the sub-directly \texttt{bin/}, there are executable binaries. Manual pages can be found in the sub-directory \texttt{share/man/}. The binaries have been compiled for the Debian GNU/Linux x86-64 10.9 (Buster) operating system. It can be installed system-wide using the following commands:
+\begin{lstlisting}[style=bash]
+PATH="infer-linux-x86-64-atomer-v2.0.0/bin:$PATH"
+MANPATH="infer-linux-x86-64-atomer-v2.0.0/share/man:$MANPATH"
+\end{lstlisting}
+
+Another option is to build Atomer from the source or to run it in Docker. These options are discussed in the following sections. \textbf{Running pre-compiled binaries in Docker is a~recommended and quick method.}
+
+\subsection*{Building Atomer from the Source}
+
+\textit{Building Atomer from the source may be very time-consuming.}
+
+At first, it is required to install Facebook Infer's dependencies and then to compile Facebook Infer with Atomer. Here are the prerequisites to be able to compile Facebook Infer with Atomer on Linux:
+\begin{itemize}
+    \item \texttt{opam} $ \geq $ 2.0.0,
+    
+    \item \texttt{pkg-config},
+    
+    \item Java (only needed for the Java analysis),
+    
+    \item \texttt{gcc} $ \geq $ 5.X or \texttt{clang} $ \geq $ 3.4 (only needed for the C/C++ analysis),
+    
+    \item \texttt{autoconf} $ \geq $ 2.63,
+    
+    \item \texttt{automake} $ \geq $ 1.11.1,
+    
+    \item \texttt{cmake} (only needed for the C/C++ analysis).
+\end{itemize}
+See \texttt{/src/docker/atomer-v2.0.0/Dockerfile} for inspiration on how to install the dependencies on Linux. It includes the dependencies needed to build Facebook Infer with Atomer on Debian 10 (Buster).
+
+The installation of Facebook Infer with Atomer can be done using the following commands:
+\begin{lstlisting}[style=bash]
+cd src
+./build-infer.sh
+sudo make install
+\end{lstlisting}
+The official Facebook Infer's installation manual (which also includes instructions for other operating systems) can be found at \url{https://github.com/harmim/infer/blob/atomer-v2.0.0/INSTALL.md}.
+
+Facebook Infer with Atomer now should be installed system-wide. Executable binaries are located in \texttt{/src/infer/bin/}.
+
+\subsection*{Running Atomer in Docker}
+
+Alternatively, Facebook Infer with Atomer can be easily built and run in Docker. The installation is much simpler and faster. At first, it is needed to install \emph{Docker Engine}. It is available on a~variety of Linux platforms, macOS, and Windows~10. Get it and follow the instructions from \url{https://docs.docker.com/engine/install}.
+
+The first option is to build Facebook Infer with Atomer from the source in Docker. There is prepared a~Docker image for it. \textit{Building the image can take a~few hours}. The image is based on Debian Linux. After running a~container built from this image, Facebook Infer with Atomer will be compiled and installed system-wide in the container. The image can be built and the container run using the command below:
+\begin{lstlisting}[style=bash]
+./src/docker/atomer-v2.0.0/run.sh # there is also run.bat for Windows
+\end{lstlisting}
+
+The second option is to run \emph{pre-compiled binaries} of Facebook Infer with Atomer in Docker. There is prepared another Docker image for it. \textit{Building the image can take, at most, a~few minutes.} The image is based on Debian Linux as well. After running a~container built from this image, binaries of Facebook Infer with Atomer will be downloaded and installed system-wide in the container. The image can be built and the container run using the command below:
+\begin{lstlisting}[style=bash]
+./src/docker/atomer-v2.0.0-bin/run.sh # there is also run.bat for Windows
+\end{lstlisting}
+
 
 \section*{User Manual}
+
+\textit{This section assumes that Facebook Infer with Atomer is installed system-wide and executable by the command} \texttt{infer}.
+
+In general, to analyse a~C/C++ program with Facebook Infer, it can be done using the following command (for a~single source file):
+\begin{lstlisting}[style=bash]
+<@\textcolor{magenta}{infer}@> -- gcc -c source_file.c
+\end{lstlisting}
+Java programs can be analysed using the following command:
+\begin{lstlisting}[style=bash]
+<@\textcolor{magenta}{infer}@> -- javac source_file.java
+\end{lstlisting}
+Another option is to analyse the entire project with \texttt{Makefile} using the following:
+\begin{lstlisting}[style=bash]
+<@\textcolor{magenta}{infer}@> -- make <target>
+\end{lstlisting}
+For advanced usage, see \url{https://fbinfer.com/docs/infer-workflow}. Many other build systems may be used; see \url{https://fbinfer.com/docs/analyzing-apps-or-projects}.
+
+Atomer is \emph{deactivated} by default. The analysis has to be executed twice (it has two phases). Each phase runs with a~different command-line argument. The first phase derives \emph{sets of functions that should be executed atomically} into a~file \texttt{atomic-sets}. The second phase then \emph{detects atomicity violations} according to this file. So, the analysis can be triggered using the following commands:
+\begin{lstlisting}[style=bash]
+<@\textcolor{magenta}{infer}@> capture -- gcc -c source_file.c
+# Without the '-only' suffix, it is triggered with other Infer's analyses.
+<@\textcolor{magenta}{infer}@> analyze --atomic-sets-only # --atomic-sets
+<@\textcolor{magenta}{infer}@> analyze --atomicity-violations-only # --atomicity-violations
+\end{lstlisting}
+To analyse Java programs, use the following commands:
+\begin{lstlisting}[style=bash]
+<@\textcolor{magenta}{infer}@> capture -- javac source_file.java
+<@\textcolor{magenta}{infer}@> analyze --atomic-sets-only # --atomic-sets
+<@\textcolor{magenta}{infer}@> analyze --atomicity-violations-only # --atomicity-violations
+\end{lstlisting}
+
+\subsection*{Input Parameters}
+
+The following parameters may be used when running the \texttt{infer analyze} command:
+\begin{itemize}[label={}]
+    \item \texttt{-{}-atomicity-ignored-function-calls path}
+    \begin{itemize}
+        \item Specify a~file with function names (one function name per line; considered as a~regular expression if the line starts with~\texttt{R} followed by whitespace, an exact match otherwise) whose \emph{calls should be ignored} during the analysis.
+    \end{itemize}
+    
+    \item \texttt{-{}-atomicity-ignored-function-analyses path}
+    \begin{itemize}
+        \item Specify a~file with function names (one function name per line; considered as a~regular expression if the line starts with~\texttt{R} followed by whitespace, an exact match otherwise) whose \emph{analysis should be ignored} during the analysis.
+    \end{itemize}
+    
+    \item \texttt{-{}-atomicity-allowed-function-calls path}
+    \begin{itemize}
+        \item Specify a~file with function names (one function name per line; considered as a~regular expression if the line starts with~\texttt{R} followed by whitespace, an exact match otherwise) whose \emph{calls should be allowed} during the analysis. Other functions will be ignored.
+    \end{itemize}
+    
+    \item \texttt{-{}-atomicity-allowed-function-analyses path}
+    \begin{itemize}
+        \item Specify a~file with function names (one function name per line; considered as a~regular expression if the line starts with~\texttt{R} followed by whitespace, an exact match otherwise) whose \emph{analysis should be allowed} during the analysis. Other functions will be ignored.
+    \end{itemize}
+    
+    \item \texttt{-{}-atomic-sets-locked-functions-limit int}
+    \begin{itemize}
+        \item Specify the \emph{maximum number of function calls} that could appear in a~\emph{critical section} in the first phase of the analysis. Critical sections with more function calls will be ignored. This is the parameter~$ d $. The default value is~20.
+    \end{itemize}
+    
+    \item \texttt{-{}-atomic-sets-functions-depth-limit int}
+    \begin{itemize}
+        \item Specify the \emph{maximum depth in the hierarchy of function calls} to which function calls will be considered during the first phase of the analysis. This is the parameter~$ r $. The default value is~10.
+    \end{itemize}
+    
+    \item \texttt{-{}-atomicity-lock-level-limit int}
+    \begin{itemize}
+        \item Specify the \emph{maximum expected level of ownership over the same lock object}. An over-approximation of the number of times the lock has been acquired. This is the parameter~$ t $. The default value is~5.
+    \end{itemize}
+\end{itemize}
+For more information about the input parameters and other helpful parameters, see \texttt{man infer} or \texttt{man infer-analyze}.
 
 
 
@@ -166,7 +307,7 @@ This section deals with algorithms related to the \emph{first phase} of the anal
         \Return{$ s $}\;
     }
 %
-    \caption{Updating an abstract state \emph{with a~summary} of a~called function}
+    \caption{Updating an abstract state with a~\emph{summary of a~called function}}
     \label{alg:phase1ApplSumm}
 \end{algorithm}
 
@@ -254,7 +395,7 @@ This section deals with algorithms related to the \emph{second phase} of the ana
         \Return{$ s $}\;
     }
 %
-    \caption{Updating an abstract state \emph{with a~summary} of a~called function}
+    \caption{Updating an abstract state with a~\emph{summary of a~called function}}
     \label{alg:phase2ApplSumm}
 \end{algorithm}
 
