@@ -1247,7 +1247,12 @@ Management}{\@fit@EN}%
 \lstdefinestyle{bash}{
   language=bash,
   numbers=none,
-  morekeywords={sudo, make, infer}
+  frame=none,
+  backgroundcolor=\color{white},
+  keywordstyle=\color{magenta},
+  morekeywords={sudo, make, curl, mv, mkdir, gcc, javac},
+  aboveskip=.5\baselineskip,
+  belowskip=.01\baselineskip
 }
 \lstdefinestyle{c}{language=c}
 \lstdefinestyle{c++}{
