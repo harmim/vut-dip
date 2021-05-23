@@ -1852,27 +1852,149 @@ In the new version of Atomer, the \texttt{ConcurrencyModels} module has been sig
 \chapter{Experimental Evaluation of the New Version of Atomer}
 \label{chap:exp}
 
-\todo{Některé věci převzít z~Excelu a~z~projektové praxe.}
+This chapter is devoted to \emph{testing} and \emph{experimental evaluating} the new version of \emph{Atomer} as proposed and implemented in Chapters~\ref{chap:proposal} and~\ref{chap:implement}, respectively. Each Atomer's enhancement/extension was tested independently as soon as it had been implemented. It was tested on suitable programs created for testing purposes and got inspired by test programs from~\cite{harmimBP}. Section~\ref{sec:expScal} includes the evaluation of analysis \emph{scalability}. Further, Section~\ref{sec:expGluon} shows experiments performed on test programs derived from the static analyser \emph{Gluon}. Moreover, Section~\ref{sec:expReal} is about the experimental evaluation of the new version of Atomer on publicly available \emph{real-life complex} programs. Finally, Section~\ref{sec:expSummary} concludes the experimental evaluation and discusses future work.
 
-% Testing on Hand-Crafted Examples
+\subsubsection{Testing on Hand-Crafted Examples}
+
+The correct behaviour of the first version of Atomer was already tested in~\cite{harmimBP} on a~suitable test suite containing C~programs that use \emph{PThread locks}. Test programs from this test suite include sequences of function calls inside and outside \emph{atomic blocks}, \emph{not paired lock/unlock calls}, iteration, selection, and \emph{nested function calls} inside atomic sections. The programs were designed to check all essential aspects of Atomer's analysis, i.e., to check whether various parts of \emph{abstract domains} work well w.r.t. to the proposal.
+
+The implementation of the new version of Atomer was, at first, tested on the test suite from~\cite{harmimBP}. However, the reference outputs for these test programs were modified to adapt the newly implemented features, e.g., the approximation of working with \emph{sequences of function calls} by working with \emph{sets of function calls} has to be reflected in the reference outputs. Further, new test programs were derived from those in~\cite{harmimBP}, and they were changed in order to check all aspects of the extensions and enhancements implemented in the new version of Atomer. During testing, various kinds of different lock mechanisms for C/C++/Java were used.
+
+This way, the correct functioning of the analysis of Atomer's new version has been validated (w.r.t. the proposal). All of these testing programs are available in the attached memory media; see Appendix~\ref{app:memMedia}.
 
 
 \section{Scalability Benchmark}
 \label{sec:expScal}
 
-\cite{deadlockKroening}
+The \emph{scalability} of the analysis has been tested on a~subset of a~\emph{publicly available benchmark} from~\cite{deadlockKroening}. It consists of \emph{real-life low-level complex concurrent~C} programs derived from the Debian GNU/Linux distribution. The entire benchmark was initially used for an experimental evaluation of Daniel Kroening's static deadlock analyser for C/PThreads implemented in the CPROVER framework. However, it can also be used for the evaluation of Atomer's scalability. For the evaluation, 7~programs with deadlocks and 54~deadlock-free programs (806,431 lines of code in total) were used.
+
+The experiments\footnote{Performed \textbf{scalability experiments} are available at GitHub: \url{https://github.com/harmim/vut-dip/tree/master/benchmarks/scalability}.} were run in a~\emph{Docker container} on Windows~10 (WSL~2) with a~3.3\,GHz Intel\copyright\ Core\texttrademark\ i5-2500K 64-bit processor and 6\,GB RAM running the Debian GNU/Linux x86-64 10.9 (Buster) operating system. Table~\ref{tab:expScalAgg} shows aggregated results of the evaluation. There are average and total times of analyses for both phases of the analysis for both the basic version of Atomer (Atomer v1.0.0, i.e., the version before the \emph{approximation with sets} proposed in the thesis) and the new version (Atomer v2.0.0, i.e., the version after the approximation). Also, there is shown the number of \emph{timeouts} of individual analyses where the timeout~$ \top $ was set to 10~minutes. It is evident that, on average, the new version of Atomer is about \emph{two times faster}.
+
+\begin{table}[hbt]
+    \centering
+
+    \begin{tabular}{|l|r|r|r|r|}
+        \hline
+
+        \multirow{2}{*}{} & \multicolumn{2}{c|}{\textbf{Atomer v1.0.0}} & \multicolumn{2}{c|}{\textbf{Atomer v2.0.0}} \\ \cline{2-5}
+
+        & \textbf{Phase~1} & \textbf{Phase~2} & \textbf{Phase~1} & \textbf{Phase~2} \\ \hline \hline
+
+        \textbf{Average Time (s)} & 70.98 & 109.11 & 37.96 & 50.93 \\ \hline
+
+        \textbf{Total Time (s)} & 4,117 & 5,892 & 2,164 & 2,750 \\ \hline
+
+        \textbf{Timeouts} & 4 & 9 & 3 & 4 \\ \hline
+    \end{tabular}
+
+    \caption{\emph{Aggregated results} of the evaluation of Atomer's \emph{analysis scalability}}
+    \label{tab:expScalAgg}
+\end{table}
+
+For a~closer look, Table~\ref{tab:expScal} provides an overview of analyses' times of selected programs from the benchmark. Above that, there are \texttt{tgrep} and \texttt{sort} from GNU Core Utilities that also use PThreads. It can be seen that the approximation decreased the analysis time a~lot for some of these programs. Nonetheless, in one case, the timeout was also exceeded in the new version of Atomer. This shows that the analysis may still take a~quite long time in some cases even after the approximation. The reason is that in these low-level programs, there are vast and complicated functions (thousands lines of code) that contain \emph{in-lined code}.
+
+\begin{table}[hbt]
+    \centering
+    \small
+
+    \begin{tabular}{|l|r|r|r|r|r|}
+        \hline
+
+        \multirow{3}{*}{\textbf{Program}} & \multicolumn{1}{c|}{\multirow{3}{*}{\textbf{LOC}}} & \multicolumn{2}{c|}{\textbf{Atomer v1.0.0}} & \multicolumn{2}{c|}{\textbf{Atomer v2.0.0}} \\ \cline{3-6}
+
+        & & \multicolumn{1}{c|}{\textbf{Phase~1}} & \multicolumn{1}{c|}{\textbf{Phase~2}} & \multicolumn{1}{c|}{\textbf{Phase~1}} & \multicolumn{1}{c|}{\textbf{Phase~2}} \\
+        
+        & & \multicolumn{1}{c|}{\textbf{Time (s)}} & \multicolumn{1}{c|}{\textbf{Time (s)}} & \multicolumn{1}{c|}{\textbf{Time (s)}} & \multicolumn{1}{c|}{\textbf{Time (s)}} \\ \hline \hline
+
+        \texttt{btscanner} 2.1 & 9,142 & $ \top $ & N/A & 47.33 & 69.04 \\ \hline
+
+        \texttt{daemon} (\texttt{libslack}) 0.6.4 & 42,857 & 280.75 & 40.85 & 11.40 & 10.43 \\ \hline
+
+        \texttt{crossfire-client-gtk2} 1.71 & 41,185 & 1.74 & $ \top $ & 1.71 & 14.58 \\ \hline
+
+        \texttt{c-icap} 0.4.2 & 39,254 & 154.86 & 20.70 & 2.37 & 6.14 \\ \hline
+
+        \texttt{hmmer2} (\texttt{hmmcalibrate}) 2.3.2 & 38,301 & 109.79 & $ \top $ & 10.07 & $ \top $ \\ \hline
+
+        \texttt{towitoko} 2.0.7 & 12,339 & 38.23 & 77.50 & 2.27 & 10.69 \\ \hline
+
+        \texttt{mesa-demos} 8.3.0 & 2,424 & 397.10 & $ \top $ & 46.50 & 5.83 \\ \hline
+
+        \texttt{freecell-solver} 3.26.0 & 15,408 & 37.28 & 0.78 & 3.45 & 9.81 \\ \hline \hline
+
+        \texttt{tgrep} 1 & 3,190 & 240.36 & $ \top $ & 0.92 & 0.74 \\ \hline
+
+        \texttt{sort} (GNU Coreutils) & 7,523 & 5.33 & 0.39 & 1.49 & 0.91 \\ \hline
+    \end{tabular}
+
+    \caption{\emph{Individual results} of the evaluation of Atomer's \emph{analysis scalability} ($ \top > 600 $\ \!s)}
+    \label{tab:expScal}
+\end{table}
 
 
 \section{Evaluation on Validation Programs Derived from Gluon}
 \label{sec:expGluon}
 
+\emph{Gluon} is a~prototype tool for static analysis of \emph{contracts for concurrency} in Java programs developed in~\cite{contracts2017, contracts2015} (also discussed in Section~\ref{sec:atomerRelatedWork}). The functionality of Gluon was validated on a~set of small benchmarking programs with known atomicity violations, which can be seen as contract violations. These programs were adapted from~\cite{hlDataRaces, blockLocalAtom, atomicityOOP}, where they are typically used to evaluate atomicity violation detection methods. In~\cite{contracts2017, contracts2015}, these programs were appropriately redesigned, and the necessary contracts for each program were created.
+
+Moreover, in~\cite{contracts2017}, to validate a~\emph{dynamic approach} for contract violations, a~subset of the benchmarking programs was rewritten to a~C++ version. This subset was also used to validate the new version of Atomer. Validation results\footnote{\textbf{Experiments on validation programs} derived from \textbf{Gluon}: \url{https://github.com/harmim/vut-pp1/tree/master/testing-programs/contracts-first-experiments-atomer}.} are given in Table~\ref{tab:expGluon}. The table shows the number of atomicity violations that can really occur in a~given program (\emph{Real Atomicity Violations}), the number of the real violations that were found by the new version of Atomer (\emph{True Positives}), and the number of false positives (\emph{False Positives}).
+
+\begin{table}[hbt]
+    \centering
+
+    \begin{tabular}{|l|r|r|r|r|}
+        \hline
+
+        \multirow{2}{*}{\textbf{Benchmark}} & \multirow{2}{*}{\textbf{LOC}} & \multicolumn{1}{c|}{\textbf{Real Atomicity}} & \multicolumn{1}{c|}{\textbf{True}} & \multicolumn{1}{c|}{\textbf{False}} \\
+        
+        & & \multicolumn{1}{c|}{\textbf{Violations}} & \multicolumn{1}{c|}{\textbf{Positives}} & \multicolumn{1}{c|}{\textbf{Positives}} \\ \hline \hline
+
+        Account~\cite{atomicityOOP} & 56 & 1 & 1 & 0 \\ \hline
+        
+        Coord03~\cite{hlDataRaces} & 119 & 1 & 1 & 0 \\ \hline
+        
+        Coord04~\cite{blockLocalAtom} & 55 & 1 & 1 & 0 \\ \hline
+        
+        Local~\cite{hlDataRaces} & 30 & 1 & 1 & 0 \\ \hline
+        
+        NASA~\cite{hlDataRaces} & 97 & 1 & 1 & 0 \\ \hline
+    \end{tabular}
+
+    \caption{Atomer's \emph{validation results} on test programs derived from \emph{Gluon}~\cite{contracts2017, contracts2015}}
+    \label{tab:expGluon}
+\end{table}
+
+The experiments were performed such that the contracts from~\cite{contracts2017} were manually given to the second phase of Atomer's analysis as \emph{atomic sets}. As the table shows, Atomer detected \emph{all known atomicity violations} with the \emph{absence of false positives}. Times of the analysis are not included in the table because all the programs were analysed in less than a~second.
+
+Furthermore, the author of this thesis created a~\emph{correct version} of each benchmark, i.e., a~version where atomicity violations are fixed by adding appropriate locks. Then, it was shown that the first phase of the new version of Atomer was able to derive suitable contracts \emph{automatically}. Subsequently, Atomer found no atomicity violations in such corrected programs.
+
 
 \section{Experiments with Real-Life Programs}
 \label{sec:expReal}
 
+Since the new version of Atomer supports the analysis of Java programs, two \emph{open-source real-life extensive} (both $ \sim\!\!250,000 $\ lines of code) Java programs were analysed\,---\,\emph{Apache Cassandra}\footnote{Open-source NoSQL database system \textbf{Apache Cassandra}: \url{https://cassandra.apache.org}.}~3.11 and \emph{Apache Tomcat}\footnote{Open-source Java HTTP web server \textbf{Apache Tomcat}: \url{https://tomcat.apache.org}.}~8.5. In~\cite{contracts2017}, there were reported several \emph{atomicity-related bugs} in these programs. It turned out that the reported bugs were real atomicity violation errors, and they were later fixed.
+
+When Atomer first analysed these programs (at that time, without most of the extensions presented in this thesis), the bugs were successfully \emph{rediscovered}, but quite some \emph{false alarms} were reported. However, after all the improvements proposed in the thesis were implemented, the number of false alarms was \emph{significantly reduced}. In particular, the support for \emph{re-entrant locks} increased the analysis' precision a~lot because these types of locks appear pretty often in these programs. Moreover, many \uv{large} atomic sections in these programs dramatically increase the number of reported false alarms. Therefore, the \emph{parameters of the analysis} presented in the thesis were used. In particular, the maximum length of critical sections was limited with the parameter~$ d $ set to~20, and the number of levels considered during analysing nested functions was limited with the parameter~$ r $ set to~10. Further, also using the parametrisation of the analysis, several \uv{non-critical} functions were ignored during the analysis (e.g., \texttt{String.format}, \texttt{*.toString}, \texttt{*.toArray}, \texttt{Log.debug}, \texttt{Integer.valueOf}, etc.).
+
+With all these Atomer's extensions, when analysing one of the source files of Tomcat where a~real atomicity violation was reported before (i.e., \texttt{org.apache.catalina.core.Stan\-dardContext}\,---\,this package itself contains~6,684 lines of code, and the packages it depends on, that must have been analysed too, contain tens of thousands lines of code), the number of reported errors decreased from~$ \sim\!\!800 $ to~228. Then, when analysing one of the source files of Cassandra where a~real atomicity violation was reported before (i.e., \texttt{org.apache.cassandra.streaming.StreamSession}\,---\,this package itself contains 1,014 lines of code, and the packages it depends on, that must have been analysed too, contain tens of thousands lines of code), the number of reported errors decreased from~$ \sim\!\!700 $ to~112.
+
+Obviously, most of the previously reported errors were false alarms. However, it is still challenging to say which of these errors are real atomicity violations. Indeed, the author suspects some of the warnings correspond to real errors, but so far, the author has not managed to confirm that.
+
 
 \section{Summary of the Evaluation and Future Work}
 \label{sec:expSummary}
+
+Using small \emph{hand-crafted programs}, it was \emph{successfully validated} that the implemented new version of Atomer works correctly w.r.t. the proposal. This validation includes all \emph{scalability/precision} enhancements as well as support for other programming languages and \emph{advanced locking mechanisms} that were not supported in the first version of Atomer.
+
+\emph{Scalability testing} in Section~\ref{sec:expScal} shows that the new version of Atomer can analyse quite \emph{extensive real-life low-level} programs in a~reasonable time. Moreover, it was proven that the new version of Atomer is \emph{significantly faster} than the first version implemented in~\cite{harmimBP}. This improvement is caused by the \emph{approximation} of working with \emph{sequences of function calls} by working with \emph{sets of function calls}. Regarding performance, Atomer may be directly usable for large real-life projects. However, the performance of Atomer strongly depends on the size of \emph{critical sections} (i.e., the number of function calls inside critical sections). Thus, it is needed to filter out \uv{large} critical sections using the proposed parameters in some cases.
+
+Sections~\ref{sec:expGluon} and~\ref{sec:expReal} demonstrate that the new version of Atomer can also reveal \emph{real atomicity-related bugs} in C++ and Java programs. In the case of the complicated and large Java programs from Section~\ref{sec:expReal}, it was shown that the accuracy of the new version of Atomer was \emph{significantly improved}. However, unfortunately, quite some false alarms are still reported along with real errors. It can be demanding to properly classify which of the reported errors are real errors and false alarms. This can make the analysis unusable on some kinds of real-world programs. But still, it is possible to find appropriate values of the proposed parameters for a~particular program to obtain good results. For instance, in this way, one can specify several specific \uv{critical functions} that Atomer should focus on. This should often lead to much better results.
+
+The above implies that future work will focus mainly on further improvements of the accuracy of the analysis. Besides, the analysis results may be used as an input for \emph{dynamic analysis}, checking whether the atomicity violations are real errors. For example, one could use they ANaConDA~\cite{anaconda} dynamic analyser, which uses \emph{noise-based testing} with \emph{extrapolated checking} for violations of contracts for concurrency. ANaConDA could be instructed to concentrate its analysis and \emph{noise injection} to those sets whose atomicity was found broken. Furthermore, it seems promising to consider \emph{formal parameters} and \emph{distinguish the context} of called functions during the analysis to reduce false alarms.
+
+Another exciting idea is to use \emph{machine learning} to learn appropriate values of the analysis' parameters (introduced in this thesis) for particular programs. \emph{Automation} of the analysis can be preserved using this approach, and the precision of the analysis may be high enough (however, the precision would highly depend on \emph{training data}). Another solution to reducing the number of false alarms is to do some \emph{statistical ranking} of reported errors and display only the most critical errors to the user.
+
+During experimenting with Tomcat, the author of this thesis found out that several reported errors were due to calling functions with parameters that were \emph{local} variables (i.e., \emph{non-shared} variables). These cases cannot lead to real atomicity violations. Therefore, it would be helpful to statically identify whether function parameters are shared variables. If they are not, calls of such functions should be ignored.
 
 
 
