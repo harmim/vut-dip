@@ -24,7 +24,7 @@ void replace(int *array, int a, int b)
 }
 \end{lstlisting}
 
-Within this thesis, Atomer has been \emph{significantly improved and extended}. In particular, to improve scalability, working with \emph{sequences} of function calls was \emph{approximated} by working with \emph{sets} of function calls. Furthermore, several new features were implemented: support for \emph{C++ and Java}, including various advanced kinds of \emph{locks} these languages offer (such as \emph{re-entrant locks} or \emph{lock guards}); or a~more precise way of \emph{distinguishing between different lock instances}. Moreover, the analysis has been \emph{parameterised} by function names to concentrate on during the analysis and limits of the number of functions in \emph{critical sections}. These parameters aim to reduce the number of false alarms. Their proposal is based on the author's analysis of false alarms produced by the first Atomer's version. Lastly, new experiments were performed to test capabilities of a~new version of Atomer.
+Within this thesis, Atomer has been \emph{significantly improved and extended}. In particular, to improve scalability, working with \emph{sequences} of function calls was \emph{approximated} by working with \emph{sets} of function calls. Furthermore, several new features were implemented: support for \emph{C++} and \emph{Java}, including various \emph{advanced kinds of locks} these languages offer (such as \emph{re-entrant locks} or \emph{lock guards}); or a~more precise way of \emph{distinguishing between different lock instances}. Moreover, the analysis has been \emph{parameterised} by function names to concentrate on during the analysis and limits of the number of functions in \emph{critical sections}. These parameters aim to reduce the number of false alarms. Their proposal is based on the author's analysis of false alarms produced by the first Atomer's version. Lastly, new experiments were performed to test capabilities of a~new version of Atomer.
 
 The development of the original Atomer started under the H2020 ECSEL projects AQUAS and Arrowhead Tools. The development of its new version is supported by the H2020 ECSEL project VALU3S. It has been discussed with the developers of Facebook Infer too. Parts of the thesis concerning the preliminaries and the basic version of Atomer are partially taken from the thesis~\cite{harmimBP}. Moreover, some preliminary results were also published in the Excel@FIT'21 paper~\cite{excel2021Harmim} written by the author.
 
@@ -594,7 +594,7 @@ Formally, let~$ \Sigma_\mathbb{M} $ be a~set of all function names of a~software
         \label{fig:contract3}
     \end{subfigure}
 
-    \caption{A~\emph{contract violation} demonstration with \emph{target and spoiler interleavings}. In each sub-figure, a~thread~$ t_1 $ executes a~target sequence $ r = \mathtt{f\ g} $ and a~thread~$ t_2 $ executes a~spoiler sequence $ s = \mathtt{x\ y} $. Consequently, there is the following contract: $ \mathtt{f\ g}\ \leftsquigarrow\ \mathtt{x\ y} $~\cite{muzikovskaBP}}
+    \caption{A~\emph{contract violation} demonstration with \emph{target} and \emph{spoiler interleavings}. In each sub-figure, a~thread~$ t_1 $ executes a~target sequence $ r = \mathtt{f\ g} $ and a~thread~$ t_2 $ executes a~spoiler sequence $ s = \mathtt{x\ y} $. Consequently, there is the following contract: $ \mathtt{f\ g}\ \leftsquigarrow\ \mathtt{x\ y} $~\cite{muzikovskaBP}}
 \end{figure}
 
 \begin{example}
@@ -2005,52 +2005,21 @@ During experimenting with Tomcat, the author of this thesis found out that sever
 \chapter{Conclusion}
 \label{chap:conc}
 
-% This thesis started by describing the principles of \emph{static analysis}
-% and \emph{abstract interpretation}. Further, \emph{Facebook Infer} was
-% described\,---\,a~concrete static analysis framework that uses abstract
-% interpretation\,---\,its features, architecture, and existing analysers
-% implemented in this tool. Next, there were described \emph{contracts for
-% concurrency}. The major part of the thesis then aimed at the description of
-% static analyser \emph{Atomer}\footnote{The implementation of a~new version of \textbf{Atomer}
-% is available at GitHub as an \emph{open-source} repository:
-% \url{https://github.com/harmim/infer/tree/atomer-v2.0.0}.}\,---\,proposed and implemented
-% within the author's bachelor's thesis~\cite{harmimBP}\,---\,implemented as
-% a~Facebook Infer's module, and that detects \emph{atomicity violations}.
-% It was described its limitations, and thereafter, it was described the
-% proposal and implementation of its extensions and improvements. Lastly,
-% the experimental evaluation of the new features and improvements was
-% depicted, and there were also described other performed experiments
-% and possible future work.
+\vspace{-.5em}
 
-% Atomer works on the level of \emph{sequences of function calls}. It is
-% based on the assumption that sequences of function calls executed
-% \emph{atomically once} should probably be executed \emph{always atomically},
-% and it naturally works with sequences. In the thesis, to improve
-% \emph{scalability}, the use of sequences was \emph{approximated} by
-% \emph{sets}. Further, two new features were implemented: support for
-% \emph{C++} and \emph{Java} languages; and distinguishing \emph{multiple
-% locks used}.
+The thesis started by describing the principles of program analysis with a~focus on \emph{static analysis} and \emph{abstract interpretation}. Further, \emph{Facebook Infer} was described\,---\,a~concrete static analysis framework that uses abstract interpretation. Next, there were described \emph{contracts for concurrency}. The major part of the thesis then aimed to describe static analyser \emph{Atomer}\footnote{The implementation of a~new version of \textbf{Atomer} is available at GitHub as an \emph{open-source} repository: \url{https://github.com/harmim/infer/tree/atomer-v2.0.0}.}\,---\,proposed and implemented within the author's bachelor's thesis~\cite{harmimBP}\,---\,implemented as a~Facebook Infer's module for detection of \emph{atomicity violations} in \emph{multi-threaded programs}. It was described its limitations, and thereafter, it was introduced the proposal and implementation of its extensions and improvements. Lastly, the experimental evaluation of the new features and improvements was discussed together with possible future work.
 
-% The introduced enhancements were successfully tested on \emph{hand-crafted}
-% programs. It turned out that such innovations improved the \emph{accuracy}
-% and \emph{scalability}. Moreover, Atomer was experimentally evaluated on
-% additional software. Notably, it was evaluated on \emph{real-life Java
-% programs}\,---\,\emph{Apache Cassandra} and \emph{Tomcat}. Already fixed
-% and reported \emph{real bugs} were successfully rediscovered. Nevertheless,
-% so far, quite some \emph{false alarms} are reported.
+\vspace{-.2em}
 
-% Several other improvements were proposed to reduce the number of false
-% alarms, namely, \emph{parametrisation} of the analysis, support for
-% \emph{interprocedural locks}, or combinations with a~\emph{dynamic analysis}.
-% Their implementation and evaluation is currently the work in progress.
+The first version of Atomer works on the level of \emph{sequences of function calls}. It is based on the assumption that sequences of function calls executed \emph{atomically once} should probably be executed \emph{always atomically}, and it naturally works with sequences. In the thesis, to improve \emph{scalability}, the use of sequences was \emph{approximated} by \emph{sets}. Furthermore, several new features were implemented, e.g., support for \emph{C++} and \emph{Java}, including various \emph{advanced kinds of locks} these languages offer (such as \emph{re-entrant locks} or \emph{lock guards}); or a~more precise way of \emph{distinguishing between different lock instances}. Moreover, the analysis has been \emph{parametrised}, so the user can provide some input values to the analysis to make the analysis more accurate.
 
-% Atomer's \emph{accuracy} can be further increased. Some of its limitations
-% and possible solutions are discussed in this thesis, e.g., considering
-% \emph{formal parameters} and distinguishing the \emph{context} of
-% called functions, \emph{ranking} of atomic functions, or focusing on
-% \emph{library containers concurrency restrictions} related to method
-% calls. Further, it is needed to perform more experiments on \emph{real-life}
-% programs to find and report \emph{new bugs}.
+\vspace{-.2em}
+
+The introduced enhancements were \emph{successfully tested} and \emph{experimentally evaluated} also on \emph{extensive real-life software} where \emph{real bugs} were \emph{successfully rediscovered}. It turned out that such innovations improved the \emph{accuracy} and \emph{scalability} of the analysis a~lot. However, Atomer's accuracy can be further increased. There are still some other improvements and ideas to work on, for instance, considering \emph{formal parameters} and \emph{distinguishing the context} of called functions; or combinations with a~\emph{dynamic analysis}. Another interesting idea is to use \emph{machine learning} to learn appropriate values of the analysis' parameters for particular programs. Further, it is needed to perform more experiments on real-life programs to find and report \emph{new bugs}.
+
+\vspace{-.2em}
+
+It is expected that the work on this project will continue within the VeriFIT group at FIT BUT. The preliminary results of the thesis were presented at the Excel@FIT'21 conference, where it \emph{won two awards}.
 
 
 
