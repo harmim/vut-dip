@@ -50,9 +50,9 @@
 \subtitle{Master's Thesis}
 
 \author{\texorpdfstring{%
-    Bc. Dominik Harmim \\
+    Dominik Harmim \\
     \footnotesize{Supervisor: prof. Ing. Tomáš Vojnar, Ph.D.}%
-}{Bc. Dominik Harmim; Supervisor: prof. Ing. Tomáš Vojnar, Ph.D.}}
+}{Dominik Harmim; Supervisor: prof. Ing. Tomáš Vojnar, Ph.D.}}
 
 \institute{%
     xharmi00@stud.fit.vutbr.cz \\
@@ -82,6 +82,10 @@
 
 \section{Motivation}
 \begin{frame}[fragile]{Motivation}
+    \textbf{The goal:} \emph{improve detection} of \alert{atomicity violations} within \emph{Facebook Infer}.
+    
+    \bigskip
+
     \begin{itemize}
         \item Detecting and checking desired \alert{atomicity} of \emph{function call sequences}.
             \medskip
@@ -115,7 +119,7 @@ void invoke(char *method) {
 
             \bigskip
 
-            \footnotesize{If \emph{not locked}, the method can be unregistered by a~\emph{concurrent thread}.}
+            \footnotesize{If \emph{not locked}, \texttt{\textbf{method}} can be unregistered by a~\emph{concurrent thread}.}
         \end{column}
     \end{columns}
 \end{frame}
@@ -181,7 +185,7 @@ void invoke(char *method) {
 
         \item Implemented for \emph{C~programs} that use \emph{PThread locks}.
 
-        \item Limited \alert{scalability} on \emph{extensive codebases}.
+        \item Limited \alert{scalability} on \emph{large codebases}.
 
         \item Reports many \alert{false alarms} when analysing \emph{real-life} code.
     \end{itemize}
@@ -191,99 +195,11 @@ void invoke(char *method) {
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\section{High-Level Analysis Process}
-\begin{frame}{High-Level Analysis Process}
-    \centering
-    \includegraphics[width=.7 \linewidth]{analyser-proposal-sets.pdf}
-\end{frame}
+\section{Proposed Atomer's Enhancements}
+\begin{frame}{Proposed Atomer's Enhancements}
+    \begin{itemize}\setlength\itemsep{2em}
+        \item \emph{Approximating} \alert{sequences} of calls by \alert{sets} of calls (described later on). 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Phases of the Analysis (Approximation with Sets)}
-\begin{frame}[fragile]{Phases of the Analysis (Approximation with Sets)}
-    \begin{columns}
-        \begin{column}[T]{.55 \linewidth}
-            \begin{enumerate}
-                \item Detection of \alert{atomic call sets}.
-            \end{enumerate}
-
-            \begin{itemize}
-                \item \emph{Approximates} \alert{sequences by sets}.
-
-                \item \textbf{Summary}: $ \chi \in \textcolor{brown}{2^\Sigma} \times \textcolor{magenta}{2^{2^\Sigma}} $ \\
-                    (\textcolor{brown}{set of all calls}, \textcolor{magenta}{set of atomic call sets})
-            \end{itemize}
-
-\begin{lstlisting}
-void f() {
-  <@\texttt{\textcolor{red}{\textbf{lock}}}@>(L);
-  x(); y(); z(); // x.y.z -> {x,y,z}
-  <@\texttt{\textcolor{red}{\textbf{unlock}}}@>(L);
-  a();
-  <@\texttt{\textcolor{red}{\textbf{lock}}}@>(L);
-  z(); y(); x(); // z.y.x -> {x,y,z}
-  <@\texttt{\textcolor{red}{\textbf{unlock}}}@>(L);
-}
-\end{lstlisting}
-
-            \centering
-            \footnotesize
-
-            $ \boldsymbol{\chi_\mathtt{f} = (\textcolor{brown}{\{\mathtt{a, x, y, z}\}}, \textcolor{magenta}{\{\{\mathtt{x, y, z}\}\}})} $
-
-            \smallskip
-
-            \textcolor{gray}{$ \chi_\mathtt{f}^\prime = (\textcolor{brown}{\mathtt{x \cdot y \cdot z \cdot a}}, \textcolor{magenta}{\{\mathtt{x \cdot y \cdot z}, \mathtt{z \cdot y \cdot x}\}}) $}
-        \end{column}
-
-        \begin{column}[T]{.45 \linewidth}
-            \begin{enumerate}\setcounter{enumi}{1}
-                \item Detection of \alert{atomicity violations}.
-            \end{enumerate}
-
-            \begin{itemize}
-                \item Derives "\alert{atomic pairs}" from the first phase: $ \Omega \in 2^{\Sigma \times \Sigma} $
-
-                \item Looks for \emph{non-atomic pairs} of calls assumed to \alert{run atomically}.
-
-                \item \textbf{Summary}: $ \chi \in \textcolor{orange}{2^{\Sigma \times \Sigma}} $ \\
-                    (\textcolor{orange}{set of atomicity violations})
-            \end{itemize}
-
-            \medskip
-
-\begin{lstlisting}
-void g() {
-  a(); <@\texttt{\textcolor{orange}{\textbf{x}}}@>(); <@\texttt{\textcolor{orange}{\textbf{y}}}@>(); b();
-}
-\end{lstlisting}
-
-            \medskip
-            \centering
-            \footnotesize
-
-            $ \boldsymbol{\Omega = \{(\mathtt{x, y}), (\mathtt{x, z}), (\mathtt{y, x}), (\mathtt{y, z}), (\mathtt{z, x}), (\mathtt{z, y})\}} $
-
-            \smallskip
-
-            \textcolor{gray}{$ \Omega^\prime = \{(\mathtt{x, y}), (\mathtt{y, z}), (\mathtt{z, y}), (\mathtt{y, x})\} $}
-
-            \smallskip
-
-            $ (\mathtt{\textcolor{orange}{\boldsymbol{\mathtt{x}}}, \textcolor{orange}{\boldsymbol{\mathtt{y}}}}) \in \Omega \Longrightarrow \boldsymbol{\chi_\mathtt{g} = \textcolor{orange}{\{(\mathtt{x, y})\}}} $
-        \end{column}
-    \end{columns}
-\end{frame}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Further Atomer's Enhancements}
-\begin{frame}{Further Atomer's Enhancements}
-    \begin{itemize}\setlength\itemsep{2.5em}
         \item Support for \alert{C++} and \alert{Java}.
             \medskip
             \begin{itemize}
@@ -310,6 +226,96 @@ void g() {
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+\section{High-Level Analysis Process (Approximated with Sets)}
+\begin{frame}{High-Level Analysis Process (Approximated with Sets)}
+    \centering
+    \includegraphics[width=.7 \linewidth]{analyser-proposal-sets.pdf}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Phases of the Analysis (Approximated with Sets)}
+\begin{frame}[fragile]{Phases of the Analysis (Approximated with Sets)}
+    \setbeamercovered{transparent}
+    \begin{columns}
+        \begin{column}<1>[T]{.55 \linewidth}
+            \begin{enumerate}
+                \item Detection of \alert{atomic call sets}.
+            \end{enumerate}
+
+            \begin{itemize}
+                \item \emph{Approximates} \alert{sequences by sets}.
+
+                \item \textbf{Summary}: $ \chi \in \textcolor{magenta}{2^{2^\Sigma}} $
+                    (\textcolor{magenta}{set of atomic call sets})
+            \end{itemize}
+            
+            \hfill
+
+\begin{lstlisting}
+void f() {
+  <@\texttt{\textcolor{red}{\textbf{lock}}}@>(L);
+  x(); y(); z(); // x.y.z -> {x,y,z}
+  <@\texttt{\textcolor{red}{\textbf{unlock}}}@>(L);
+  a();
+  <@\texttt{\textcolor{red}{\textbf{lock}}}@>(L);
+  z(); y(); x(); // z.y.x -> {x,y,z}
+  <@\texttt{\textcolor{red}{\textbf{unlock}}}@>(L);
+}
+\end{lstlisting}
+
+            \hfill
+
+            \centering
+            \footnotesize
+
+            $ \boldsymbol{\chi_\mathtt{f} = \textcolor{magenta}{\{\{\mathtt{x, y, z}\}\}}} $
+            
+            \hfill
+        \end{column}
+
+        \begin{column}<2>[T]{.45 \linewidth}
+            \begin{enumerate}\setcounter{enumi}{1}
+                \item Detection of \alert{atomicity violations}.
+            \end{enumerate}
+
+            \begin{itemize}
+                \item Derives "\alert{atomic pairs}" from the first phase: $ \Omega \in 2^{\Sigma \times \Sigma} $.
+
+                \item Looks for \emph{non-atomic pairs} of calls assumed to \alert{run atomically}.
+
+                \item \textbf{Summary}: $ \chi \in \textcolor{orange}{2^{\Sigma \times \Sigma}} $ \\
+                    (\textcolor{orange}{set of atomicity violations})
+            \end{itemize}
+
+            \hfill
+
+\begin{lstlisting}
+void g() {
+  a(); <@\texttt{\textcolor{orange}{\textbf{x}}}@>(); <@\texttt{\textcolor{orange}{\textbf{y}}}@>(); b();
+}
+\end{lstlisting}
+
+            \hfill
+
+            \centering
+            \footnotesize
+
+            $ \boldsymbol{\Omega = \{(\mathtt{x, y}), (\mathtt{x, z}), (\mathtt{y, x}), (\mathtt{y, z}), (\mathtt{z, x}), (\mathtt{z, y})\}} $
+
+            \smallskip
+
+            $ (\mathtt{\textcolor{orange}{\boldsymbol{\mathtt{x}}}, \textcolor{orange}{\boldsymbol{\mathtt{y}}}}) \in \Omega \Longrightarrow \boldsymbol{\chi_\mathtt{g} = \textcolor{orange}{\{(\mathtt{x, y})\}}} $
+        \end{column}
+    \end{columns}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 \section{Experimental Evaluation}
 \begin{frame}{Experimental Evaluation}
     \begin{columns}
@@ -321,7 +327,7 @@ void g() {
                         \item 806,431 LOC in total.
                     \end{itemize}
 
-                \item \alert{Double acceleration} in average.
+                \item On average, \alert{twice faster}.
             \end{itemize}
         \end{column}
 
@@ -402,7 +408,7 @@ void g() {
             \end{itemize}
     \end{itemize}
     
-    \footnotetext[1]{The preliminary results of this work were presented at the \emph{Excel@FIT’21} (it \alert{won two awards}). It is supported by the \emph{H2020 ECSEL project VALU3S}.}
+    \footnotetext[1]{The preliminary results of this work were presented at the \emph{Excel@FIT’21} (\alert{won two awards}). It is supported by the \emph{H2020 ECSEL project VALU3S}.}
 \end{frame}
 
 
@@ -425,9 +431,52 @@ void g() {
 
                 \item Repositář Atomeru je \emph{pravidelně aktualizován na nejnovější verzi} frameworku.
 
-                \item Atomer už byl dříve (úspěšně) \alert{prezentován} a~\alert{konzultován} s~\emph{vývojáři Inferu}.
+                \item Atomer už byl dříve (úspěšně) \alert{presentován} a~\alert{konsultován} s~\emph{vývojáři Inferu}.
+                    \medskip
+                    \begin{itemize}
+                        \item Presentace na \alert{Infer Practitioners Workshop} v~rámci konference \emph{PLDI 2020}.
+                    \end{itemize}
             \end{itemize}
     \end{enumerate}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Advanced Manipulation with Locks}
+\begin{frame}{Advanced Manipulation with Locks}
+    \begin{itemize}\setlength\itemsep{1.5em}
+        \item \emph{Access path} used for a~\alert{lock's identification}: $ \pi \in \Pi \Coloneqq Var \times Field^* $,
+            \smallskip
+            \begin{itemize}\setlength\itemsep{.8em}
+                \item $ Var $ is a~set of all variables,
+
+                \item $ Field $ is a~set of field names.
+            \end{itemize}
+
+        \item Identification of a~\alert{critical section}: $ (\pi, l) \in \Pi \times \mathbb{N}^\top $,
+            \smallskip
+            \begin{itemize}\setlength\itemsep{.8em}
+                \item $ \pi $ is an access path that identifies a~\emph{lock object} that locks the section,
+
+                \item $ l $ is the \emph{number of locks} of the lock object identified by~$ \pi $,
+
+                \item $ \mathbb{N}^\top $ denotes $ \mathbb{N} \cup \{\top\} $,
+                    \smallskip
+                    \begin{itemize}
+                        \item $ \top $ represents a~number larger than some \alert{upper bound}~$ t \in \mathbb{N} $.
+                    \end{itemize}
+            \end{itemize}
+
+        \item Representation of a~\alert{lock guard}: $ (\pi_g, L) \in \Pi \times 2^\Pi $,
+            \smallskip
+            \begin{itemize}\setlength\itemsep{.8em}
+                \item $ \pi_g $ is an access path that identifies the lock guard,
+
+                \item $ L $ is a~set of access paths that identify \emph{lock objects} associated with the guard.
+            \end{itemize}
+    \end{itemize}
 \end{frame}
 
 
@@ -467,7 +516,7 @@ void g() {
 
 \section{Rediscovered Bug in Apache Tomcat}
 \begin{frame}[fragile]{Rediscovered Bug in Apache Tomcat}
-    \alert{Real-life bug} in a~package \texttt{org.apache.catalina.core.StandardContext}
+    \alert{Real-life bug} in a~package \texttt{\textbf{org.apache.catalina.core.StandardContext}}
 
     \medskip
 
@@ -485,45 +534,6 @@ public void addParameter(String name, String value) {
   fireContainerEvent("addParameter", name);
 }
 \end{lstlisting}
-\end{frame}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Advanced Manipulation with Locks}
-\begin{frame}{Advanced Manipulation with Locks}
-    \begin{itemize}\setlength\itemsep{1.5em}
-        \item \emph{Access path} used for a~\alert{lock's identification}: $ \pi \in \Pi \Coloneqq Var \times Field^* $,
-            \smallskip
-            \begin{itemize}\setlength\itemsep{.8em}
-                \item $ Var $ is a~set of all variables,
-
-                \item $ Field $ is a~set of field names.
-            \end{itemize}
-
-        \item Identification of a~\alert{critical section}: $ (\pi, l) \in \Pi \times \mathbb{N}^\top $,
-            \smallskip
-            \begin{itemize}\setlength\itemsep{.8em}
-                \item $ \pi $ is an access path that identifies a~\emph{lock object} that locks the section,
-
-                \item $ l $ is the \emph{number of locks} of the lock object identified by~$ \pi $,
-
-                \item $ \mathbb{N}^\top $ denotes $ \mathbb{N} \cup \{\top\} $,
-                    \smallskip
-                    \begin{itemize}
-                        \item $ \top $ represents a~number larger than some \alert{upper bound}~$ t \in \mathbb{N} $.
-                    \end{itemize}
-            \end{itemize}
-
-        \item Representation of a~\alert{lock guard}: $ (\pi_g, L) \in \Pi \times 2^\Pi $,
-            \smallskip
-            \begin{itemize}\setlength\itemsep{.8em}
-                \item $ \pi_g $ is is an access path that identifies the lock guard,
-
-                \item $ L $ is a~set of access paths that identify \emph{lock objects} associated with the guard.
-            \end{itemize}
-    \end{itemize}
 \end{frame}
 
 
