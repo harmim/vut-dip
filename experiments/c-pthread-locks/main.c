@@ -1,3 +1,5 @@
+// Author: Dominik Harmim <iharmim@fit.vut.cz>
+
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -18,13 +20,9 @@ void y(void) {}
 void test_mutex(void)
 {
 	x();
-
 	pthread_mutex_lock(&mutex); // {f1, f2}
-	{
-		f1(); f2();
-	}
+	f1(); f2();
 	pthread_mutex_unlock(&mutex);
-
 	y();
 }
 
@@ -32,13 +30,9 @@ void test_mutex(void)
 void test_spin(void)
 {
 	x();
-
 	pthread_spin_lock(&spinlock); // {f1, f2}
-	{
-		f1(); f2();
-	}
+	f1(); f2();
 	pthread_spin_unlock(&spinlock);
-
 	y();
 }
 
@@ -46,13 +40,9 @@ void test_spin(void)
 void test_rwlock_rd(void)
 {
 	x();
-
 	pthread_rwlock_rdlock(&rwlock); // {f1, f2}
-	{
-		f1(); f2();
-	}
+	f1(); f2();
 	pthread_rwlock_unlock(&rwlock);
-
 	y();
 }
 
@@ -60,13 +50,9 @@ void test_rwlock_rd(void)
 void test_rwlock_wr(void)
 {
 	x();
-
 	pthread_rwlock_wrlock(&rwlock); // {f1, f2}
-	{
-		f1(); f2();
-	}
+	f1(); f2();
 	pthread_rwlock_unlock(&rwlock);
-
 	y();
 }
 

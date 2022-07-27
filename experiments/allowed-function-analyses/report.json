@@ -1,0 +1,24 @@
+[
+    {
+        "bug_type": "ATOMICITY_VIOLATION_ERROR",
+        "qualifier": "Atomicity Violation! - Functions 'f1' and 'f2' should be called atomically.",
+        "severity": "ERROR",
+        "line": 41,
+        "column": 8,
+        "procedure": "test_violations1",
+        "procedure_start_line": 0,
+        "file": "main.c",
+        "bug_trace": [
+            {
+                "level": 0,
+                "filename": "main.c",
+                "line_number": 41,
+                "column_number": 8,
+                "description": "Atomicity Violation! - Functions 'f1' and 'f2' should be called atomically."
+            }
+        ],
+        "key": "main.c|test_violations1|ATOMICITY_VIOLATION_ERROR",
+        "hash": "6452d0149f070036b55d47e66765bd62",
+        "bug_type_hum": "Atomicity Violation"
+    }
+]

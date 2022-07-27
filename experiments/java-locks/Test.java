@@ -1,3 +1,5 @@
+// Author: Dominik Harmim <iharmim@fit.vut.cz>
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -36,11 +38,9 @@ public class Test
 		private void testSynchronizedBlock1()
 		{
 			x();
-
 			synchronized(this) { // {f1, f2}
 				f1(); f2();
 			}
-
 			y();
 		}
 
@@ -48,11 +48,9 @@ public class Test
 		private void testSynchronizedBlock2()
 		{
 			x();
-
 			synchronized(monitor) { // {f1, f2}
 				f1(); f2();
 			}
-
 			y();
 		}
 
@@ -66,12 +64,9 @@ public class Test
 		private void testLock()
 		{
 			x();
-
-			lock.lock(); { // {f1, f2}
-				f1(); f2();
-			}
+			lock.lock(); // {f1, f2}
+			f1(); f2();
 			lock.unlock();
-
 			y();
 		}
 
@@ -79,7 +74,6 @@ public class Test
 		private void testLockInterruptibly()
 		{
 			x();
-
 			try {
 				lock.lockInterruptibly(); // {f1, f2}
 				f1(); f2();
@@ -87,7 +81,6 @@ public class Test
 			} finally {
 				lock.unlock();
 			}
-
 			y();
 		}
 
@@ -95,12 +88,9 @@ public class Test
 		private void testReentrantLock()
 		{
 			x();
-
-			reentrantLock.lock(); { // {f1, f2}
-				f1(); f2();
-			}
+			reentrantLock.lock(); // {f1, f2}
+			f1(); f2();
 			reentrantLock.unlock();
-
 			y();
 		}
 
@@ -108,7 +98,6 @@ public class Test
 		private void testReentrantLockInterruptibly()
 		{
 			x();
-
 			try {
 				reentrantLock.lockInterruptibly(); // {f1, f2}
 				f1(); f2();
@@ -116,7 +105,6 @@ public class Test
 			} finally {
 				reentrantLock.unlock();
 			}
-
 			y();
 		}
 
@@ -124,12 +112,9 @@ public class Test
 		private void testReadLock()
 		{
 			x();
-
-			readLock.lock(); { // {f1, f2}
-				f1(); f2();
-			}
+			readLock.lock(); // {f1, f2}
+			f1(); f2();
 			readLock.unlock();
-
 			y();
 		}
 
@@ -137,7 +122,6 @@ public class Test
 		private void testReadLockInterruptibly()
 		{
 			x();
-
 			try {
 				readLock.lockInterruptibly(); // {f1, f2}
 				f1(); f2();
@@ -145,7 +129,6 @@ public class Test
 			} finally {
 				readLock.unlock();
 			}
-
 			y();
 		}
 
@@ -153,12 +136,9 @@ public class Test
 		private void testWriteLock()
 		{
 			x();
-
-			writeLock.lock(); { // {f1, f2}
-				f1(); f2();
-			}
+			writeLock.lock(); // {f1, f2}
+			f1(); f2();
 			writeLock.unlock();
-
 			y();
 		}
 
@@ -166,7 +146,6 @@ public class Test
 		private void testWriteLockInterruptibly()
 		{
 			x();
-
 			try {
 				writeLock.lockInterruptibly(); // {f1, f2}
 				f1(); f2();
@@ -174,7 +153,6 @@ public class Test
 			} finally {
 				writeLock.unlock();
 			}
-
 			y();
 		}
 
@@ -182,12 +160,9 @@ public class Test
 		private void testStampLockRead()
 		{
 			x();
-
-			long stamp = stampedLock.readLock(); { // {f1, f2}
-				f1(); f2();
-			}
+			long stamp = stampedLock.readLock(); // {f1, f2}
+			f1(); f2();
 			stampedLock.unlockRead(stamp);
-
 			y();
 		}
 
@@ -195,7 +170,6 @@ public class Test
 		private void testStampLockReadInterruptibly()
 		{
 			x();
-
 			try {
 				stampedLock.readLockInterruptibly(); // {f1, f2}
 				f1(); f2();
@@ -203,7 +177,6 @@ public class Test
 			} finally {
 				stampedLock.tryUnlockRead();
 			}
-
 			y();
 		}
 
@@ -211,12 +184,9 @@ public class Test
 		private void testStampLockWrite()
 		{
 			x();
-
-			long stamp = stampedLock.writeLock(); { // {f1, f2}
-				f1(); f2();
-			}
+			long stamp = stampedLock.writeLock(); // {f1, f2}
+			f1(); f2();
 			stampedLock.unlockWrite(stamp);
-
 			y();
 		}
 
@@ -224,7 +194,6 @@ public class Test
 		private void testStampLockWriteInterruptibly()
 		{
 			x();
-
 			try {
 				stampedLock.writeLockInterruptibly(); // {f1, f2}
 				f1(); f2();
@@ -232,7 +201,6 @@ public class Test
 			} finally {
 				stampedLock.tryUnlockWrite();
 			}
-
 			y();
 		}
 
@@ -240,12 +208,9 @@ public class Test
 		private void testStampLockGeneralUnlock()
 		{
 			x();
-
-			long stamp = stampedLock.readLock(); { // {f1, f2}
-				f1(); f2();
-			}
+			long stamp = stampedLock.readLock(); // {f1, f2}
+			f1(); f2();
 			stampedLock.unlock(stamp);
-
 			y();
 		}
 	}

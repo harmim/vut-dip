@@ -1,3 +1,5 @@
+// Author: Dominik Harmim <iharmim@fit.vut.cz>
+
 #include <mutex>
 
 
@@ -21,13 +23,11 @@ public:
 	void test1()
 	{
 		x();
-
 		mutex.lock(); // {f1, f2}
 		mutex.lock();
 		f1(); f2();
 		mutex.unlock();
 		mutex.unlock();
-
 		y();
 	}
 
@@ -35,14 +35,12 @@ public:
 	void test2()
 	{
 		x();
-
 		mutex.lock(); // {f2, f3}
 		mutex.lock();
 		f2();
 		mutex.unlock();
 		f3();
 		mutex.unlock();
-
 		y();
 	}
 
@@ -65,9 +63,7 @@ public:
 		mutex.unlock();
 
 		x();
-
 		f1(); f3(); // (f1, f3)
-
 		y();
 
 		while (a) mutex.lock(); // {f2, f3}; {f1, f2, f3}

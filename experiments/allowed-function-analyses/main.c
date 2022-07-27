@@ -1,3 +1,5 @@
+// Author: Dominik Harmim <iharmim@fit.vut.cz>
+
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -18,9 +20,7 @@ void test1(void)
 {
 	x();
 	pthread_mutex_lock(&lock); // {f1, f2, f3}
-	{
-		f1(); f2(); f3();
-	}
+	f1(); f2(); f3();
 	pthread_mutex_unlock(&lock);
 	y();
 }
@@ -30,9 +30,7 @@ void test2(void)
 {
 	x();
 	pthread_mutex_lock(&lock);
-	{
-		f4(); f5();
-	}
+	f4(); f5();
 	pthread_mutex_unlock(&lock);
 	y();
 }

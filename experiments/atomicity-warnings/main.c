@@ -1,3 +1,5 @@
+// Author: Dominik Harmim <iharmim@fit.vut.cz>
+
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -14,13 +16,9 @@ void y(void) {}
 void atomic_sequences(void)
 {
 	x();
-
 	pthread_mutex_lock(&mutex); // {f1, f2}
-	{
-		f1(); f2();
-	}
+	f1(); f2();
 	pthread_mutex_unlock(&mutex);
-
 	y();
 }
 
@@ -46,9 +44,7 @@ void test_warning_1(void)
 void test_warning_called_from_main(void)
 {
 	pthread_mutex_lock(&mutex); // {f1, f2, test_warning_1}
-	{
-		test_warning_1();
-	}
+	test_warning_1();
 	pthread_mutex_unlock(&mutex);
 }
 
@@ -62,9 +58,7 @@ void test_warning_2(void)
 void test_warning_not_called_from_main(void)
 {
 	pthread_mutex_lock(&mutex); // {f1, f2, test_warning_2}
-	{
-		test_warning_2();
-	}
+	test_warning_2();
 	pthread_mutex_unlock(&mutex);
 }
 
@@ -78,9 +72,7 @@ void test_warning_3(void)
 void test_warning_multiple_calls_1(void)
 {
 	pthread_mutex_lock(&mutex); // {f1, f2, test_warning_3}
-	{
-		test_warning_3();
-	}
+	test_warning_3();
 	pthread_mutex_unlock(&mutex);
 }
 
@@ -88,9 +80,7 @@ void test_warning_multiple_calls_1(void)
 void test_warning_multiple_calls_2(void)
 {
 	pthread_mutex_lock(&mutex); // {f1, f2, test_warning_3}
-	{
-		test_warning_3();
-	}
+	test_warning_3();
 	pthread_mutex_unlock(&mutex);
 }
 
@@ -111,26 +101,23 @@ void test_warning_deeper_2(void)
 {
 	f1(); f2(); // warning (f1, f2)
 
-	test_warning_deeper_1(); // warning (f2, test_warning_deeper_1); warning (test_warning_deeper_1, test_warning_4)
+	// warning (f2, test_warning_deeper_1)
+	// warning (test_warning_deeper_1, test_warning_4)
+	test_warning_deeper_1();
 }
 
 
 void test_warning_deeper_3(void)
 {
 	pthread_mutex_lock(&mutex); // {f1, f2}
-	{
-		f1(); f2();
-	}
+	f1(); f2();
 	pthread_mutex_unlock(&mutex);
 
 	x();
-
-	pthread_mutex_lock(&mutex); // {f1, f2, test_warning_4, test_warning_deeper_1, test_warning_deeper_2}
-	{
-		test_warning_deeper_2();
-	}
+	// {f1, f2, test_warning_4, test_warning_deeper_1, test_warning_deeper_2}
+	pthread_mutex_lock(&mutex);
+	test_warning_deeper_2();
 	pthread_mutex_unlock(&mutex);
-
 	y();
 }
 
@@ -144,9 +131,7 @@ void test_warning_violation(void)
 void test_warning_violation_1(void)
 {
 	pthread_mutex_lock(&mutex); // {f1, f2, test_warning_violation}
-	{
-		test_warning_violation();
-	}
+	test_warning_violation();
 	pthread_mutex_unlock(&mutex);
 }
 

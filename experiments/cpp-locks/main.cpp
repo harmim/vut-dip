@@ -1,3 +1,5 @@
+// Author: Dominik Harmim <iharmim@fit.vut.cz>
+
 #include <mutex>
 #include <shared_mutex>
 
@@ -23,13 +25,9 @@ public:
 	void test_mutex()
 	{
 		x();
-
 		mutex.lock(); // {f1, f2}
-		{
-			f1(); f2();
-		}
+		f1(); f2();
 		mutex.unlock();
-
 		y();
 	}
 
@@ -37,13 +35,9 @@ public:
 	void test_timed_mutex()
 	{
 		x();
-
 		timed_mutex.lock(); // {f1, f2}
-		{
-			f1(); f2();
-		}
+		f1(); f2();
 		timed_mutex.unlock();
-
 		y();
 	}
 
@@ -51,13 +45,9 @@ public:
 	void test_recursive_mutex()
 	{
 		x();
-
 		recursive_mutex.lock(); // {f1, f2}
-		{
-			f1(); f2();
-		}
+		f1(); f2();
 		recursive_mutex.unlock();
-
 		y();
 	}
 
@@ -65,13 +55,9 @@ public:
 	void test_recursive_timed_mutex()
 	{
 		x();
-
 		recursive_timed_mutex.lock(); // {f1, f2}
-		{
-			f1(); f2();
-		}
+		f1(); f2();
 		recursive_timed_mutex.unlock();
-
 		y();
 	}
 
@@ -79,13 +65,9 @@ public:
 	void test_shared_mutex()
 	{
 		x();
-
 		shared_mutex.lock(); // {f1, f2}
-		{
-			f1(); f2();
-		}
+		f1(); f2();
 		shared_mutex.unlock();
-
 		y();
 	}
 
@@ -93,13 +75,9 @@ public:
 	void test_shared_mutex_shared_lock()
 	{
 		x();
-
 		shared_mutex.lock_shared(); // {f1, f2}
-		{
-			f1(); f2();
-		}
+		f1(); f2();
 		shared_mutex.unlock_shared();
-
 		y();
 	}
 
@@ -107,13 +85,9 @@ public:
 	void test_shared_timed_mutex()
 	{
 		x();
-
 		shared_timed_mutex.lock(); // {f1, f2}
-		{
-			f1(); f2();
-		}
+		f1(); f2();
 		shared_timed_mutex.unlock();
-
 		y();
 	}
 
@@ -121,13 +95,9 @@ public:
 	void test_shared_mutex_timed_shared_lock()
 	{
 		x();
-
 		shared_timed_mutex.lock_shared(); // {f1, f2}
-		{
-			f1(); f2();
-		}
+		f1(); f2();
 		shared_timed_mutex.unlock_shared();
-
 		y();
 	}
 };

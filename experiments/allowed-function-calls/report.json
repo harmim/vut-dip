@@ -1,0 +1,24 @@
+[
+    {
+        "bug_type": "ATOMICITY_VIOLATION_ERROR",
+        "qualifier": "Atomicity Violation! - Functions 'f1' and 'f4' should be called atomically.",
+        "severity": "ERROR",
+        "line": 31,
+        "column": 8,
+        "procedure": "test_violations",
+        "procedure_start_line": 0,
+        "file": "main.c",
+        "bug_trace": [
+            {
+                "level": 0,
+                "filename": "main.c",
+                "line_number": 31,
+                "column_number": 8,
+                "description": "Atomicity Violation! - Functions 'f1' and 'f4' should be called atomically."
+            }
+        ],
+        "key": "main.c|test_violations|ATOMICITY_VIOLATION_ERROR",
+        "hash": "3389d99dbb1df362df139e9759c52801",
+        "bug_type_hum": "Atomicity Violation"
+    }
+]

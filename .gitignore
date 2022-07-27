@@ -1,2 +1,7 @@
 /bibliography/
 /submission/
+
+*.o
+*.class
+*.ast.sh
+infer-out/

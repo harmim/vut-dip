@@ -1,3 +1,5 @@
+// Author: Dominik Harmim <iharmim@fit.vut.cz>
+
 #include <mutex>
 #include <shared_mutex>
 
@@ -21,13 +23,11 @@ public:
 	void test_std_lock_with_mutexs()
 	{
 		x();
-
 		std::lock(mutex, mutex2); // {f1, f2, f3}; {f1, f2}
 		f1(); f2();
 		mutex2.unlock();
 		f3();
 		mutex.unlock();
-
 		y();
 	}
 
@@ -35,7 +35,6 @@ public:
 	void test_std_lock_with_guards()
 	{
 		x();
-
 		{
 			std::unique_lock<std::mutex> guard(mutex, std::defer_lock);
 			{
@@ -45,7 +44,6 @@ public:
 			}
 			f3();
 		}
-
 		y();
 	}
 
@@ -53,12 +51,10 @@ public:
 	void test_lock_guard()
 	{
 		x();
-
 		{
 			std::lock_guard<std::mutex> guard(mutex); // {f1, f2}
 			f1(); f2();
 		}
-
 		y();
 	}
 
@@ -66,14 +62,12 @@ public:
 	void test_lock_guard_adopt_lock()
 	{
 		x();
-
 		{
 			mutex.lock(); // {f1, f2, f3}
 			f1();
 			std::lock_guard<std::mutex> guard(mutex, std::adopt_lock);
 			f2(); f3();
 		}
-
 		y();
 	}
 
@@ -81,17 +75,13 @@ public:
 	void test_lock_guard_reentrant_1()
 	{
 		x();
-
 		recursive_mutex.lock(); // {f1, f2, f3}
 		{
-			{
-				std::lock_guard<std::recursive_mutex> guard(recursive_mutex);
-				f1(); f2();
-			}
-			f3();
+			std::lock_guard<std::recursive_mutex> guard(recursive_mutex);
+			f1(); f2();
 		}
+		f3();
 		recursive_mutex.unlock();
-
 		y();
 	}
 
@@ -99,15 +89,14 @@ public:
 	void test_lock_guard_reentrant_2()
 	{
 		x();
-
 		{
-			std::lock_guard<std::recursive_mutex> guard(recursive_mutex); // {f1, f2, f3}
+			// {f1, f2, f3}
+			std::lock_guard<std::recursive_mutex> guard(recursive_mutex);
 			recursive_mutex.lock();
 			f1(); f2();
 			recursive_mutex.unlock();
 			f3();
 		}
-
 		y();
 	}
 
@@ -115,9 +104,9 @@ public:
 	void test_lock_guard_reentrant_3()
 	{
 		x();
-
 		{
-			std::lock_guard<std::recursive_mutex> guard(recursive_mutex); // {f1, f2, f3}
+			// {f1, f2, f3}
+			std::lock_guard<std::recursive_mutex> guard(recursive_mutex);
 			f1();
 			{
 				std::lock_guard<std::recursive_mutex> guard2(recursive_mutex);
@@ -125,7 +114,6 @@ public:
 			}
 			f3();
 		}
-
 		y();
 	}
 
@@ -133,12 +121,10 @@ public:
 	void test_unique_lock()
 	{
 		x();
-
 		{
 			std::unique_lock<std::mutex> guard(mutex); // {f1, f2}
 			f1(); f2();
 		}
-
 		y();
 	}
 
@@ -146,15 +132,11 @@ public:
 	void test_unique_lock_lock_unlock()
 	{
 		x();
-
 		std::unique_lock<std::mutex> guard(mutex, std::defer_lock);
 		f1();
 		guard.lock(); // {f2, f3}
-		{
-			f2(); f3();
-		}
+		f2(); f3();
 		guard.unlock();
-
 		y();
 	}
 
@@ -162,7 +144,6 @@ public:
 	void test_unique_lock_release()
 	{
 		x();
-
 		{
 			std::unique_lock<std::mutex> guard(mutex); // {f1, f2, f3}
 			f1(); f2();
@@ -171,7 +152,6 @@ public:
 		}
 		f3();
 		mutex.unlock();
-
 		y();
 	}
 
@@ -179,12 +159,10 @@ public:
 	void test_unique_lock_try_to_lock()
 	{
 		x();
-
 		{
 			std::unique_lock<std::mutex> guard(mutex, std::try_to_lock);
 			f1(); f2();
 		}
-
 		y();
 	}
 
@@ -192,14 +170,12 @@ public:
 	void test_unique_lock_adopt_lock()
 	{
 		x();
-
 		{
 			mutex.lock(); // {f1, f2, f3}
 			f1();
 			std::unique_lock<std::mutex> guard(mutex, std::adopt_lock);
 			f2(); f3();
 		}
-
 		y();
 	}
 
@@ -207,14 +183,12 @@ public:
 	void test_unique_lock_defer_lock()
 	{
 		x();
-
 		{
 			std::unique_lock<std::mutex> guard(mutex, std::defer_lock);
 			f1();
 			guard.lock(); // {f2, f3}
 			f2(); f3();
 		}
-
 		y();
 	}
 
@@ -222,15 +196,11 @@ public:
 	void test_unique_lock_lock_unlock_mutex()
 	{
 		x();
-
 		std::unique_lock<std::mutex> guard(mutex, std::defer_lock);
 		f1();
 		mutex.lock(); // {f2, f3}
-		{
-			f2(); f3();
-		}
+		f2(); f3();
 		mutex.unlock();
-
 		y();
 	}
 
@@ -238,7 +208,6 @@ public:
 	void test_unique_lock_multiple_guards()
 	{
 		x();
-
 		{
 			std::unique_lock<std::mutex> guard(mutex, std::defer_lock);
 			f1();
@@ -249,7 +218,6 @@ public:
 			}
 			f3();
 		}
-
 		y();
 	}
 
@@ -257,12 +225,10 @@ public:
 	void test_shared_lock()
 	{
 		x();
-
 		{
 			std::shared_lock<std::shared_mutex> guard(shared_mutex); // {f1, f2}
 			f1(); f2();
 		}
-
 		y();
 	}
 
@@ -270,15 +236,13 @@ public:
 	void test_shared_lock_lock_unlock()
 	{
 		x();
-
-		std::shared_lock<std::shared_mutex> guard(shared_mutex, std::defer_lock);
+		std::shared_lock<std::shared_mutex> guard(
+			shared_mutex, std::defer_lock
+		);
 		f1();
 		guard.lock(); // {f2, f3}
-		{
-			f2(); f3();
-		}
+		f2(); f3();
 		guard.unlock();
-
 		y();
 	}
 
@@ -286,16 +250,15 @@ public:
 	void test_shared_lock_release()
 	{
 		x();
-
 		{
-			std::shared_lock<std::shared_mutex> guard(shared_mutex); // {f1, f2, f3}
+			// {f1, f2, f3}
+			std::shared_lock<std::shared_mutex> guard(shared_mutex);
 			f1(); f2();
 			guard.release();
 			guard.unlock();
 		}
 		f3();
 		shared_mutex.unlock();
-
 		y();
 	}
 
@@ -303,12 +266,12 @@ public:
 	void test_shared_lock_try_to_lock()
 	{
 		x();
-
 		{
-			std::shared_lock<std::shared_mutex> guard(shared_mutex, std::try_to_lock);
+			std::shared_lock<std::shared_mutex> guard(
+				shared_mutex, std::try_to_lock
+			);
 			f1(); f2();
 		}
-
 		y();
 	}
 
@@ -316,14 +279,14 @@ public:
 	void test_shared_lock_adopt_lock()
 	{
 		x();
-
 		{
 			shared_mutex.lock(); // {f1, f2, f3}
 			f1();
-			std::shared_lock<std::shared_mutex> guard(shared_mutex, std::adopt_lock);
+			std::shared_lock<std::shared_mutex> guard(
+				shared_mutex, std::adopt_lock
+			);
 			f2(); f3();
 		}
-
 		y();
 	}
 
@@ -331,14 +294,14 @@ public:
 	void test_shared_lock_defer_lock()
 	{
 		x();
-
 		{
-			std::shared_lock<std::shared_mutex> guard(shared_mutex, std::defer_lock);
+			std::shared_lock<std::shared_mutex> guard(
+				shared_mutex, std::defer_lock
+			);
 			f1();
 			guard.lock(); // {f2, f3}
 			f2(); f3();
 		}
-
 		y();
 	}
 
@@ -346,12 +309,10 @@ public:
 	void test_scoped_lock()
 	{
 		x();
-
 		{
 			std::scoped_lock guard(mutex); // {f1, f2}
 			f1(); f2();
 		}
-
 		y();
 	}
 
@@ -359,14 +320,12 @@ public:
 	void test_scoped_lock_adopt_lock()
 	{
 		x();
-
 		{
 			mutex.lock(); // {f1, f2, f3}
 			f1();
 			std::scoped_lock guard(std::adopt_lock, mutex);
 			f2(); f3();
 		}
-
 		y();
 	}
 
@@ -374,14 +333,12 @@ public:
 	void test_scoped_lock_multiple_locks()
 	{
 		x();
-
 		{
 			std::scoped_lock guard(mutex, mutex2); // {f1, f2, f3}; {f1, f2}
 			f1(); f2();
 			mutex2.unlock();
 			f3();
 		}
-
 		y();
 	}
 };
